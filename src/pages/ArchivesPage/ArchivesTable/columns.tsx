@@ -1,12 +1,13 @@
 import { Button, Icon, Link, Tag, Text, Tooltip } from '@sds-eng/base';
 import { DataGridColumnDef } from '@sds-eng/data-grid';
 
-import { ArchiveConfigurationRow, ArchiveIndexRow } from '../types';
+import { ArchiveConfigView, ArchiveInstanceView } from '@src/Entities/Archives/types';
 
 import StatusBadge from './StatusBadge';
+
 import * as styles from './styles.module.css';
 
-export const archiveIndexColumns: DataGridColumnDef<ArchiveIndexRow>[] = [
+export const archiveIndexColumns: DataGridColumnDef<ArchiveInstanceView>[] = [
   {
     accessorKey: 'configName',
     header: 'Конфигурация',
@@ -29,7 +30,7 @@ export const archiveIndexColumns: DataGridColumnDef<ArchiveIndexRow>[] = [
     header: 'Статус',
     size: 140,
     minSize: 130,
-    Cell: ({ cell }) => <StatusBadge status={cell.getValue<ArchiveIndexRow['status']>()} />,
+    Cell: ({ cell }) => <StatusBadge status={cell.getValue<ArchiveInstanceView['instanceStatus']>()} />,
     tableBodyCellProps: {
       style: { textOverflow: 'unset' },
     },
@@ -113,7 +114,7 @@ const configurationActionsHeaderProps = {
   style: { textAlign: 'right' as const },
 };
 
-export const archiveConfigurationColumns: DataGridColumnDef<ArchiveConfigurationRow>[] = [
+export const archiveConfigurationColumns: DataGridColumnDef<ArchiveConfigView>[] = [
   {
     accessorKey: 'configuration',
     header: 'Конфигурация',

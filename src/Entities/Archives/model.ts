@@ -1,7 +1,7 @@
 import { combine, createStore } from 'effector';
 
 import { fetchArchivesFx } from './api';
-import { ArchiveConfiguration, ArchiveInstanceView } from './types';
+import { ArchiveConfigView, ArchiveConfiguration, ArchiveInstanceView } from './types';
 
 export const $archives = createStore<ArchiveConfiguration[]>([]);
 $archives.on(fetchArchivesFx.doneData, (_, payload) => payload.data);
@@ -24,7 +24,7 @@ export const $archiveInstances = combine($archives, (archives): ArchiveInstanceV
     ),
 );
 
-export const $archiveConfigs = combine($archives, (archives) =>
+export const $archiveConfigs = combine($archives, (archives): ArchiveConfigView[] =>
   archives.map((item) => {
     return {
       id: item.id,

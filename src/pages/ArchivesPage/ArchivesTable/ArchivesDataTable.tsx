@@ -17,7 +17,7 @@ interface ArchivesDataTableProps<TRow extends { id: number | string }> {
   isLoading?: boolean;
 }
 
-export const ArchivesDataTable = <TRow extends { id: string }>({
+export const ArchivesDataTable = <TRow extends { id: number | string }>({
   data,
   columns,
   tableKey,
@@ -79,7 +79,7 @@ export const ArchivesDataTable = <TRow extends { id: string }>({
         columns={columns as DataGridColumnDef<TRow, unknown>[]}
         isLoading={Boolean(isLoading)}
         onScroll={() => {}}
-        getRowId={(row) => row.id}
+        getRowId={(row) => String(row.id)}
         layoutMode="semantic"
         defaultColumn={{ minSize: 60, enableColumnFilter: false, enableSorting: false }}
         enableStickyHeader

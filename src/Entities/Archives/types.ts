@@ -38,10 +38,26 @@ export interface ArchiveInstance {
 export type ArchiveInstanceView = ArchiveInstance & {
   configName: string;
   configVersion: string;
-  instanceStatus: string;
+  instanceStatus: IndexingStatus;
   currentSizeBytes: number;
   maxSizeBytes: number;
+  maxIndexSize: number;
+  maxWriteSpeed: number;
+  maxRetention: number | null;
+  hasVersionMismatch?: boolean;
+  instanceVersion?: string;
 };
+
+export interface ArchiveConfigView {
+  id: number | string;
+  configuration: string;
+  projectKey: string;
+  instancesCount: number;
+  maxWriteSpeed: number;
+  maxIndexSize: number;
+  maxRetention: number | null;
+  labels?: string[];
+}
 
 export interface ArchiveConfiguration {
   id: number | string;
