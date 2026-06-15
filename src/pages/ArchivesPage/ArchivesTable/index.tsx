@@ -1,9 +1,9 @@
 import { Button, Icon, TextField } from '@sds-eng/base';
 import { DataGridPaginationState, DataGridTableInstance, DataGridUpdater, ShowHideColumnsMenu } from '@sds-eng/data-grid';
 import { useUnit } from 'effector-react';
-import { FC, MouseEvent, useCallback, useEffect, useState } from 'react';
+import { FC, MouseEvent, useCallback, useEffect, useMemo, useState } from 'react';
 
-import { fetchArchivesFx, fetchArchivesPageCountFx } from '@src/Entities/Archive/api';
+import { fetchArchivesFx, fetchArchivesPageCountFx, createNameLikeFilter } from '@src/Entities/Archive/api';
 import { $archiveConfigs, $archiveInstances, $archivesTotalCount } from '@src/Entities/Archive/model';
 
 import { SEGMENT_CONFIGURATIONS, SEGMENT_INSTANCES } from '@src/Features/TableView/constants';
@@ -21,6 +21,7 @@ import * as styles from './styles.module.css';
 
 const DEFAULT_PAGE_SIZE = 10;
 const MIN_ROWS_FOR_PAGINATION = 10;
+const SEARCH_DEBOUNCE_MS = 400;
 
 const TABLE_INITIAL_STATE = {
   pagination: { pageSize: DEFAULT_PAGE_SIZE, pageIndex: 0 },
@@ -54,17 +55,34 @@ const ArchivesTable: FC = () => {
     pageIndex: 0,
     pageSize: DEFAULT_PAGE_SIZE,
   });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+
+  const filters = useMemo(() => createNameLikeFilter(debouncedSearchQuery), [debouncedSearchQuery]);
 
   useEffect(() => {
-    fetchArchivesPageCount();
-  }, [fetchArchivesPageCount]);
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, SEARCH_DEBOUNCE_MS);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    setPagination((prev) => (prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }));
+  }, [debouncedSearchQuery]);
+
+  useEffect(() => {
+    fetchArchivesPageCount({ filters });
+  }, [fetchArchivesPageCount, filters]);
 
   useEffect(() => {
     fetchArchives({
       pageSize: pagination.pageSize,
       pageNumber: pagination.pageIndex + 1,
+      filters,
     });
-  }, [fetchArchives, pagination.pageIndex, pagination.pageSize]);
+  }, [fetchArchives, pagination.pageIndex, pagination.pageSize, filters]);
 
   const handlePaginationChange = useCallback((updater: DataGridUpdater<DataGridPaginationState>) => {
     setPagination((prev) => (typeof updater === 'function' ? updater(prev) : updater));
@@ -81,21 +99,22 @@ const ArchivesTable: FC = () => {
 
   const handleRefresh = () => {
     setTableKey((prev) => prev + 1);
-    fetchArchivesPageCount();
+    fetchArchivesPageCount({ filters });
     fetchArchives({
       pageSize: pagination.pageSize,
       pageNumber: pagination.pageIndex + 1,
+      filters,
     });
   };
 
-  const handleClearFiltersForIndex = useCallback((table: DataGridTableInstance<ArchiveIndexRow>) => {
-    table.resetColumnFilters();
-    table.setGlobalFilter('');
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchQuery(value);
   }, []);
 
-  const handleClearFiltersForConfiguration = useCallback((table: DataGridTableInstance<ArchiveConfigurationRow>) => {
-    table.resetColumnFilters();
-    table.setGlobalFilter('');
+  const handleClearFilters = useCallback(() => {
+    setSearchQuery('');
+    setDebouncedSearchQuery('');
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   }, []);
 
   const handleFiltersClick = useCallback(() => {
@@ -150,8 +169,8 @@ const ArchivesTable: FC = () => {
         <TextField
           prefix={<Icon.Search />}
           placeholder="Найти"
-          value={table.getState().globalFilter || ''}
-          onChange={() => {}}
+          value={searchQuery}
+          onChange={handleSearchChange}
           size="md"
           className={styles.searchInput}
         />
@@ -163,7 +182,7 @@ const ArchivesTable: FC = () => {
           className={styles.filterIcons}
           icon={<Icon.Clear />}
           aria-label="Сбросить фильтры"
-          onClick={() => handleClearFiltersForIndex(table)}
+          onClick={handleClearFilters}
         />
         <Button.Icon className={styles.filterIcons} icon={<Icon.Refresh />} aria-label="Обновить" onClick={handleRefresh} />
       </div>
@@ -179,8 +198,8 @@ const ArchivesTable: FC = () => {
         <TextField
           prefix={<Icon.Search />}
           placeholder="Найти"
-          value={table.getState().globalFilter || ''}
-          onChange={() => {}}
+          value={searchQuery}
+          onChange={handleSearchChange}
           size="md"
           className={styles.searchInput}
         />
@@ -192,7 +211,7 @@ const ArchivesTable: FC = () => {
           className={styles.filterIcons}
           icon={<Icon.Clear />}
           aria-label="Сбросить фильтры"
-          onClick={() => handleClearFiltersForConfiguration(table)}
+          onClick={handleClearFilters}
         />
         <Button.Icon className={styles.filterIcons} icon={<Icon.Refresh />} aria-label="Обновить" onClick={handleRefresh} />
       </div>
