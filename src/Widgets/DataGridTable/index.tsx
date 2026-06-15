@@ -110,6 +110,7 @@ const DataGridTable = <T extends DataGridRowData>(props: DataGridTableProps<T>):
   return (
     <div className={styles.dataGridTableWrapper} ref={wrapperRef}>
       <DataGrid
+        key={height > 0 ? 'measured' : 'measuring'}
         data={data}
         columns={columns}
         layoutMode="grid"

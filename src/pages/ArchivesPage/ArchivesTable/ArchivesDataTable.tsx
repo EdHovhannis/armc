@@ -93,6 +93,7 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
         enableRowVirtualization={false}
         enablePagination
         manualPagination
+        autoResetPageIndex={false}
         rowCount={rowCount}
         pagination={pagination}
         onPaginationChange={onPaginationChange}
