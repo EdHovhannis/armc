@@ -60,6 +60,7 @@ const DataGridTable = <T extends DataGridRowData>(props: DataGridTableProps<T>):
     rowSelection = {},
     columnVisibility = {},
     columnSizing = {},
+    state: externalState,
     onSortingChange,
     onRowClick,
     onRowSelectionChange,
@@ -116,6 +117,7 @@ const DataGridTable = <T extends DataGridRowData>(props: DataGridTableProps<T>):
           rowSelection,
           columnVisibility,
           columnSizing,
+          ...externalState,
         }}
         onSortingChange={onSortingChange}
         onRowSelectionChange={onRowSelectionChange}
