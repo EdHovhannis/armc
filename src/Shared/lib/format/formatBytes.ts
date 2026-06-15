@@ -11,10 +11,7 @@ export const formatBytes = (bytes: number): string => {
     return `0 ${BYTE_UNITS[0]}`;
   }
 
-  const exponent = Math.min(
-    Math.max(0, Math.floor(Math.log(bytes) / Math.log(BYTES_IN_KB)) - MB_EXPONENT),
-    BYTE_UNITS.length - 1,
-  );
+  const exponent = Math.min(Math.max(0, Math.floor(Math.log(bytes) / Math.log(BYTES_IN_KB)) - MB_EXPONENT), BYTE_UNITS.length - 1);
 
   return `${Math.round(bytes / BYTES_IN_KB ** (exponent + MB_EXPONENT))} ${BYTE_UNITS[exponent]}`;
 };

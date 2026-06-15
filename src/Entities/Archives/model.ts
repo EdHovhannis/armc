@@ -1,13 +1,10 @@
 import { combine, createStore } from 'effector';
 
-import { fetchArchivesFx, fetchArchivesPageCountFx } from './api';
+import { fetchArchivesFx } from './api';
 import { ArchiveConfigView, ArchiveConfiguration, ArchiveInstanceView } from './types';
 
 export const $archives = createStore<ArchiveConfiguration[]>([]);
 $archives.on(fetchArchivesFx.doneData, (_, payload) => payload.data);
-
-export const $archivePageCount = createStore<number>(0);
-$archivePageCount.on(fetchArchivesPageCountFx.doneData, (_, pageCount) => pageCount);
 
 export const $archiveInstances = combine($archives, (archives): ArchiveInstanceView[] =>
   archives

@@ -1,5 +1,5 @@
 import { Button, Icon, TextField } from '@sds-eng/base';
-import { DataGridColumnDef, DataGridPaginationState, DataGridTableInstance, ShowHideColumnsMenu } from '@sds-eng/data-grid';
+import { DataGridColumnDef, DataGridTableInstance, ShowHideColumnsMenu } from '@sds-eng/data-grid';
 import { useUnit } from 'effector-react';
 import { useCallback, useState, MouseEvent } from 'react';
 
@@ -14,9 +14,6 @@ interface ArchivesDataTableProps<TRow extends { id: number | string }> {
   columns: DataGridColumnDef<TRow>[];
   tableKey: number;
   showHideMenuId: string;
-  pageCount: number;
-  paginationState: DataGridPaginationState;
-  onPaginationChange: (updater: DataGridPaginationState | ((old: DataGridPaginationState) => DataGridPaginationState)) => void;
   isLoading?: boolean;
 }
 
@@ -25,9 +22,6 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
   columns,
   tableKey,
   showHideMenuId,
-  pageCount,
-  paginationState,
-  onPaginationChange,
   isLoading,
 }: ArchivesDataTableProps<TRow>) => {
   const [columnMenuAnchor, setColumnMenuAnchor] = useState<HTMLElement | null>(null);
@@ -103,24 +97,20 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
         enableColumnActions={false}
         enableSorting={false}
         enableToolbarInternalActions={true}
-        autoResetPageIndex={false}
         renderTopToolbar={renderTopToolbar}
         initialState={{
+          pagination: { pageSize: 20, pageIndex: 0 },
           showColumnFilters: false,
           globalFilter: '',
         }}
-        manualPagination
-        pageCount={pageCount}
-        state={{ pagination: paginationState }}
-        onPaginationChange={onPaginationChange}
         bottomToolbarProps={{
           relative: false,
           className: styles.fixedBottomToolbar,
         }}
         paginationProps={{
-          showRowsPerPage: false,
+          rowsPerPageOptions: [20, 50, 100],
+          showRowsPerPage: true,
           showPageCount: true,
-          showManualPageNavigation: true,
         }}
         localization={{
           rowsPerPage: 'записей на странице',
