@@ -6,6 +6,47 @@ import { ArchiveConfigView, ArchiveInstanceView } from '@src/Entities/Archives/t
 import StatusBadge from './StatusBadge';
 import * as styles from './styles.module.css';
 
+const BYTE_UNITS = ['Б', 'КБ', 'МБ', 'ГБ', 'ТБ', 'ПБ'];
+
+const formatBytes = (bytes: number): string => {
+  if (!bytes) {
+    return '0 Б';
+  }
+
+  const exponent = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), BYTE_UNITS.length - 1);
+
+  return `${Math.round(bytes / 1024 ** exponent)} ${BYTE_UNITS[exponent]}`;
+};
+
+const formatSpeed = (bytesPerSec: number): string => {
+  if (!bytesPerSec) {
+    return '0 Б/с';
+  }
+
+  const exponent = Math.min(Math.floor(Math.log(bytesPerSec) / Math.log(1024)), BYTE_UNITS.length - 1);
+
+  return `${Math.round(bytesPerSec / 1024 ** exponent)} ${BYTE_UNITS[exponent]}/с`;
+};
+
+const SECONDS_UNIT = { limit: 1, label: 'сек' };
+
+const RETENTION_UNITS = [
+  { limit: 86_400, label: 'дн.' },
+  { limit: 3_600, label: 'ч' },
+  { limit: 60, label: 'мин' },
+  SECONDS_UNIT,
+];
+
+const formatRetention = (seconds: number | null): string => {
+  if (seconds == null) {
+    return '—';
+  }
+
+  const unit = RETENTION_UNITS.find(({ limit }) => seconds >= limit) ?? SECONDS_UNIT;
+
+  return `${Math.round(seconds / unit.limit)} ${unit.label}`;
+};
+
 export const archiveIndexColumns: DataGridColumnDef<ArchiveInstanceView>[] = [
   {
     accessorKey: 'configName',
@@ -38,31 +79,31 @@ export const archiveIndexColumns: DataGridColumnDef<ArchiveInstanceView>[] = [
     accessorKey: 'currentSizeBytes',
     header: 'Занято памяти',
     size: 110,
-    Cell: ({ cell }) => <Text kind="bodyS">{cell.getValue<string>()}</Text>,
+    Cell: ({ cell }) => <Text kind="bodyS">{formatBytes(cell.getValue<number>())}</Text>,
   },
   {
     accessorKey: 'maxSizeBytes',
     header: 'Выделено памяти',
     size: 120,
-    Cell: ({ cell }) => <Text kind="bodyS">{cell.getValue<string>()}</Text>,
+    Cell: ({ cell }) => <Text kind="bodyS">{formatBytes(cell.getValue<number>())}</Text>,
   },
   {
     accessorKey: 'maxWriteSpeed',
     header: 'Макс. скорость записи',
     size: 130,
-    Cell: ({ cell }) => <Text kind="bodyS">{cell.getValue<string>()}</Text>,
+    Cell: ({ cell }) => <Text kind="bodyS">{formatSpeed(cell.getValue<number>())}</Text>,
   },
   {
     accessorKey: 'maxIndexSize',
     header: 'Макс. размер индекса',
     size: 130,
-    Cell: ({ cell }) => <Text kind="bodyS">{cell.getValue<string>()}</Text>,
+    Cell: ({ cell }) => <Text kind="bodyS">{formatBytes(cell.getValue<number>())}</Text>,
   },
   {
     accessorKey: 'maxRetention',
     header: 'Макс. время хранения данных',
     size: 150,
-    Cell: ({ cell }) => <Text kind="bodyS">{cell.getValue<string>()}</Text>,
+    Cell: ({ cell }) => <Text kind="bodyS">{formatRetention(cell.getValue<number | null>())}</Text>,
   },
   {
     id: 'actions',
@@ -145,19 +186,19 @@ export const archiveConfigurationColumns: DataGridColumnDef<ArchiveConfigView>[]
     accessorKey: 'maxWriteSpeed',
     header: 'Макс. скорость записи',
     size: 150,
-    Cell: ({ cell }) => <Text kind="bodyS">{cell.getValue<string>()}</Text>,
+    Cell: ({ cell }) => <Text kind="bodyS">{formatSpeed(cell.getValue<number>())}</Text>,
   },
   {
     accessorKey: 'maxIndexSize',
     header: 'Макс. размер индекса',
     size: 140,
-    Cell: ({ cell }) => <Text kind="bodyS">{cell.getValue<string>()}</Text>,
+    Cell: ({ cell }) => <Text kind="bodyS">{formatBytes(cell.getValue<number>())}</Text>,
   },
   {
     accessorKey: 'maxRetention',
     header: 'Макс. время хранения данных',
     size: 180,
-    Cell: ({ cell }) => <Text kind="bodyS">{cell.getValue<string>()}</Text>,
+    Cell: ({ cell }) => <Text kind="bodyS">{formatRetention(cell.getValue<number | null>())}</Text>,
   },
   {
     accessorKey: 'labels',
