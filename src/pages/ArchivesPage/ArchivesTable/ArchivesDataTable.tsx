@@ -9,11 +9,12 @@ import { onChangeFilterDrawerOpen } from '../FilterDrawer/model';
 
 import * as styles from './styles.module.css';
 
-interface ArchivesDataTableProps<TRow extends { id: string }> {
+interface ArchivesDataTableProps<TRow extends { id: number | string }> {
   data: TRow[];
   columns: DataGridColumnDef<TRow>[];
   tableKey: number;
   showHideMenuId: string;
+  isLoading?: boolean;
 }
 
 export const ArchivesDataTable = <TRow extends { id: string }>({
@@ -21,6 +22,7 @@ export const ArchivesDataTable = <TRow extends { id: string }>({
   columns,
   tableKey,
   showHideMenuId,
+  isLoading,
 }: ArchivesDataTableProps<TRow>) => {
   const [columnMenuAnchor, setColumnMenuAnchor] = useState<HTMLElement | null>(null);
   const [localTableKey, setLocalTableKey] = useState(tableKey);
@@ -63,9 +65,7 @@ export const ArchivesDataTable = <TRow extends { id: string }>({
           <Button.Icon className={styles.filterIcons} icon={<Icon.Clear />} aria-label="Сбросить фильтры" onClick={() => handleClearFilters(table)} />
           <Button.Icon className={styles.filterIcons} icon={<Icon.Refresh />} aria-label="Обновить" onClick={handleRefresh} />
         </div>
-        {columnMenuAnchor && (
-          <ShowHideColumnsMenu anchorEl={columnMenuAnchor} setAnchorEl={setColumnMenuAnchor} table={table} id={showHideMenuId} />
-        )}
+        {columnMenuAnchor && <ShowHideColumnsMenu anchorEl={columnMenuAnchor} setAnchorEl={setColumnMenuAnchor} table={table} id={showHideMenuId} />}
       </>
     ),
     [columnMenuAnchor, handleColumnMenuClick, handleFiltersClick, handleClearFilters, handleRefresh, showHideMenuId],
@@ -77,7 +77,7 @@ export const ArchivesDataTable = <TRow extends { id: string }>({
         key={localTableKey}
         data={data}
         columns={columns as DataGridColumnDef<TRow, unknown>[]}
-        isLoading={false}
+        isLoading={Boolean(isLoading)}
         onScroll={() => {}}
         getRowId={(row) => row.id}
         layoutMode="semantic"

@@ -8,7 +8,7 @@ import { AxiosResponseError } from '@src/Shared/api/types';
 import { ProjectItem } from './types';
 
 export const fetchProjectsFx = createEffect<void, AxiosResponse<ProjectItem[]>, AxiosError<AxiosResponseError>>(async () =>
-  axios.get('/internal/project/list'),
+  axios.get('/v1/internal/project/list'),
 );
 
 sample({

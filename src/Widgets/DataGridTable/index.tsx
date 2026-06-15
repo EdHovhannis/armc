@@ -154,7 +154,7 @@ const useStyles = createUseStyles({
   dataGridTableWrapper: {
     height: '100%',
     '& *': {
-      boxSizing: 'content-box',
+      boxSizing: 'border-box',
     },
   },
   headerWrapperMetamodels: {

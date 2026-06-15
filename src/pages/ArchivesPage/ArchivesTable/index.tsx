@@ -1,27 +1,36 @@
 import { useUnit } from 'effector-react';
-import { FC, useMemo, useState } from 'react';
+import { FC, useState, useEffect } from 'react';
+
+import { fetchArchivesFx } from '@src/Entities/Archives/api';
+import { $archiveConfigs, $archiveInstances } from '@src/Entities/Archives/model';
 
 import { SEGMENT_CONFIGURATIONS, SEGMENT_INSTANCES } from '@src/Features/TableView/constants';
 import { $tableView } from '@src/Features/TableView/model';
-
-import { archiveConfigurationsMock } from '../mock/archiveConfigurations';
-import { archiveIndexesMock } from '../mock/archiveIndexes';
 
 import { ArchivesDataTable } from './ArchivesDataTable';
 import { archiveConfigurationColumns, archiveIndexColumns } from './columns';
 
 const ArchivesTable: FC = () => {
   const [tableView] = useUnit([$tableView]);
-  const [tableKey] = useState(0);
+  const [isArchivesLoading, fetchArchives, archiveInstanceData, archiveConfigsData] = useUnit([
+    fetchArchivesFx.pending,
+    fetchArchivesFx,
+    $archiveInstances,
+    $archiveConfigs,
+  ]);
 
-  const instancesData = useMemo(() => archiveIndexesMock, []);
-  const configurationsData = useMemo(() => archiveConfigurationsMock, []);
+  useEffect(() => {
+    fetchArchives();
+  }, [fetchArchives]);
+
+  const [tableKey] = useState(0);
 
   switch (tableView) {
     case SEGMENT_INSTANCES:
       return (
         <ArchivesDataTable
-          data={instancesData}
+          isLoading={isArchivesLoading}
+          data={archiveInstanceData}
           columns={archiveIndexColumns}
           tableKey={tableKey}
           showHideMenuId="archives-index-show-hide-menu"
@@ -30,7 +39,8 @@ const ArchivesTable: FC = () => {
     case SEGMENT_CONFIGURATIONS:
       return (
         <ArchivesDataTable
-          data={configurationsData}
+          isLoading={isArchivesLoading}
+          data={archiveConfigsData}
           columns={archiveConfigurationColumns}
           tableKey={tableKey}
           showHideMenuId="archives-configuration-show-hide-menu"

@@ -8,7 +8,7 @@ import { AxiosResponseError } from '@src/Shared/api/types';
 import { TopicItem } from './types';
 
 export const fetchTopicsFx = createEffect<void, AxiosResponse<TopicItem[]>, AxiosError<AxiosResponseError>>(async () =>
-  axios.get('/internal/source/kafka/topics'),
+  axios.get('/v1/internal/source/kafka/topics'),
 );
 
 sample({
@@ -27,5 +27,5 @@ const MOCK_DATA = {
 };
 
 export const fetchCurrentTopicInfoFx = createEffect<number, AxiosResponse<Array<unknown>>, AxiosError<AxiosResponseError>>(async (topicId) =>
-  axios.post(`/internal/source/kafka/topics/${topicId}/fetch`, MOCK_DATA),
+  axios.post(`/v1/internal/source/kafka/topics/${topicId}/fetch`, MOCK_DATA),
 );

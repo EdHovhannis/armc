@@ -8,7 +8,7 @@ import * as styles from './styles.module.css';
 
 export const archiveIndexColumns: DataGridColumnDef<ArchiveIndexRow>[] = [
   {
-    accessorKey: 'configuration',
+    accessorKey: 'configName',
     header: 'Конфигурация',
     size: 200,
     minSize: 120,
@@ -19,13 +19,13 @@ export const archiveIndexColumns: DataGridColumnDef<ArchiveIndexRow>[] = [
     ),
   },
   {
-    accessorKey: 'zone',
+    accessorKey: 'zoneId',
     header: 'Зона',
     size: 90,
     Cell: ({ cell }) => <Text kind="bodyS">{cell.getValue<string>()}</Text>,
   },
   {
-    accessorKey: 'status',
+    accessorKey: 'instanceStatus',
     header: 'Статус',
     size: 140,
     minSize: 130,
@@ -35,13 +35,13 @@ export const archiveIndexColumns: DataGridColumnDef<ArchiveIndexRow>[] = [
     },
   },
   {
-    accessorKey: 'memoryUsed',
+    accessorKey: 'currentSizeBytes',
     header: 'Занято памяти',
     size: 110,
     Cell: ({ cell }) => <Text kind="bodyS">{cell.getValue<string>()}</Text>,
   },
   {
-    accessorKey: 'memoryAllocated',
+    accessorKey: 'maxSizeBytes',
     header: 'Выделено памяти',
     size: 120,
     Cell: ({ cell }) => <Text kind="bodyS">{cell.getValue<string>()}</Text>,
@@ -166,10 +166,9 @@ export const archiveConfigurationColumns: DataGridColumnDef<ArchiveConfiguration
     minSize: 120,
     Cell: ({ cell }) => {
       const labels = cell.getValue<string[]>();
-
       return (
         <div className={styles.labelsCell}>
-          {labels.map((label) => (
+          {labels?.map((label) => (
             <Tag key={label} as="span" className={styles.labelTag}>
               {label}
             </Tag>
