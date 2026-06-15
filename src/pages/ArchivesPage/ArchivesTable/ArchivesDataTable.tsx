@@ -1,20 +1,25 @@
-// import React from 'react';
-
 import { Button, Icon, TextField } from '@sds-eng/base';
-import { DataGrid, DataGridTableInstance, ShowHideColumnsMenu } from '@sds-eng/data-grid';
+import { DataGrid, DataGridColumnDef, DataGridTableInstance, ShowHideColumnsMenu } from '@sds-eng/data-grid';
 import { useUnit } from 'effector-react';
-import { FC, useState, MouseEvent, useCallback } from 'react';
+import { useCallback, useState, MouseEvent } from 'react';
 
 import { onChangeFilterDrawerOpen } from '../FilterDrawer/model';
-import { ArchiveConfigurationRow } from '../types';
 
-import { archiveConfigurationColumns } from './columns';
 import * as styles from './styles.module.css';
 
-export const ArchiveConfigurationTable: FC<{
-  data: ArchiveConfigurationRow[];
+interface ArchivesDataTableProps<TRow extends { id: string }> {
+  data: TRow[];
+  columns: DataGridColumnDef<TRow>[];
   tableKey: number;
-}> = ({ data, tableKey }) => {
+  showHideMenuId: string;
+}
+
+export const ArchivesDataTable = <TRow extends { id: string }>({
+  data,
+  columns,
+  tableKey,
+  showHideMenuId,
+}: ArchivesDataTableProps<TRow>) => {
   const [columnMenuAnchor, setColumnMenuAnchor] = useState<HTMLElement | null>(null);
   const [localTableKey, setLocalTableKey] = useState(tableKey);
   const onChangeFilterDrawerOpenFn = useUnit(onChangeFilterDrawerOpen);
@@ -27,7 +32,7 @@ export const ArchiveConfigurationTable: FC<{
     onChangeFilterDrawerOpenFn(true);
   }, [onChangeFilterDrawerOpenFn]);
 
-  const handleClearFilters = useCallback((table: DataGridTableInstance<ArchiveConfigurationRow>) => {
+  const handleClearFilters = useCallback((table: DataGridTableInstance<TRow>) => {
     table.resetColumnFilters();
     table.setGlobalFilter('');
   }, []);
@@ -37,7 +42,7 @@ export const ArchiveConfigurationTable: FC<{
   }, []);
 
   const renderTopToolbar = useCallback(
-    ({ table }: { table: DataGridTableInstance<ArchiveConfigurationRow> }) => (
+    ({ table }: { table: DataGridTableInstance<TRow> }) => (
       <>
         <div className={styles.tableToolbarRow}>
           <TextField
@@ -50,23 +55,18 @@ export const ArchiveConfigurationTable: FC<{
           />
           <div className={styles.filterIcons}>
             <Button.Icon icon={<Icon.ColumnThree />} onClick={handleColumnMenuClick} aria-label="Столбцы" />
-            <Button.Icon icon={<Icon.Filter />} aria-label="Фильтры" onClick={handleFiltersClick} />
+            <Button.Icon className={styles.filterIcons} icon={<Icon.Filter />} aria-label="Фильтры" onClick={handleFiltersClick} />
           </div>
 
           <Button.Icon className={styles.filterIcons} icon={<Icon.Clear />} aria-label="Сбросить фильтры" onClick={() => handleClearFilters(table)} />
           <Button.Icon className={styles.filterIcons} icon={<Icon.Refresh />} aria-label="Обновить" onClick={handleRefresh} />
         </div>
         {columnMenuAnchor && (
-          <ShowHideColumnsMenu
-            anchorEl={columnMenuAnchor}
-            setAnchorEl={setColumnMenuAnchor}
-            table={table}
-            id="archives-configuration-show-hide-menu"
-          />
+          <ShowHideColumnsMenu anchorEl={columnMenuAnchor} setAnchorEl={setColumnMenuAnchor} table={table} id={showHideMenuId} />
         )}
       </>
     ),
-    [columnMenuAnchor, handleColumnMenuClick, handleFiltersClick, handleClearFilters, handleRefresh],
+    [columnMenuAnchor, handleColumnMenuClick, handleFiltersClick, handleClearFilters, handleRefresh, showHideMenuId],
   );
 
   return (
@@ -74,7 +74,7 @@ export const ArchiveConfigurationTable: FC<{
       <DataGrid
         key={localTableKey}
         data={data}
-        columns={archiveConfigurationColumns}
+        columns={columns}
         getRowId={(row) => row.id}
         layoutMode="semantic"
         defaultColumn={{ minSize: 60, enableColumnFilter: false, enableSorting: false }}

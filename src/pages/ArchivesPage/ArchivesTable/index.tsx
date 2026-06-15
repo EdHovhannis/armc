@@ -7,8 +7,8 @@ import { $tableView } from '@src/Features/TableView/model';
 import { archiveConfigurationsMock } from '../mock/archiveConfigurations';
 import { archiveIndexesMock } from '../mock/archiveIndexes';
 
-import { ArchiveConfigurationTable } from './ArchiveConfigurationTable';
-import { ArchivesInstanceTable } from './ArchivesInstanceTable';
+import { ArchivesDataTable } from './ArchivesDataTable';
+import { archiveConfigurationColumns, archiveIndexColumns } from './columns';
 
 const ArchivesTable: FC = () => {
   const [tableView] = useUnit([$tableView]);
@@ -19,9 +19,23 @@ const ArchivesTable: FC = () => {
 
   switch (tableView) {
     case SEGMENT_INSTANCES:
-      return <ArchivesInstanceTable data={instancesData} tableKey={tableKey} />;
+      return (
+        <ArchivesDataTable
+          data={instancesData}
+          columns={archiveIndexColumns}
+          tableKey={tableKey}
+          showHideMenuId="archives-index-show-hide-menu"
+        />
+      );
     case SEGMENT_CONFIGURATIONS:
-      return <ArchiveConfigurationTable data={configurationsData} tableKey={tableKey} />;
+      return (
+        <ArchivesDataTable
+          data={configurationsData}
+          columns={archiveConfigurationColumns}
+          tableKey={tableKey}
+          showHideMenuId="archives-configuration-show-hide-menu"
+        />
+      );
     default:
       return null;
   }
