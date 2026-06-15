@@ -1,1 +1,1 @@
-test
+http://localhost:3000/abyss/abyss_api/coordinator/api/v1/internal/index/archive/list/paginated?pageSize=10&pageNumber=1&filters=%5B%7B%22field%22%3A%22nameLike%22%2C%22op%22%3A%22like%22%2C%22values%22%3A%5B%22%25aqa%25%22%5D%7D%5D
