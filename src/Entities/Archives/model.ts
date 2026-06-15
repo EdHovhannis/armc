@@ -6,7 +6,7 @@ import { ArchiveConfigView, ArchiveConfiguration, ArchiveInstanceView } from './
 export const $archives = createStore<ArchiveConfiguration[]>([]);
 $archives.on(fetchArchivesFx.doneData, (_, payload) => payload.data);
 
-export const $archivePageCount = createStore<number>(1);
+export const $archivePageCount = createStore<number>(0);
 $archivePageCount.on(fetchArchivesPageCountFx.doneData, (_, pageCount) => pageCount);
 
 export const $archiveInstances = combine($archives, (archives): ArchiveInstanceView[] =>

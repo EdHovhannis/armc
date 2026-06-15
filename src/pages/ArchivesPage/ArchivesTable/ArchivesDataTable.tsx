@@ -103,9 +103,9 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
         enableColumnActions={false}
         enableSorting={false}
         enableToolbarInternalActions={true}
+        autoResetPageIndex={false}
         renderTopToolbar={renderTopToolbar}
         initialState={{
-          pagination: { pageSize: 20, pageIndex: 0 },
           showColumnFilters: false,
           globalFilter: '',
         }}

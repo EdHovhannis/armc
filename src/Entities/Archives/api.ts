@@ -14,6 +14,41 @@ export interface FetchArchivesParams {
   pageNumber: number;
 }
 
+const extractPageCount = (data: unknown): number | null => {
+  if (typeof data === 'number' && Number.isFinite(data)) {
+    return Math.max(1, data);
+  }
+
+  if (typeof data === 'string') {
+    const normalized = Number(data);
+    if (Number.isFinite(normalized)) {
+      return Math.max(1, normalized);
+    }
+    return null;
+  }
+
+  if (data && typeof data === 'object') {
+    const objectData = data as Record<string, unknown>;
+    const possibleFields = [
+      objectData.pageCount,
+      objectData.totalPages,
+      objectData.pagesCount,
+      objectData.count,
+      objectData.total,
+      objectData.totalElements,
+    ];
+
+    for (const field of possibleFields) {
+      const extracted = extractPageCount(field);
+      if (extracted !== null) {
+        return extracted;
+      }
+    }
+  }
+
+  return null;
+};
+
 export const fetchArchivesFx = createEffect<
   FetchArchivesParams,
   AxiosResponse<ArchiveConfiguration[]>,
@@ -31,24 +66,11 @@ sample({
 });
 
 export const fetchArchivesPageCountFx = createEffect<void, number, AxiosError<AxiosResponseError>>(async () => {
-  const response = await axios.get<number | { pageCount?: number; totalPages?: number }>('/v1/internal/index/archive/page-count', {
+  const response = await axios.get<unknown>('/v1/internal/index/archive/page-count', {
     params: { pageSize: 1, pageNumber: 1 },
   });
 
-  const data = response.data;
-
-  if (typeof data === 'number' && Number.isFinite(data)) {
-    return Math.max(1, data);
-  }
-
-  if (data && typeof data === 'object') {
-    const normalizedCount = data.pageCount ?? data.totalPages;
-    if (typeof normalizedCount === 'number' && Number.isFinite(normalizedCount)) {
-      return Math.max(1, normalizedCount);
-    }
-  }
-
-  return 1;
+  return extractPageCount(response.data) ?? 1;
 });
 
 sample({

@@ -32,7 +32,7 @@ const ArchivesTable: FC = () => {
   }, [fetchArchives, currentPage]);
 
   useEffect(() => {
-    if (currentPage > archivePageCount) {
+    if (archivePageCount > 0 && currentPage > archivePageCount) {
       setCurrentPage(archivePageCount);
     }
   }, [archivePageCount, currentPage]);
@@ -50,10 +50,10 @@ const ArchivesTable: FC = () => {
       const nextPage = nextPagination.pageIndex + 1;
 
       if (nextPage !== currentPage) {
-        setCurrentPage(Math.min(Math.max(nextPage, 1), archivePageCount));
+        setCurrentPage(Math.max(nextPage, 1));
       }
     },
-    [archivePageCount, currentPage, paginationState],
+    [currentPage, paginationState],
   );
 
   switch (tableView) {
@@ -64,7 +64,7 @@ const ArchivesTable: FC = () => {
           data={archiveInstanceData}
           columns={archiveIndexColumns}
           tableKey={tableKey}
-          pageCount={archivePageCount}
+          pageCount={Math.max(archivePageCount, 1)}
           paginationState={paginationState}
           onPaginationChange={handlePaginationChange}
           showHideMenuId="archives-index-show-hide-menu"
@@ -77,7 +77,7 @@ const ArchivesTable: FC = () => {
           data={archiveConfigsData}
           columns={archiveConfigurationColumns}
           tableKey={tableKey}
-          pageCount={archivePageCount}
+          pageCount={Math.max(archivePageCount, 1)}
           paginationState={paginationState}
           onPaginationChange={handlePaginationChange}
           showHideMenuId="archives-configuration-show-hide-menu"
