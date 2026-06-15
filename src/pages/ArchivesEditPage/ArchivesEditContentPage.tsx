@@ -9,6 +9,9 @@ import DrawerRestriction from '@src/Widgets/Header/DrawerRestriction';
 import ArchiveEditFooter from './Steps/Footer';
 import StepIndexName from './Steps/StepIndexName';
 import StepInputData from './Steps/StepInputData';
+import StepLimits from './Steps/StepLimits';
+import StepPreprocessing from './Steps/StepPreprocessing';
+import StepSchema from './Steps/StepSchema';
 import * as styles from './styles.module.css';
 
 const ArchivesEditContentPage: FC = () => {
@@ -24,6 +27,9 @@ const ArchivesEditContentPage: FC = () => {
           <ArchivesEditStepper />
           {stepperIndex === 0 && <StepIndexName />}
           {stepperIndex === 1 && <StepInputData />}
+          {stepperIndex === 2 && <StepLimits />}
+          {stepperIndex === 3 && <StepSchema />}
+          {stepperIndex === 4 && <StepPreprocessing />}
           <ArchiveEditFooter />
         </div>
       </FormProvider>

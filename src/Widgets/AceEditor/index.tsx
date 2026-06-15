@@ -21,6 +21,7 @@ const AceEditor: FC<AceEditorProps> = ({ id, value }) => {
       tabSize={2}
       fontSize={16}
       wrapEnabled
+      readOnly
     />
   );
 };

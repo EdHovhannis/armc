@@ -1,80 +1,37 @@
 import { Button, Checkbox, clsx, Icon, LabelControl, Segment, SegmentGroup, Select, Text } from '@sds-eng/base';
 import { useUnit } from 'effector-react';
-import { FC, useEffect } from 'react';
-import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
+import { FC, useEffect, useMemo } from 'react';
+import { Controller, useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 
 import { INPUTS_FORMAT } from '@src/Shared/constants/common';
 import { components } from '@src/Shared/ui/VirtualizedList';
 
 import { fetchCurrentTopicInfoFx, fetchTopicsFx } from '@src/Entities/Topic/api';
-import { $optionsTopic } from '@src/Entities/Topic/model';
+import { $optionsTopic, $topicMessages } from '@src/Entities/Topic/model';
 
 import AceEditor from '@src/Widgets/AceEditor';
 
 import * as styles from './styles.module.css';
 
-const MOCK = [
-  {
-    traceId: '6ebbf57235d128cc',
-    parentId: null,
-    id: '6ebbf57235d128cc',
-    kind: 'SERVER',
-    name: 'get',
-    timestamp: 1684834626187,
-    duration: 220,
-    localService: 'none',
-  },
-  {
-    traceId: '6ebbf57235d128cc',
-    parentId: null,
-    id: '6ebbf57235d128cc',
-    kind: 'SERVER',
-    name: 'get',
-    timestamp: 1684834626187,
-    duration: 220,
-    localService: 'none',
-  },
-  {
-    traceId: '6ebbf57235d128cc',
-    parentId: null,
-    id: '6ebbf57235d128cc',
-    kind: 'SERVER',
-    name: 'get',
-    timestamp: 1684834626187,
-    duration: 220,
-    localService: 'none',
-  },
-  {
-    traceId: '6ebbf57235d128cc',
-    parentId: null,
-    id: '6ebbf57235d128cc',
-    kind: 'SERVER',
-    name: 'get',
-    timestamp: 1684834626187,
-    duration: 220,
-    localService: 'none',
-  },
-  {
-    traceId: '6ebbf57235d128cc',
-    parentId: null,
-    id: '6ebbf57235d128cc',
-    kind: 'SERVER',
-    name: 'get',
-    timestamp: 1684834626187,
-    duration: 220,
-    localService: 'none',
-  },
-];
-
 const StepInputData: FC = () => {
   const { control } = useFormContext();
   const { fields, append, remove } = useFieldArray({ name: 'source.kafka', control });
-  const [optionsTopic, loadingTopics, loadingTopicInfo, fetchCurrentTopicInfo] = useUnit([
+  const [optionsTopic, loadingTopics, loadingTopicInfo, fetchCurrentTopicInfo, topicMessages] = useUnit([
     $optionsTopic,
     fetchTopicsFx.pending,
     fetchCurrentTopicInfoFx.pending,
     fetchCurrentTopicInfoFx,
+    $topicMessages,
   ]);
+  const currentValues = useWatch({ name: 'source.kafka', defaultValue: [] }) as Array<{ project: string; name: string }>;
+
+  const currentOptions = useMemo(() => {
+    const arr = optionsTopic.filter((item) => {
+      const currentItem = currentValues.find((value) => `${value.project}/${value.name}` === item.value);
+      return !currentItem;
+    });
+    return arr;
+  }, [currentValues, optionsTopic]);
 
   useEffect(() => {
     if (fields.length === 0) {
@@ -102,7 +59,7 @@ const StepInputData: FC = () => {
                   <div className={styles.archiveStepInputDataTopicWrapper}>
                     <Select
                       placeholder="Выберите значение"
-                      options={optionsTopic}
+                      options={currentOptions}
                       isSearchable
                       loading={loadingTopics}
                       limitByWidth
@@ -178,7 +135,7 @@ const StepInputData: FC = () => {
         </div>
       </div>
       <div>
-        <AceEditor id="step-input-data" value={JSON.stringify(MOCK, null, 2)} />
+        <AceEditor id="step-input-data" value={JSON.stringify(topicMessages, null, 2)} />
       </div>
     </>
   );

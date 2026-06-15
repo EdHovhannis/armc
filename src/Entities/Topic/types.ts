@@ -15,3 +15,11 @@ export type TopicItem = {
   shadow: boolean;
   topicFullName: string;
 };
+
+export type TopicMessageItem = {
+  offset: number;
+  partitions: number;
+  timestamp: string;
+  key: string;
+  value: string;
+};

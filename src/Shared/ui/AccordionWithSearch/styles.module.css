@@ -1,0 +1,14 @@
+.archiveAccordionHeaderItem {
+  display: flex;
+  gap: 56px;
+}
+
+div.archiveAccordionHeaderItemInput {
+  min-width: 320px;
+  margin: -6px 0 0 0;
+}
+
+.archiveAccordionWrapperButtonIcon svg {
+  width: 14px !important;
+  height: 14px !important;
+}

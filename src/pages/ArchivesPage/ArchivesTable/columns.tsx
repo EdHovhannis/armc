@@ -4,7 +4,6 @@ import { DataGridColumnDef } from '@sds-eng/data-grid';
 import { ArchiveConfigView, ArchiveInstanceView } from '@src/Entities/Archives/types';
 
 import StatusBadge from './StatusBadge';
-
 import * as styles from './styles.module.css';
 
 export const archiveIndexColumns: DataGridColumnDef<ArchiveInstanceView>[] = [
