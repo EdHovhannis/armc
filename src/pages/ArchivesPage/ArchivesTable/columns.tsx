@@ -1,44 +1,20 @@
 import { Button, Icon, Link, Tag, Text, Tooltip } from '@sds-eng/base';
 import { DataGridColumnDef } from '@sds-eng/data-grid';
 
+import { formatBytes } from '@src/Shared/lib/format/formatBytes';
+import { formatSpeed } from '@src/Shared/lib/format/formatSpeed';
+
 import { ArchiveConfigView, ArchiveInstanceView } from '@src/Entities/Archives/types';
 
 import StatusBadge from './StatusBadge';
 import * as styles from './styles.module.css';
 
-const BYTE_UNITS = ['Б', 'КБ', 'МБ', 'ГБ', 'ТБ', 'ПБ'];
-
-const formatBytes = (bytes: number): string => {
-  if (!bytes) {
-    return '0 Б';
-  }
-
-  const exponent = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), BYTE_UNITS.length - 1);
-
-  return `${Math.round(bytes / 1024 ** exponent)} ${BYTE_UNITS[exponent]}`;
-};
-
-const formatSpeed = (bytesPerSec: number): string => {
-  if (!bytesPerSec) {
-    return '0 Б/с';
-  }
-
-  const exponent = Math.min(Math.floor(Math.log(bytesPerSec) / Math.log(1024)), BYTE_UNITS.length - 1);
-
-  return `${Math.round(bytesPerSec / 1024 ** exponent)} ${BYTE_UNITS[exponent]}/с`;
-};
-
 const SECONDS_UNIT = { limit: 1, label: 'сек' };
 
-const RETENTION_UNITS = [
-  { limit: 86_400, label: 'дн.' },
-  { limit: 3_600, label: 'ч' },
-  { limit: 60, label: 'мин' },
-  SECONDS_UNIT,
-];
+const RETENTION_UNITS = [{ limit: 86_400, label: 'дн.' }, { limit: 3_600, label: 'ч' }, { limit: 60, label: 'мин' }, SECONDS_UNIT];
 
 const formatRetention = (seconds: number | null): string => {
-  if (seconds == null) {
+  if (seconds === null) {
     return '—';
   }
 
