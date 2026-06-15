@@ -56,6 +56,7 @@ const DataGridTable = <T extends DataGridRowData>(props: DataGridTableProps<T>):
     data,
     columns,
     isLoading,
+    state: externalState,
     sorting = [],
     rowSelection = {},
     columnVisibility = {},
@@ -111,6 +112,7 @@ const DataGridTable = <T extends DataGridRowData>(props: DataGridTableProps<T>):
         columns={columns}
         layoutMode="grid"
         state={{
+          ...(externalState ?? {}),
           isLoading,
           sorting,
           rowSelection,

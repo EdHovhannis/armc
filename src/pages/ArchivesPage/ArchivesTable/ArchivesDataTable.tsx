@@ -1,5 +1,5 @@
 import { Button, Icon, TextField } from '@sds-eng/base';
-import { DataGridColumnDef, DataGridTableInstance, ShowHideColumnsMenu } from '@sds-eng/data-grid';
+import { DataGridColumnDef, DataGridPaginationState, DataGridTableInstance, ShowHideColumnsMenu } from '@sds-eng/data-grid';
 import { useUnit } from 'effector-react';
 import { useCallback, useState, MouseEvent } from 'react';
 
@@ -14,6 +14,9 @@ interface ArchivesDataTableProps<TRow extends { id: number | string }> {
   columns: DataGridColumnDef<TRow>[];
   tableKey: number;
   showHideMenuId: string;
+  pageCount: number;
+  paginationState: DataGridPaginationState;
+  onPaginationChange: (updater: DataGridPaginationState | ((old: DataGridPaginationState) => DataGridPaginationState)) => void;
   isLoading?: boolean;
 }
 
@@ -22,6 +25,9 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
   columns,
   tableKey,
   showHideMenuId,
+  pageCount,
+  paginationState,
+  onPaginationChange,
   isLoading,
 }: ArchivesDataTableProps<TRow>) => {
   const [columnMenuAnchor, setColumnMenuAnchor] = useState<HTMLElement | null>(null);
@@ -103,14 +109,18 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
           showColumnFilters: false,
           globalFilter: '',
         }}
+        manualPagination
+        pageCount={pageCount}
+        state={{ pagination: paginationState }}
+        onPaginationChange={onPaginationChange}
         bottomToolbarProps={{
           relative: false,
           className: styles.fixedBottomToolbar,
         }}
         paginationProps={{
-          rowsPerPageOptions: [20, 50, 100],
-          showRowsPerPage: true,
+          showRowsPerPage: false,
           showPageCount: true,
+          showManualPageNavigation: true,
         }}
         localization={{
           rowsPerPage: 'записей на странице',
