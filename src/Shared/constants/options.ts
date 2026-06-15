@@ -8,6 +8,7 @@ import {
   SchemaDLQFieldOption,
   SchemaConditionFieldOption,
   SchemaAuditFieldOption,
+  RetentionUnitOption,
 } from '../types/filter';
 
 export const SPEED_LIMITS_UNIT_OPTIONS = [
@@ -30,6 +31,13 @@ export const DATE_LIMITS_UNIT_OPTIONS = [
   { value: 'MIN', label: 'минуты' },
   { value: 'SEC', label: 'секунды' },
 ] as const satisfies DateUnitOption[];
+
+export const RETENTION_UNIT_OPTIONS = [
+  { limit: 86_400, label: 'дн.' },
+  { limit: 3_600, label: 'ч' },
+  { limit: 60, label: 'мин' },
+  { limit: 1, label: 'сек' },
+] as const satisfies RetentionUnitOption[];
 
 export const SCHEMA_FIELDS = [
   { value: 'STRING', label: 'STRING' },

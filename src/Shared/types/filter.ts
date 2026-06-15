@@ -8,6 +8,8 @@ export type SpeedUnitOption = { value: SpeedUnitValue; label: string };
 export type SizeUnitOption = { value: SizeUnitValue; label: string };
 export type DateUnitOption = { value: DateUnitValue; label: string };
 
+export type RetentionUnitOption = { limit: number; label: string };
+
 export type SchemaFieldValue = 'STRING' | 'TEXT' | 'INT' | 'DOUBLE' | 'LONG' | 'DATE' | 'BOOLEAN' | 'ARRAY';
 export type SchemaFieldOption = { value: SchemaFieldValue; label: string };
 

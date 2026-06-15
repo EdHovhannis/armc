@@ -2,26 +2,13 @@ import { Button, Icon, Link, Tag, Text, Tooltip } from '@sds-eng/base';
 import { DataGridColumnDef } from '@sds-eng/data-grid';
 
 import { formatBytes } from '@src/Shared/lib/format/formatBytes';
+import { formatRetention } from '@src/Shared/lib/format/formatRetention';
 import { formatSpeed } from '@src/Shared/lib/format/formatSpeed';
 
 import { ArchiveConfigView, ArchiveInstanceView } from '@src/Entities/Archives/types';
 
 import StatusBadge from './StatusBadge';
 import * as styles from './styles.module.css';
-
-const SECONDS_UNIT = { limit: 1, label: 'сек' };
-
-const RETENTION_UNITS = [{ limit: 86_400, label: 'дн.' }, { limit: 3_600, label: 'ч' }, { limit: 60, label: 'мин' }, SECONDS_UNIT];
-
-const formatRetention = (seconds: number | null): string => {
-  if (seconds === null) {
-    return '—';
-  }
-
-  const unit = RETENTION_UNITS.find(({ limit }) => seconds >= limit) ?? SECONDS_UNIT;
-
-  return `${Math.round(seconds / unit.limit)} ${unit.label}`;
-};
 
 export const archiveIndexColumns: DataGridColumnDef<ArchiveInstanceView>[] = [
   {
