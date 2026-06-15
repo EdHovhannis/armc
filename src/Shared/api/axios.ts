@@ -7,7 +7,7 @@ const getTimeZoneInSecond = () => {
   return offset <= 0 ? Math.abs(offset) : -offset;
 };
 
-const URL_PROXY = '/armc_api';
+const URL_PROXY = '/armc_api/coordinator/api/v1';
 
 const axios = create({
   headers: {

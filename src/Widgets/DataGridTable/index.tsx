@@ -60,7 +60,6 @@ const DataGridTable = <T extends DataGridRowData>(props: DataGridTableProps<T>):
     rowSelection = {},
     columnVisibility = {},
     columnSizing = {},
-    state: externalState,
     onSortingChange,
     onRowClick,
     onRowSelectionChange,
@@ -117,7 +116,6 @@ const DataGridTable = <T extends DataGridRowData>(props: DataGridTableProps<T>):
           rowSelection,
           columnVisibility,
           columnSizing,
-          ...externalState,
         }}
         onSortingChange={onSortingChange}
         onRowSelectionChange={onRowSelectionChange}
@@ -156,7 +154,7 @@ const useStyles = createUseStyles({
   dataGridTableWrapper: {
     height: '100%',
     '& *': {
-      boxSizing: 'border-box',
+      boxSizing: 'content-box',
     },
   },
   headerWrapperMetamodels: {

@@ -1,8 +1,6 @@
-import { IndexingStatus, ZoneId } from '@src/Entities/Archive/types';
+export type ArchiveIndexStatus = 'RUNNING' | 'STOPPED' | 'FAILED' | 'UNDEFINED' | 'WITHOUT_RESPONSE';
 
-export type ArchiveIndexStatus = IndexingStatus;
-
-export type ArchiveIndexZone = ZoneId;
+export type ArchiveIndexZone = 'PRIMARY' | 'SECONDARY';
 
 export interface ArchiveIndexRow {
   id: string;
