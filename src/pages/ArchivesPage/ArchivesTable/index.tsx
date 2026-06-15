@@ -1,7 +1,7 @@
 import { Button, Icon, TextField } from '@sds-eng/base';
-import { DataGridPaginationState, DataGridTableInstance, DataGridUpdater, ShowHideColumnsMenu } from '@sds-eng/data-grid';
+import { DataGridPaginationState, DataGridRowData, DataGridTableInstance, DataGridUpdater, ShowHideColumnsMenu } from '@sds-eng/data-grid';
 import { useUnit } from 'effector-react';
-import { FC, MouseEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { FC, MouseEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { fetchArchivesFx, fetchArchivesPageCountFx, createNameLikeFilter } from '@src/Entities/Archive/api';
 import { $archiveConfigs, $archiveInstances, $archivesTotalCount } from '@src/Entities/Archive/model';
@@ -92,6 +92,7 @@ const ArchivesTable: FC = () => {
 
   const [columnMenuAnchor, setColumnMenuAnchor] = useState<HTMLElement | null>(null);
   const [tableKey, setTableKey] = useState(0);
+  const tableRef = useRef<DataGridTableInstance<DataGridRowData> | null>(null);
 
   const handleColumnMenuClick = (event: MouseEvent<HTMLElement>) => {
     setColumnMenuAnchor((prev) => (prev ? null : event.currentTarget));
@@ -121,129 +122,123 @@ const ArchivesTable: FC = () => {
     onChangeFilterDrawerOpenFn(true);
   }, [onChangeFilterDrawerOpenFn]);
 
-  const commonTableProps = {
-    isLoading: isArchivesLoading,
-    onScroll: () => {},
-    layoutMode: 'semantic' as const,
-    defaultColumn: DEFAULT_COLUMN_CONFIG,
-    enableStickyHeader: true,
-    enableRowSelection: true,
-    enablePagination: showPagination,
-    manualPagination: true,
-    rowCount: archivesTotalCount,
-    onPaginationChange: handlePaginationChange,
-    state: {
+  const commonTableProps = useMemo(
+    () => ({
+      isLoading: isArchivesLoading,
+      onScroll: () => {},
+      layoutMode: 'semantic' as const,
+      defaultColumn: DEFAULT_COLUMN_CONFIG,
+      enableStickyHeader: true,
+      enableRowSelection: true,
+      enablePagination: showPagination,
+      manualPagination: true,
+      rowCount: archivesTotalCount,
+      onPaginationChange: handlePaginationChange,
+      state: {
+        pagination,
+      },
+      enableTopToolbar: false,
+      enableBottomToolbar: showPagination,
+      enableFilters: false,
+      enableColumnFilters: false,
+      enableGlobalFilter: false,
+      enableDensityToggle: false,
+      enableFullScreenToggle: false,
+      enableHiding: true,
+      enableColumnActions: false,
+      enableSorting: false,
+      initialState: TABLE_INITIAL_STATE,
+      bottomToolbarProps: {
+        relative: false,
+        className: styles.fixedBottomToolbar,
+      },
+      paginationProps: {
+        rowsPerPageOptions: [10, 20, 50],
+        showRowsPerPage: true,
+        showPageCount: true,
+      },
+      localization: TABLE_LOCALIZATION,
+      displayColumnDefOptions: DISPLAY_COLUMN_OPTIONS,
+      tableProps: { className: styles.table },
+      tableContainerProps: { className: styles.tableContainer },
+      tableBodyCellProps: { className: styles.tableCell },
+      tableHeadCellProps: { className: styles.tableHeadCell },
+    }),
+    [
+      isArchivesLoading,
+      showPagination,
+      archivesTotalCount,
+      handlePaginationChange,
       pagination,
-    },
-    enableTopToolbar: true,
-    enableBottomToolbar: showPagination,
-    enableFilters: false,
-    enableColumnFilters: false,
-    enableGlobalFilter: false,
-    enableDensityToggle: false,
-    enableFullScreenToggle: false,
-    enableHiding: true,
-    enableColumnActions: false,
-    enableSorting: false,
-    initialState: TABLE_INITIAL_STATE,
-    bottomToolbarProps: {
-      relative: false,
-      className: styles.fixedBottomToolbar,
-    },
-    paginationProps: {
-      rowsPerPageOptions: [10, 20, 50],
-      showRowsPerPage: true,
-      showPageCount: true,
-    },
-    localization: TABLE_LOCALIZATION,
-    displayColumnDefOptions: DISPLAY_COLUMN_OPTIONS,
-    tableProps: { className: styles.table },
-    tableContainerProps: { className: styles.tableContainer },
-    tableBodyCellProps: { className: styles.tableCell },
-    tableHeadCellProps: { className: styles.tableHeadCell },
-  };
-
-  const renderInstancesTopToolbar = ({ table }: { table: DataGridTableInstance<ArchiveIndexRow> }) => (
-    <>
-      <div className={styles.tableToolbarRow}>
-        <TextField
-          prefix={<Icon.Search />}
-          placeholder="Найти"
-          value={searchQuery}
-          onChange={handleSearchChange}
-          size="md"
-          className={styles.searchInput}
-        />
-        <div className={styles.filterIcons}>
-          <Button.Icon icon={<Icon.ColumnThree />} onClick={handleColumnMenuClick} aria-label="Столбцы" />
-          <Button.Icon icon={<Icon.Filter />} aria-label="Фильтры" onClick={handleFiltersClick} />
-        </div>
-        <Button.Icon
-          className={styles.filterIcons}
-          icon={<Icon.Clear />}
-          aria-label="Сбросить фильтры"
-          onClick={handleClearFilters}
-        />
-        <Button.Icon className={styles.filterIcons} icon={<Icon.Refresh />} aria-label="Обновить" onClick={handleRefresh} />
-      </div>
-      {columnMenuAnchor && (
-        <ShowHideColumnsMenu anchorEl={columnMenuAnchor} setAnchorEl={setColumnMenuAnchor} table={table} id="archives-index-show-hide-menu" />
-      )}
-    </>
+    ],
   );
 
-  const renderConfigurationsTopToolbar = ({ table }: { table: DataGridTableInstance<ArchiveConfigurationRow> }) => (
-    <>
-      <div className={styles.tableToolbarRow}>
-        <TextField
-          prefix={<Icon.Search />}
-          placeholder="Найти"
-          value={searchQuery}
-          onChange={handleSearchChange}
-          size="md"
-          className={styles.searchInput}
-        />
-        <div className={styles.filterIcons}>
-          <Button.Icon icon={<Icon.ColumnThree />} onClick={handleColumnMenuClick} aria-label="Столбцы" />
-          <Button.Icon icon={<Icon.Filter />} aria-label="Фильтры" onClick={handleFiltersClick} />
-        </div>
-        <Button.Icon
-          className={styles.filterIcons}
-          icon={<Icon.Clear />}
-          aria-label="Сбросить фильтры"
-          onClick={handleClearFilters}
-        />
-        <Button.Icon className={styles.filterIcons} icon={<Icon.Refresh />} aria-label="Обновить" onClick={handleRefresh} />
+  const tableToolbar = (
+    <div className={styles.tableToolbarRow}>
+      <TextField
+        prefix={<Icon.Search />}
+        placeholder="Найти"
+        value={searchQuery}
+        onChange={handleSearchChange}
+        size="md"
+        className={styles.searchInput}
+      />
+      <div className={styles.filterIcons}>
+        <Button.Icon icon={<Icon.ColumnThree />} onClick={handleColumnMenuClick} aria-label="Столбцы" />
+        <Button.Icon icon={<Icon.Filter />} aria-label="Фильтры" onClick={handleFiltersClick} />
       </div>
-      {columnMenuAnchor && (
-        <ShowHideColumnsMenu anchorEl={columnMenuAnchor} setAnchorEl={setColumnMenuAnchor} table={table} id="archives-configuration-show-hide-menu" />
-      )}
-    </>
+      <Button.Icon className={styles.filterIcons} icon={<Icon.Clear />} aria-label="Сбросить фильтры" onClick={handleClearFilters} />
+      <Button.Icon className={styles.filterIcons} icon={<Icon.Refresh />} aria-label="Обновить" onClick={handleRefresh} />
+    </div>
   );
+
+  const columnMenu =
+    columnMenuAnchor && tableRef.current ? (
+      <ShowHideColumnsMenu
+        anchorEl={columnMenuAnchor}
+        setAnchorEl={setColumnMenuAnchor}
+        table={tableRef.current}
+        id={tableView === SEGMENT_INSTANCES ? 'archives-index-show-hide-menu' : 'archives-configuration-show-hide-menu'}
+      />
+    ) : null;
 
   if (tableView === SEGMENT_INSTANCES) {
     return (
-      <DataGridTable<ArchiveIndexRow>
-        key={tableKey}
-        data={getArchiveInstances(archiveInstances)}
-        columns={archiveIndexColumns}
-        getRowId={(row) => row.id}
-        renderTopToolbar={renderInstancesTopToolbar}
-        {...commonTableProps}
-      />
+      <>
+        {tableToolbar}
+        {columnMenu}
+        <DataGridTable<ArchiveIndexRow>
+          key={tableKey}
+          data={getArchiveInstances(archiveInstances)}
+          columns={archiveIndexColumns}
+          getRowId={(row) => row.id}
+          tableWrapperProps={({ table }) => {
+            tableRef.current = table as unknown as DataGridTableInstance<DataGridRowData>;
+            return {};
+          }}
+          {...commonTableProps}
+        />
+      </>
     );
   }
 
   if (tableView === SEGMENT_CONFIGURATIONS) {
     return (
-      <DataGridTable<ArchiveConfigurationRow>
-        key={tableKey}
-        data={getArchiveConfigurations(archiveConfigs)}
-        columns={archiveConfigurationColumns}
-        getRowId={(row) => row.id}
-        renderTopToolbar={renderConfigurationsTopToolbar}
-        {...commonTableProps}
-      />
+      <>
+        {tableToolbar}
+        {columnMenu}
+        <DataGridTable<ArchiveConfigurationRow>
+          key={tableKey}
+          data={getArchiveConfigurations(archiveConfigs)}
+          columns={archiveConfigurationColumns}
+          getRowId={(row) => row.id}
+          tableWrapperProps={({ table }) => {
+            tableRef.current = table as unknown as DataGridTableInstance<DataGridRowData>;
+            return {};
+          }}
+          {...commonTableProps}
+        />
+      </>
     );
   }
 
