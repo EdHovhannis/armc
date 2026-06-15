@@ -8,6 +8,7 @@ import {
   DataGridProps,
   DataGridVisibilityState,
   DataGridColumnSizingState,
+  DataGridPaginationState,
   ShowHideColumnsMenu,
   DataGridTableInstance,
 } from '@sds-eng/data-grid';
@@ -24,6 +25,7 @@ interface DataGridTableProps<T extends DataGridRowData> extends Omit<DataGridPro
   rowSelection?: DataGridRowSelectionState;
   columnVisibility?: DataGridVisibilityState;
   columnSizing?: DataGridColumnSizingState;
+  pagination?: DataGridPaginationState;
   additionalHeight?: number;
   onRowClick?: (rowIndex: number) => void;
   onScroll: (event: UIEvent<HTMLDivElement>) => void;
@@ -60,6 +62,7 @@ const DataGridTable = <T extends DataGridRowData>(props: DataGridTableProps<T>):
     rowSelection = {},
     columnVisibility = {},
     columnSizing = {},
+    pagination,
     onSortingChange,
     onRowClick,
     onRowSelectionChange,
@@ -116,6 +119,7 @@ const DataGridTable = <T extends DataGridRowData>(props: DataGridTableProps<T>):
           rowSelection,
           columnVisibility,
           columnSizing,
+          ...(pagination ? { pagination } : {}),
         }}
         onSortingChange={onSortingChange}
         onRowSelectionChange={onRowSelectionChange}

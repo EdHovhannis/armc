@@ -1,8 +1,9 @@
+import { DataGridPaginationState } from '@sds-eng/data-grid';
 import { useUnit } from 'effector-react';
 import { FC, useState, useEffect } from 'react';
 
-import { fetchArchivesFx } from '@src/Entities/Archives/api';
-import { $archiveConfigs, $archiveInstances } from '@src/Entities/Archives/model';
+import { fetchArchivesCountFx, fetchArchivesFx } from '@src/Entities/Archives/api';
+import { $archiveConfigs, $archiveInstances, $archivesTotalCount } from '@src/Entities/Archives/model';
 
 import { SEGMENT_CONFIGURATIONS, SEGMENT_INSTANCES } from '@src/Features/TableView/constants';
 import { $tableView } from '@src/Features/TableView/model';
@@ -12,16 +13,24 @@ import { archiveConfigurationColumns, archiveIndexColumns } from './columns';
 
 const ArchivesTable: FC = () => {
   const [tableView] = useUnit([$tableView]);
-  const [isArchivesLoading, fetchArchives, archiveInstanceData, archiveConfigsData] = useUnit([
+  const [isArchivesLoading, fetchArchives, fetchArchivesCount, archiveInstanceData, archiveConfigsData, totalCount] = useUnit([
     fetchArchivesFx.pending,
     fetchArchivesFx,
+    fetchArchivesCountFx,
     $archiveInstances,
     $archiveConfigs,
+    $archivesTotalCount,
   ]);
 
+  const [pagination, setPagination] = useState<DataGridPaginationState>({ pageIndex: 0, pageSize: 20 });
+
   useEffect(() => {
-    fetchArchives();
-  }, [fetchArchives]);
+    fetchArchivesCount();
+  }, [fetchArchivesCount]);
+
+  useEffect(() => {
+    fetchArchives({ pageNumber: pagination.pageIndex + 1, pageSize: pagination.pageSize });
+  }, [fetchArchives, pagination.pageIndex, pagination.pageSize]);
 
   const [tableKey] = useState(0);
 
@@ -34,6 +43,9 @@ const ArchivesTable: FC = () => {
           columns={archiveIndexColumns}
           tableKey={tableKey}
           showHideMenuId="archives-index-show-hide-menu"
+          pagination={pagination}
+          onPaginationChange={setPagination}
+          rowCount={totalCount}
         />
       );
     case SEGMENT_CONFIGURATIONS:
@@ -44,6 +56,9 @@ const ArchivesTable: FC = () => {
           columns={archiveConfigurationColumns}
           tableKey={tableKey}
           showHideMenuId="archives-configuration-show-hide-menu"
+          pagination={pagination}
+          onPaginationChange={setPagination}
+          rowCount={totalCount}
         />
       );
     default:
