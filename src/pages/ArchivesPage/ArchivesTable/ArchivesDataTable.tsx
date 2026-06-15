@@ -1,7 +1,9 @@
 import { Button, Icon, TextField } from '@sds-eng/base';
-import { DataGrid, DataGridColumnDef, DataGridTableInstance, ShowHideColumnsMenu } from '@sds-eng/data-grid';
+import { DataGridColumnDef, DataGridTableInstance, ShowHideColumnsMenu } from '@sds-eng/data-grid';
 import { useUnit } from 'effector-react';
 import { useCallback, useState, MouseEvent } from 'react';
+
+import DataGridTable from '@src/Widgets/DataGridTable';
 
 import { onChangeFilterDrawerOpen } from '../FilterDrawer/model';
 
@@ -71,15 +73,18 @@ export const ArchivesDataTable = <TRow extends { id: string }>({
 
   return (
     <div className={styles.tableWrapper}>
-      <DataGrid
+      <DataGridTable
         key={localTableKey}
         data={data}
-        columns={columns}
+        columns={columns as DataGridColumnDef<TRow, unknown>[]}
+        isLoading={false}
+        onScroll={() => {}}
         getRowId={(row) => row.id}
         layoutMode="semantic"
         defaultColumn={{ minSize: 60, enableColumnFilter: false, enableSorting: false }}
         enableStickyHeader
         enableRowSelection
+        enableRowVirtualization={false}
         enablePagination
         enableTopToolbar
         enableBottomToolbar
