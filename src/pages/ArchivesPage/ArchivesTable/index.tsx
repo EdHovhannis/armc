@@ -32,7 +32,7 @@ const ArchivesTable: FC = () => {
 
   const handleSearchChange = useCallback((value: string) => {
     setSearchValue(value);
-    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+    setPagination((prev) => (prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }));
   }, []);
 
   useEffect(() => {

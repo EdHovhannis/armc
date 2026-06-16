@@ -1,13 +1,15 @@
 import { Button, Icon, TextField } from '@sds-eng/base';
 import { DataGridColumnDef, DataGridPaginationState, DataGridTableInstance, DataGridUpdater, ShowHideColumnsMenu } from '@sds-eng/data-grid';
 import { useUnit } from 'effector-react';
-import { useCallback, useState, MouseEvent } from 'react';
+import { memo, useCallback, useState, MouseEvent } from 'react';
 
 import DataGridTable from '@src/Widgets/DataGridTable';
 
 import { onChangeFilterDrawerOpen } from '../FilterDrawer/model';
 
 import * as styles from './styles.module.css';
+
+const SEARCH_ICON = <Icon.Search />;
 
 interface ArchivesDataTableProps<TRow extends { id: number | string }> {
   data: TRow[];
@@ -21,6 +23,17 @@ interface ArchivesDataTableProps<TRow extends { id: number | string }> {
   searchValue: string;
   onSearchChange: (value: string) => void;
 }
+
+interface ArchivesSearchInputProps {
+  value: string;
+  onChange: (value: string) => void;
+}
+
+const ArchivesSearchInput = memo(({ value, onChange }: ArchivesSearchInputProps) => (
+  <TextField prefix={SEARCH_ICON} placeholder="Найти" value={value} onChange={onChange} size="md" className={styles.searchInput} />
+));
+
+ArchivesSearchInput.displayName = 'ArchivesSearchInput';
 
 export const ArchivesDataTable = <TRow extends { id: number | string }>({
   data,
@@ -80,14 +93,7 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
   return (
     <div className={styles.tableWrapper}>
       <div className={styles.searchToolbarRow}>
-        <TextField
-          prefix={<Icon.Search />}
-          placeholder="Найти"
-          value={searchValue}
-          onChange={onSearchChange}
-          size="md"
-          className={styles.searchInput}
-        />
+        <ArchivesSearchInput value={searchValue} onChange={onSearchChange} />
       </div>
       <DataGridTable
         key={localTableKey}
