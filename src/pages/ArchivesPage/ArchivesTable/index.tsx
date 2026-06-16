@@ -1,8 +1,8 @@
 import { DataGridPaginationState } from '@sds-eng/data-grid';
 import { useUnit } from 'effector-react';
-import { FC, useState, useEffect } from 'react';
+import { FC, useState, useEffect, useMemo, useCallback } from 'react';
 
-import { fetchArchivesCountFx, fetchArchivesFx } from '@src/Entities/Archives/api';
+import { type ArchiveFilter, fetchArchivesCountFx, fetchArchivesFx } from '@src/Entities/Archives/api';
 import { $archiveConfigs, $archiveInstances, $archivesTotalCount } from '@src/Entities/Archives/model';
 
 import { SEGMENT_CONFIGURATIONS, SEGMENT_INSTANCES } from '@src/Features/TableView/constants';
@@ -23,14 +23,25 @@ const ArchivesTable: FC = () => {
   ]);
 
   const [pagination, setPagination] = useState<DataGridPaginationState>({ pageIndex: 0, pageSize: 20 });
+  const [searchValue, setSearchValue] = useState('');
+
+  const filters = useMemo<ArchiveFilter[]>(() => {
+    const trimmedSearchValue = searchValue.trim();
+    return trimmedSearchValue ? [{ field: 'nameLike', op: 'like', values: [`%${trimmedSearchValue}%`] }] : [];
+  }, [searchValue]);
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchValue(value);
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+  }, []);
 
   useEffect(() => {
-    fetchArchivesCount();
-  }, [fetchArchivesCount]);
+    fetchArchivesCount({ filters });
+  }, [fetchArchivesCount, filters]);
 
   useEffect(() => {
-    fetchArchives({ pageNumber: pagination.pageIndex + 1, pageSize: pagination.pageSize });
-  }, [fetchArchives, pagination.pageIndex, pagination.pageSize]);
+    fetchArchives({ pageNumber: pagination.pageIndex + 1, pageSize: pagination.pageSize, filters });
+  }, [fetchArchives, filters, pagination.pageIndex, pagination.pageSize]);
 
   const [tableKey] = useState(0);
 
@@ -46,6 +57,8 @@ const ArchivesTable: FC = () => {
           pagination={pagination}
           onPaginationChange={setPagination}
           rowCount={totalCount}
+          searchValue={searchValue}
+          onSearchChange={handleSearchChange}
         />
       );
     case SEGMENT_CONFIGURATIONS:
@@ -59,6 +72,8 @@ const ArchivesTable: FC = () => {
           pagination={pagination}
           onPaginationChange={setPagination}
           rowCount={totalCount}
+          searchValue={searchValue}
+          onSearchChange={handleSearchChange}
         />
       );
     default:

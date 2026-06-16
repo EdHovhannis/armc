@@ -18,6 +18,8 @@ interface ArchivesDataTableProps<TRow extends { id: number | string }> {
   pagination: DataGridPaginationState;
   onPaginationChange: (updater: DataGridUpdater<DataGridPaginationState>) => void;
   rowCount: number;
+  searchValue: string;
+  onSearchChange: (value: string) => void;
 }
 
 export const ArchivesDataTable = <TRow extends { id: number | string }>({
@@ -29,6 +31,8 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
   pagination,
   onPaginationChange,
   rowCount,
+  searchValue,
+  onSearchChange,
 }: ArchivesDataTableProps<TRow>) => {
   const [columnMenuAnchor, setColumnMenuAnchor] = useState<HTMLElement | null>(null);
   const [localTableKey, setLocalTableKey] = useState(tableKey);
@@ -42,10 +46,14 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
     onChangeFilterDrawerOpenFn(true);
   }, [onChangeFilterDrawerOpenFn]);
 
-  const handleClearFilters = useCallback((table: DataGridTableInstance<TRow>) => {
-    table.resetColumnFilters();
-    table.setGlobalFilter('');
-  }, []);
+  const handleClearFilters = useCallback(
+    (table: DataGridTableInstance<TRow>) => {
+      table.resetColumnFilters();
+      table.setGlobalFilter('');
+      onSearchChange('');
+    },
+    [onSearchChange],
+  );
 
   const handleRefresh = useCallback(() => {
     setLocalTableKey((prev) => prev + 1);
@@ -58,8 +66,8 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
           <TextField
             prefix={<Icon.Search />}
             placeholder="Найти"
-            value={table.getState().globalFilter || ''}
-            onChange={() => {}}
+            value={searchValue}
+            onChange={onSearchChange}
             size="md"
             className={styles.searchInput}
           />
@@ -74,7 +82,7 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
         {columnMenuAnchor && <ShowHideColumnsMenu anchorEl={columnMenuAnchor} setAnchorEl={setColumnMenuAnchor} table={table} id={showHideMenuId} />}
       </>
     ),
-    [columnMenuAnchor, handleColumnMenuClick, handleFiltersClick, handleClearFilters, handleRefresh, showHideMenuId],
+    [columnMenuAnchor, handleColumnMenuClick, handleFiltersClick, handleClearFilters, handleRefresh, onSearchChange, searchValue, showHideMenuId],
   );
 
   return (

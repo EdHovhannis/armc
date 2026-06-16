@@ -10,14 +10,30 @@ import { ArchiveConfiguration } from './types';
 export interface FetchArchivesParams {
   pageNumber: number;
   pageSize: number;
+  filters?: ArchiveFilter[];
 }
 
+export interface ArchiveFilter {
+  field: string;
+  op: string;
+  values: string[];
+}
+
+const getArchiveListParams = ({ pageNumber, pageSize, filters }: FetchArchivesParams) => ({
+  pageSize,
+  pageNumber,
+  ...(filters?.length ? { filters: JSON.stringify(filters) } : {}),
+});
+
 export const fetchArchivesFx = createEffect<FetchArchivesParams, AxiosResponse<ArchiveConfiguration[]>, AxiosError<AxiosResponseError>>(
-  async ({ pageNumber, pageSize }) => axios.get('/v1/internal/index/archive/list/paginated', { params: { pageSize, pageNumber } }),
+  async (params) => axios.get('/v1/internal/index/archive/list/paginated', { params: getArchiveListParams(params) }),
 );
 
-export const fetchArchivesCountFx = createEffect<void, AxiosResponse<number>, AxiosError<AxiosResponseError>>(async () =>
-  axios.get('/v1/internal/index/archive/list/page-count', { params: { pageSize: 1, pageNumber: 1 } }),
+export const fetchArchivesCountFx = createEffect<Pick<FetchArchivesParams, 'filters'> | void, AxiosResponse<number>, AxiosError<AxiosResponseError>>(
+  async (params) =>
+    axios.get('/v1/internal/index/archive/list/page-count', {
+      params: getArchiveListParams({ pageSize: 1, pageNumber: 1, filters: params?.filters }),
+    }),
 );
 
 sample({
