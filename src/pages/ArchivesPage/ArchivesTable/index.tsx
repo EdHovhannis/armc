@@ -24,11 +24,26 @@ const ArchivesTable: FC = () => {
 
   const [pagination, setPagination] = useState<DataGridPaginationState>({ pageIndex: 0, pageSize: 20 });
   const [searchValue, setSearchValue] = useState('');
+  const searchQuery = searchValue.trim().toLowerCase();
 
   const filters = useMemo<ArchiveFilter[]>(() => {
-    const trimmedSearchValue = searchValue.trim();
-    return trimmedSearchValue ? [{ field: 'nameLike', op: 'like', values: [`%${trimmedSearchValue}%`] }] : [];
-  }, [searchValue]);
+    return searchQuery ? [{ field: 'nameLike', op: 'like', values: [`%${searchQuery}%`] }] : [];
+  }, [searchQuery]);
+
+  const archiveInstanceTableData = useMemo(
+    () => (searchQuery ? archiveInstanceData.filter((item) => item.configName.toLowerCase().includes(searchQuery)) : archiveInstanceData),
+    [archiveInstanceData, searchQuery],
+  );
+
+  const archiveConfigTableData = useMemo(
+    () => (searchQuery ? archiveConfigsData.filter((item) => item.configuration.toLowerCase().includes(searchQuery)) : archiveConfigsData),
+    [archiveConfigsData, searchQuery],
+  );
+
+  const getRowCount = useCallback(
+    (dataLength: number, filteredDataLength: number) => (searchQuery && dataLength !== filteredDataLength ? filteredDataLength : totalCount),
+    [searchQuery, totalCount],
+  );
 
   const handleSearchChange = useCallback((value: string) => {
     setSearchValue(value);
@@ -50,13 +65,13 @@ const ArchivesTable: FC = () => {
       return (
         <ArchivesDataTable
           isLoading={isArchivesLoading}
-          data={archiveInstanceData}
+          data={archiveInstanceTableData}
           columns={archiveIndexColumns}
           tableKey={tableKey}
           showHideMenuId="archives-index-show-hide-menu"
           pagination={pagination}
           onPaginationChange={setPagination}
-          rowCount={totalCount}
+          rowCount={getRowCount(archiveInstanceData.length, archiveInstanceTableData.length)}
           searchValue={searchValue}
           onSearchChange={handleSearchChange}
         />
@@ -65,13 +80,13 @@ const ArchivesTable: FC = () => {
       return (
         <ArchivesDataTable
           isLoading={isArchivesLoading}
-          data={archiveConfigsData}
+          data={archiveConfigTableData}
           columns={archiveConfigurationColumns}
           tableKey={tableKey}
           showHideMenuId="archives-configuration-show-hide-menu"
           pagination={pagination}
           onPaginationChange={setPagination}
-          rowCount={totalCount}
+          rowCount={getRowCount(archiveConfigsData.length, archiveConfigTableData.length)}
           searchValue={searchValue}
           onSearchChange={handleSearchChange}
         />
