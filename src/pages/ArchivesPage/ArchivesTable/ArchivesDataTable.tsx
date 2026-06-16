@@ -9,6 +9,7 @@ import { onChangeFilterDrawerOpen } from '../FilterDrawer/model';
 
 import * as styles from './styles.module.css';
 
+const SEARCH_DEBOUNCE_MS = 400;
 const SEARCH_ICON = <Icon.Search />;
 
 interface ArchivesDataTableProps<TRow extends { id: number | string }> {
@@ -27,11 +28,65 @@ interface ArchivesDataTableProps<TRow extends { id: number | string }> {
 interface ArchivesSearchInputProps {
   value: string;
   onChange: (value: string) => void;
+  restoreFocusKey: string;
 }
 
-const ArchivesSearchInput = memo(({ value, onChange }: ArchivesSearchInputProps) => (
-  <TextField prefix={SEARCH_ICON} placeholder="Найти" value={value} onChange={onChange} size="md" className={styles.searchInput} />
-));
+const ArchivesSearchInput = memo(({ value, onChange, restoreFocusKey }: ArchivesSearchInputProps) => {
+  const [localValue, setLocalValue] = useState(value);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const shouldRestoreFocusRef = useRef(false);
+
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
+  useEffect(() => {
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!wrapperRef.current?.contains(event.target as Node)) {
+        shouldRestoreFocusRef.current = false;
+      }
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    return () => document.removeEventListener('pointerdown', handlePointerDown);
+  }, []);
+
+  useEffect(() => {
+    if (localValue === value) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      onChange(localValue);
+    }, SEARCH_DEBOUNCE_MS);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [localValue, onChange, value]);
+
+  useEffect(() => {
+    if (!shouldRestoreFocusRef.current) {
+      return;
+    }
+
+    const input = wrapperRef.current?.querySelector('input');
+    if (!input || document.activeElement === input) {
+      return;
+    }
+
+    input.focus();
+  }, [restoreFocusKey]);
+
+  const handleChange = useCallback((nextValue: string) => {
+    shouldRestoreFocusRef.current = true;
+    setLocalValue(nextValue);
+  }, []);
+
+  return (
+    <div ref={wrapperRef}>
+      <TextField prefix={SEARCH_ICON} placeholder="Найти" value={localValue} onChange={handleChange} size="md" className={styles.searchInput} />
+    </div>
+  );
+});
 
 ArchivesSearchInput.displayName = 'ArchivesSearchInput';
 
@@ -49,8 +104,6 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
 }: ArchivesDataTableProps<TRow>) => {
   const [columnMenuAnchor, setColumnMenuAnchor] = useState<HTMLElement | null>(null);
   const [localTableKey, setLocalTableKey] = useState(tableKey);
-  const searchInputWrapperRef = useRef<HTMLDivElement | null>(null);
-  const shouldRestoreSearchFocusRef = useRef(false);
   const onChangeFilterDrawerOpenFn = useUnit(onChangeFilterDrawerOpen);
 
   const handleColumnMenuClick = useCallback((event: MouseEvent<HTMLElement>) => {
@@ -65,16 +118,7 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
     (table: DataGridTableInstance<TRow>) => {
       table.resetColumnFilters();
       table.setGlobalFilter('');
-      shouldRestoreSearchFocusRef.current = true;
       onSearchChange('');
-    },
-    [onSearchChange],
-  );
-
-  const handleSearchChange = useCallback(
-    (value: string) => {
-      shouldRestoreSearchFocusRef.current = true;
-      onSearchChange(value);
     },
     [onSearchChange],
   );
@@ -82,33 +126,6 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
   const handleRefresh = useCallback(() => {
     setLocalTableKey((prev) => prev + 1);
   }, []);
-
-  useEffect(() => {
-    const handlePointerDown = (event: PointerEvent) => {
-      if (!searchInputWrapperRef.current?.contains(event.target as Node)) {
-        shouldRestoreSearchFocusRef.current = false;
-      }
-    };
-
-    document.addEventListener('pointerdown', handlePointerDown);
-
-    return () => {
-      document.removeEventListener('pointerdown', handlePointerDown);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!shouldRestoreSearchFocusRef.current) {
-      return;
-    }
-
-    const input = searchInputWrapperRef.current?.querySelector('input');
-    if (!input || document.activeElement === input) {
-      return;
-    }
-
-    input.focus();
-  }, [data, isLoading, rowCount, searchValue]);
 
   const renderTopToolbar = useCallback(
     ({ table }: { table: DataGridTableInstance<TRow> }) => (
@@ -130,8 +147,8 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
 
   return (
     <div className={styles.tableWrapper}>
-      <div className={styles.searchToolbarRow} ref={searchInputWrapperRef}>
-        <ArchivesSearchInput value={searchValue} onChange={handleSearchChange} />
+      <div className={styles.searchToolbarRow}>
+        <ArchivesSearchInput value={searchValue} onChange={onSearchChange} restoreFocusKey={`${searchValue}-${Boolean(isLoading)}-${rowCount}`} />
       </div>
       <DataGridTable
         key={localTableKey}
