@@ -28,6 +28,11 @@ sample({
 
 sample({
   clock: fetchArchivesCountFx.failData,
-  fn: ({ response, status }) => ({ title: 'Не удалось загрузить количество архивов.', status, message: response?.data.message, data: response?.data }),
+  fn: ({ response, status }) => ({
+    title: 'Не удалось загрузить количество архивов.',
+    status,
+    message: response?.data.message,
+    data: response?.data,
+  }),
   target: handleErrorFx,
 });
