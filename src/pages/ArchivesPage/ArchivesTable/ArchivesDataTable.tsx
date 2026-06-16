@@ -1,7 +1,7 @@
 import { Button, Icon, TextField } from '@sds-eng/base';
 import { DataGridColumnDef, DataGridPaginationState, DataGridTableInstance, DataGridUpdater, ShowHideColumnsMenu } from '@sds-eng/data-grid';
 import { useUnit } from 'effector-react';
-import { memo, useCallback, useState, MouseEvent } from 'react';
+import { memo, useCallback, useEffect, useRef, useState, MouseEvent } from 'react';
 
 import DataGridTable from '@src/Widgets/DataGridTable';
 
@@ -49,6 +49,8 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
 }: ArchivesDataTableProps<TRow>) => {
   const [columnMenuAnchor, setColumnMenuAnchor] = useState<HTMLElement | null>(null);
   const [localTableKey, setLocalTableKey] = useState(tableKey);
+  const searchInputWrapperRef = useRef<HTMLDivElement | null>(null);
+  const shouldRestoreSearchFocusRef = useRef(false);
   const onChangeFilterDrawerOpenFn = useUnit(onChangeFilterDrawerOpen);
 
   const handleColumnMenuClick = useCallback((event: MouseEvent<HTMLElement>) => {
@@ -63,7 +65,16 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
     (table: DataGridTableInstance<TRow>) => {
       table.resetColumnFilters();
       table.setGlobalFilter('');
+      shouldRestoreSearchFocusRef.current = true;
       onSearchChange('');
+    },
+    [onSearchChange],
+  );
+
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      shouldRestoreSearchFocusRef.current = true;
+      onSearchChange(value);
     },
     [onSearchChange],
   );
@@ -71,6 +82,33 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
   const handleRefresh = useCallback(() => {
     setLocalTableKey((prev) => prev + 1);
   }, []);
+
+  useEffect(() => {
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!searchInputWrapperRef.current?.contains(event.target as Node)) {
+        shouldRestoreSearchFocusRef.current = false;
+      }
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown);
+
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!shouldRestoreSearchFocusRef.current) {
+      return;
+    }
+
+    const input = searchInputWrapperRef.current?.querySelector('input');
+    if (!input || document.activeElement === input) {
+      return;
+    }
+
+    input.focus();
+  }, [data, isLoading, rowCount, searchValue]);
 
   const renderTopToolbar = useCallback(
     ({ table }: { table: DataGridTableInstance<TRow> }) => (
@@ -92,8 +130,8 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
 
   return (
     <div className={styles.tableWrapper}>
-      <div className={styles.searchToolbarRow}>
-        <ArchivesSearchInput value={searchValue} onChange={onSearchChange} />
+      <div className={styles.searchToolbarRow} ref={searchInputWrapperRef}>
+        <ArchivesSearchInput value={searchValue} onChange={handleSearchChange} />
       </div>
       <DataGridTable
         key={localTableKey}
