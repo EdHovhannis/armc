@@ -14,13 +14,8 @@ import { ArchivesDataTable } from './ArchivesDataTable';
 import { archiveConfigurationColumns, archiveIndexColumns } from './columns';
 
 const ArchivesTable: FC = () => {
-<<<<<<< Updated upstream
-  const [tableView, appliedFilters] = useUnit([$tableView, $appliedArchiveFilters]);
+  const [tableView, rowId, appliedFilters] = useUnit([$tableView, $rowId, $appliedArchiveFilters]);
   const [isArchivesLoading, fetchArchives, fetchArchivesCount, fetchArchiveOptions, archiveInstanceData, archiveConfigsData, totalCount] = useUnit([
-=======
-  const [tableView, rowId] = useUnit([$tableView, $rowId]);
-  const [isArchivesLoading, fetchArchives, fetchArchivesCount, archiveInstanceData, archiveConfigsData, totalCount] = useUnit([
->>>>>>> Stashed changes
     fetchArchivesFx.pending,
     fetchArchivesFx,
     fetchArchivesCountFx,

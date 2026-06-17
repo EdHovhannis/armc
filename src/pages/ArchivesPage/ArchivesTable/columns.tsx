@@ -8,12 +8,9 @@ import { formatSpeed } from '@src/Shared/lib/format/formatSpeed';
 
 import { ArchiveConfigView, ArchiveInstanceView } from '@src/Entities/Archives/types';
 
-<<<<<<< Updated upstream
-import ConfigurationActionsCell from './ConfigurationActionsCell';
-=======
 import { onChangeTableView, setRowId } from '@src/Features/TableView/model';
 
->>>>>>> Stashed changes
+import ConfigurationActionsCell from './ConfigurationActionsCell';
 import StatusBadge from './StatusBadge';
 import * as styles from './styles.module.css';
 
