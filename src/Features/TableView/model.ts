@@ -1,11 +1,12 @@
 import { createStore, createEvent, sample } from 'effector';
+import { DataGridRowSelectionState } from '@sds-eng/data-grid';
 
 import { TableViewType } from './types';
 
 export const $tableView = createStore<TableViewType>('configurations');
 export const $rowId = createStore<number | string>('');
-export const $selectedRowIds = createStore<Record<number, boolean>>({});
-export const setRowSelection = createEvent<number | string>();
+export const $selectedRowIds = createStore<DataGridRowSelectionState>({});
+export const setRowSelection = createEvent<DataGridRowSelectionState>();
 
 export const onChangeTableView = createEvent<TableViewType>();
 export const setRowId = createEvent<number | string>();

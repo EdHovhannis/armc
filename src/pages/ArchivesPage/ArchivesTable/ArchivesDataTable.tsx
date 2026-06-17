@@ -1,5 +1,5 @@
-import { DataGridColumnDef, DataGridPaginationState, DataGridUpdater } from '@sds-eng/data-grid';
-import { useState } from 'react';
+import { DataGridColumnDef, DataGridPaginationState, DataGridRowSelectionState, DataGridUpdater } from '@sds-eng/data-grid';
+import { useCallback } from 'react';
 
 import DataGridTable from '@src/Widgets/DataGridTable';
 
@@ -34,8 +34,16 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
   onSearchChange,
   showHideMenuId,
 }: ArchivesDataTableProps<TRow>) => {
-  // const [rowSelection, setRowSelection] = useState({});
   const [rowSelection, setRowSelectionFn] = useUnit([$selectedRowIds, setRowSelection]);
+  const handleRowSelectionChange = useCallback(
+    (updaterOrValue: DataGridUpdater<DataGridRowSelectionState>) => {
+      const nextRowSelection =
+        typeof updaterOrValue === 'function' ? updaterOrValue(rowSelection) : updaterOrValue;
+
+      setRowSelectionFn(nextRowSelection);
+    },
+    [rowSelection, setRowSelectionFn]
+  );
   const rowSelectionCount = Object.values(rowSelection).length;
   const isArchiveActionsShown = Boolean(rowSelectionCount);
   console.log('rowSelection', rowSelection);
@@ -59,7 +67,7 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
         defaultColumn={{ minSize: 60, enableColumnFilter: false, enableSorting: false }}
         enableStickyHeader
         enableRowSelection
-        onRowSelectionChange={setRowSelectionFn}
+        onRowSelectionChange={handleRowSelectionChange}
         enableRowVirtualization={false}
         enablePagination
         manualPagination
