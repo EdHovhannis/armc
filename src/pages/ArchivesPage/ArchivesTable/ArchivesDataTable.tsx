@@ -6,6 +6,8 @@ import DataGridTable from '@src/Widgets/DataGridTable';
 import { ArchivesActionsToolBar } from './ArchivesActionsToolBar';
 import { ArchivesTableToolBar } from './ArchivesTableToolBar';
 import * as styles from './styles.module.css';
+import { useUnit } from 'effector-react';
+import { $selectedRowIds, setRowSelection } from '@src/Features/TableView/model';
 
 interface ArchivesDataTableProps<TRow extends { id: number | string }> {
   data: TRow[];
@@ -32,10 +34,11 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
   onSearchChange,
   showHideMenuId,
 }: ArchivesDataTableProps<TRow>) => {
-  const [rowSelection, setRowSelection] = useState({});
+  // const [rowSelection, setRowSelection] = useState({});
+  const [rowSelection, setRowSelectionFn] = useUnit([$selectedRowIds, setRowSelection]);
   const rowSelectionCount = Object.values(rowSelection).length;
   const isArchiveActionsShown = Boolean(rowSelectionCount);
-
+  console.log('rowSelection', rowSelection);
   return (
     <div className={styles.tableWrapper}>
       <ArchivesTableToolBar
@@ -56,7 +59,7 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
         defaultColumn={{ minSize: 60, enableColumnFilter: false, enableSorting: false }}
         enableStickyHeader
         enableRowSelection
-        onRowSelectionChange={setRowSelection}
+        onRowSelectionChange={setRowSelectionFn}
         enableRowVirtualization={false}
         enablePagination
         manualPagination
