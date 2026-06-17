@@ -69,14 +69,14 @@ const ArchivesTable: FC = () => {
 
     return findInstanceByRowId.instances?.map((instance) => ({
       ...instance,
-      configName: findInstanceByRowId.name,
-      configVersion: findInstanceByRowId.version,
+      configName: findInstanceByRowId.configuration,
+      configVersion: instance.version,
       instanceStatus: instance.status.indexing.status,
       currentSizeBytes: instance.status.storage.currentSizeBytes,
       maxSizeBytes: instance.status.storage.maxSizeBytes,
-      maxIndexSize: findInstanceByRowId.maxSizeBytes,
-      maxWriteSpeed: findInstanceByRowId.maxDataRateBytesPerSec,
-      maxRetention: findInstanceByRowId.maxStorageTimeSec,
+      maxIndexSize: findInstanceByRowId.maxIndexSize,
+      maxWriteSpeed: findInstanceByRowId.maxWriteSpeed,
+      maxRetention: findInstanceByRowId.maxRetention,
     }));
   }, [archiveConfigTableData, rowId]);
 
