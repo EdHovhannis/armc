@@ -22,8 +22,8 @@ export const ArchivesActionsToolBar: FC<ArchivesActionsToolBarProps> = ({ rowSel
   const handleDeleteArchive = () => {
     const urlsFordelete = archiveConfigs
       .filter((item) => selectedRowIds[item.id])
-      .map(({ project, name }) => {
-        return `/v1/internal/index/archive/task/project/${project}/name/${name}/config`;
+      .map(({ projectKey, configuration }) => {
+        return `/v1/internal/index/archive/task/project/${projectKey}/name/${configuration}/config`;
       });
     deleteArchives(urlsFordelete);
   };

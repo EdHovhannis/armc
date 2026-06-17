@@ -36,8 +36,8 @@ export const fetchArchivesCountFx = createEffect<Pick<FetchArchivesParams, 'filt
     }),
 );
 
-export const deleteArchivesFx = createEffect(async (params) =>
-
+export const deleteArchivesFx = createEffect<string[], AxiosResponse<unknown>[], AxiosError<AxiosResponseError>>(async (urls) =>
+  Promise.all(urls.map((url) => axios.delete(url))),
 );
 
 sample({
@@ -50,6 +50,17 @@ sample({
   clock: fetchArchivesCountFx.failData,
   fn: ({ response, status }) => ({
     title: 'Не удалось загрузить количество архивов.',
+    status,
+    message: response?.data.message,
+    data: response?.data,
+  }),
+  target: handleErrorFx,
+});
+
+sample({
+  clock: deleteArchivesFx.failData,
+  fn: ({ response, status }) => ({
+    title: 'Не удалось удалить архивы.',
     status,
     message: response?.data.message,
     data: response?.data,
