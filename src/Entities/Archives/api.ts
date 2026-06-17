@@ -36,6 +36,10 @@ export const fetchArchivesCountFx = createEffect<Pick<FetchArchivesParams, 'filt
     }),
 );
 
+export const deleteArchivesFx = createEffect(async (params) =>
+
+);
+
 sample({
   clock: fetchArchivesFx.failData,
   fn: ({ response, status }) => ({ title: 'Не удалось загрузить архивы.', status, message: response?.data.message, data: response?.data }),

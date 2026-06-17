@@ -1,13 +1,14 @@
 import { DataGridColumnDef, DataGridPaginationState, DataGridRowSelectionState, DataGridUpdater } from '@sds-eng/data-grid';
+import { useUnit } from 'effector-react';
 import { useCallback } from 'react';
+
+import { $selectedRowIds, setRowSelection } from '@src/Features/TableView/model';
 
 import DataGridTable from '@src/Widgets/DataGridTable';
 
 import { ArchivesActionsToolBar } from './ArchivesActionsToolBar';
 import { ArchivesTableToolBar } from './ArchivesTableToolBar';
 import * as styles from './styles.module.css';
-import { useUnit } from 'effector-react';
-import { $selectedRowIds, setRowSelection } from '@src/Features/TableView/model';
 
 interface ArchivesDataTableProps<TRow extends { id: number | string }> {
   data: TRow[];
@@ -25,7 +26,6 @@ interface ArchivesDataTableProps<TRow extends { id: number | string }> {
 export const ArchivesDataTable = <TRow extends { id: number | string }>({
   data,
   columns,
-  // tableKey,
   isLoading,
   pagination,
   onPaginationChange,
@@ -35,18 +35,17 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
   showHideMenuId,
 }: ArchivesDataTableProps<TRow>) => {
   const [rowSelection, setRowSelectionFn] = useUnit([$selectedRowIds, setRowSelection]);
+
   const handleRowSelectionChange = useCallback(
     (updaterOrValue: DataGridUpdater<DataGridRowSelectionState>) => {
-      const nextRowSelection =
-        typeof updaterOrValue === 'function' ? updaterOrValue(rowSelection) : updaterOrValue;
-
+      const nextRowSelection = typeof updaterOrValue === 'function' ? updaterOrValue(rowSelection) : updaterOrValue;
       setRowSelectionFn(nextRowSelection);
     },
-    [rowSelection, setRowSelectionFn]
+    [rowSelection, setRowSelectionFn],
   );
+
   const rowSelectionCount = Object.values(rowSelection).length;
   const isArchiveActionsShown = Boolean(rowSelectionCount);
-  console.log('rowSelection', rowSelection);
   return (
     <div className={styles.tableWrapper}>
       <ArchivesTableToolBar

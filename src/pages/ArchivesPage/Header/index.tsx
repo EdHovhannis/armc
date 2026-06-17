@@ -6,14 +6,14 @@ import { useNavigate } from 'react-router';
 import routes from '@src/Shared/constants/routes';
 
 import { SEGMENT_CONFIGURATIONS, SEGMENT_INSTANCES } from '@src/Features/TableView/constants';
-import { $tableView, onChangeTableView, setRowId } from '@src/Features/TableView/model';
+import { $tableView, onChangeTableView, setRowId, setRowSelection } from '@src/Features/TableView/model';
 import { TableViewType } from '@src/Features/TableView/types';
 
 import * as styles from './styles.module.css';
 
 const ArchivesHeader: FC = () => {
   const navigate = useNavigate();
-  const [tableView, onChangeTableViewFn, setRowIdFn] = useUnit([$tableView, onChangeTableView, setRowId]);
+  const [tableView, onChangeTableViewFn, setRowIdFn, setRowSelectionFn] = useUnit([$tableView, onChangeTableView, setRowId, setRowSelection]);
 
   return (
     <div className={styles.archiveHeaderWrapper}>
@@ -27,9 +27,8 @@ const ArchivesHeader: FC = () => {
           value={tableView}
           onChange={(value) => {
             onChangeTableViewFn(value as TableViewType);
-            if (tableView === SEGMENT_INSTANCES) {
-              setRowIdFn('');
-            }
+            setRowIdFn('');
+            setRowSelectionFn({});
           }}
         >
           <Segment value={SEGMENT_CONFIGURATIONS}>Конфигурации</Segment>

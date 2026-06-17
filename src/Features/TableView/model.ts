@@ -1,5 +1,5 @@
-import { createStore, createEvent, sample } from 'effector';
 import { DataGridRowSelectionState } from '@sds-eng/data-grid';
+import { createStore, createEvent, sample } from 'effector';
 
 import { TableViewType } from './types';
 
