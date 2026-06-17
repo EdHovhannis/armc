@@ -26,3 +26,7 @@ export type SchemaDLQFieldOption = { value: boolean; label: string };
 
 export type SchemaAuditFieldValue = 'STRING' | 'TEXT' | 'INT' | 'DOUBLE' | 'LONG' | 'BOOLEAN';
 export type SchemaAuditFieldOption = { value: SchemaAuditFieldValue; label: string };
+
+export type SelectOperator = 'IN' | 'NOT_IN';
+export type IsOperator = 'IS' | 'IS_NOT';
+export type CompareOperator = '>=' | '<=' | '=';

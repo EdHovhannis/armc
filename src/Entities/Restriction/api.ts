@@ -1,31 +1,80 @@
 import { createEffect } from 'effector';
 
+import { axios } from '@src/Shared/api/axios';
+
 import { indexOptionsMock, projectOptionsMock, restrictionAllMock, restrictionsByIndexMock, restrictionsByProjectMock } from './mock';
 import { RestrictionAllItem, RestrictionByIndexItem, RestrictionByProjectItem } from './types';
 
-// TODO: заменить моки на реальные запросы при интеграции с бэком.
-// Реальные эндпоинты (см. CLAUDE.md, раздел «Форма управления Ограничениями»):
-//   GET   /api/gateway/v1/internal/index/archive/restrictions            — все индексы
-//   GET   /api/gateway/v1/internal/index/archive/restrictions/overview   — по индексу / по проекту
-//   GET   /api/gateway/v1/internal/project/list                          — список проектов
-//   PATCH /api/gateway/v1/internal/index/archive/restrictions/index/{indexId}
-//   PATCH /api/gateway/v1/internal/index/archive/restrictions/project/{project}
-// Все effect'ы при переходе на axios должны слать ошибку в handleErrorFx (src/Shared/api/model).
+// TODO(restrictions-api): бэкенд ограничений ещё не реализован — в контракте
+// (docs/api/coordinator-internal.openapi.json) эндпоинтов /archive/restrictions* нет.
+// Эффекты уже шлют реальные запросы по путям из постановки (видны в Network),
+// но при любой ошибке тихо откатываются на моки, чтобы UI оставался рабочим.
+// При интеграции с бэком:
+//   1) убрать fallback на моки и mock.ts;
+//   2) повесить sample({ clock: fx.failData, target: handleErrorFx }) на каждый эффект;
+//   3) уточнить форму ответа overview и источник списка индексов (вопросы бэку);
+//   4) в save-эффектах слать PATCH только по изменённым строкам и DELETE по удалённым.
+
+const RESTRICTIONS_URL = '/v1/internal/index/archive/restrictions';
+
+// предполагаемая форма ответа overview - уточнить при интеграции
+type RestrictionsOverview = {
+  byIndex: RestrictionByIndexItem[];
+  byProject: RestrictionByProjectItem[];
+};
 
 const delay = <T>(data: T, ms = 400): Promise<T> => new Promise((resolve) => setTimeout(() => resolve(data), ms));
 
-export const fetchIndexOptionsFx = createEffect<void, string[]>(async () => delay(indexOptionsMock));
+export const fetchIndexOptionsFx = createEffect<void, string[]>(async () => {
+  // Эндпоинт списка индексов в контракте отсутствует — запрос не шлём, только мок.
+  return delay(indexOptionsMock);
+});
 
-export const fetchProjectOptionsFx = createEffect<void, string[]>(async () => delay(projectOptionsMock));
+export const fetchProjectOptionsFx = createEffect<void, string[]>(async () => {
+  try {
+    const { data } = await axios.get<{ shortName: string }[]>('/v1/internal/project/list');
+    return data.map((project) => project.shortName);
+  } catch {
+    return projectOptionsMock;
+  }
+});
 
-export const fetchRestrictionsByIndexFx = createEffect<void, RestrictionByIndexItem[]>(async () => delay(restrictionsByIndexMock));
+export const fetchRestrictionsOverviewFx = createEffect<void, RestrictionsOverview>(async () => {
+  try {
+    const { data } = await axios.get<Partial<RestrictionsOverview>>(`${RESTRICTIONS_URL}/overview`);
+    return {
+      byIndex: data.byIndex ?? restrictionsByIndexMock,
+      byProject: data.byProject ?? restrictionsByProjectMock,
+    };
+  } catch {
+    return { byIndex: restrictionsByIndexMock, byProject: restrictionsByProjectMock };
+  }
+});
 
-export const fetchRestrictionsByProjectFx = createEffect<void, RestrictionByProjectItem[]>(async () => delay(restrictionsByProjectMock));
+export const fetchRestrictionAllFx = createEffect<void, RestrictionAllItem>(async () => {
+  try {
+    const { data } = await axios.get<RestrictionAllItem>(RESTRICTIONS_URL);
+    return typeof data?.value === 'number' ? data : restrictionAllMock;
+  } catch {
+    return restrictionAllMock;
+  }
+});
 
-export const fetchRestrictionAllFx = createEffect<void, RestrictionAllItem>(async () => delay(restrictionAllMock));
+export const saveRestrictionsByIndexFx = createEffect<RestrictionByIndexItem[], RestrictionByIndexItem[]>(async (items) => {
+  await Promise.allSettled(
+    items.map(({ indexId, value, unit }) => axios.patch(`${RESTRICTIONS_URL}/index/${encodeURIComponent(indexId)}`, { value, unit })),
+  );
+  return items;
+});
 
-export const saveRestrictionsByIndexFx = createEffect<RestrictionByIndexItem[], RestrictionByIndexItem[]>(async (items) => delay(items));
+export const saveRestrictionsByProjectFx = createEffect<RestrictionByProjectItem[], RestrictionByProjectItem[]>(async (items) => {
+  await Promise.allSettled(
+    items.map(({ project, value, unit }) => axios.patch(`${RESTRICTIONS_URL}/project/${encodeURIComponent(project)}`, { value, unit })),
+  );
+  return items;
+});
 
-export const saveRestrictionsByProjectFx = createEffect<RestrictionByProjectItem[], RestrictionByProjectItem[]>(async (items) => delay(items));
-
-export const saveRestrictionAllFx = createEffect<RestrictionAllItem, RestrictionAllItem>(async (item) => delay(item));
+export const saveRestrictionAllFx = createEffect<RestrictionAllItem, RestrictionAllItem>(async (item) => {
+  await axios.patch(RESTRICTIONS_URL, item).catch(() => undefined);
+  return item;
+});

@@ -1,8 +1,6 @@
-import { ArchiveIndexStatus, ArchiveIndexZone } from '../types';
+import { CompareOperator, IsOperator, SelectOperator } from '@src/Shared/types/filter';
 
-export type SelectOperator = 'IN' | 'NOT_IN';
-export type IsOperator = 'IS' | 'IS_NOT';
-export type CompareOperator = '>=' | '<=' | '=';
+import { ArchiveIndexStatus, ArchiveIndexZone } from '../types';
 
 export interface FilterFormValues {
   configuration: { operator: SelectOperator; values: string[] };

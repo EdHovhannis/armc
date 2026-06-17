@@ -1,4 +1,4 @@
-export type RestrictionUnit = 'SECONDS' | 'MINUTES' | 'HOURS' | 'DAYS' | 'WEEKS' | 'MONTHS' | 'YEARS';
+import { RestrictionUnit } from '@src/Shared/types/restriction';
 
 // Ограничение по конкретному индексу.
 export type RestrictionByIndexItem = {

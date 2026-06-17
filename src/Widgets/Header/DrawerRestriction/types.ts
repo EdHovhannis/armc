@@ -1,13 +1,13 @@
-import { RestrictionUnit } from '@src/Entities/Restriction/types';
+import { RestrictionUnit } from '@src/Shared/types/restriction';
 
 export type RestrictionTab = 'byIndex' | 'byProject' | 'all';
 
-// Имя секции формы со списком ограничений по сущности (индекс/проект)
+// имя секции формы со списком ограничений по сущности (индекс/проект)
 export type RestrictionListName = 'byIndex' | 'byProject';
 
-// Редактируемая строка ограничения по сущности (индекс или проект).
+// редактируемая строка ограничения по сущности (индекс или проект)
 export type RestrictionEntityRow = {
-  // indexId (вкладка «По индексу») или project (вкладка «По проекту»).
+  // indexId (вкладка "По индексу") или project (вкладка "По проекту")
   entity: string;
   value: number | null;
   unit: RestrictionUnit;

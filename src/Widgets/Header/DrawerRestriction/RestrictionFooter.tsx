@@ -16,8 +16,8 @@ const isListValid = (rows: RestrictionEntityRow[]): boolean => rows.every((row) 
 
 const RestrictionFooter: FC = () => {
   const { control } = useFormContext<RestrictionsFormValues>();
-  const byIndex = useWatch({ control, name: 'byIndex' }) ?? [];
-  const byProject = useWatch({ control, name: 'byProject' }) ?? [];
+  const byIndex = useWatch({ control, name: 'byIndex', defaultValue: [] });
+  const byProject = useWatch({ control, name: 'byProject', defaultValue: [] });
   const all = useWatch({ control, name: 'all' });
 
   const [tab, storeByIndex, storeByProject, savingByIndex, savingByProject, savingAll, saveByIndex, saveByProject, saveAll] = useUnit([

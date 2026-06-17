@@ -6,14 +6,14 @@ import { useNavigate } from 'react-router';
 import routes from '@src/Shared/constants/routes';
 
 import { SEGMENT_CONFIGURATIONS, SEGMENT_INSTANCES } from '@src/Features/TableView/constants';
-import { $tableView, onChangeTableView } from '@src/Features/TableView/model';
+import { $tableView, onChangeTableView, setRowId } from '@src/Features/TableView/model';
 import { TableViewType } from '@src/Features/TableView/types';
 
 import * as styles from './styles.module.css';
 
 const ArchivesHeader: FC = () => {
   const navigate = useNavigate();
-  const [tableView, onChangeTableViewFn] = useUnit([$tableView, onChangeTableView]);
+  const [tableView, onChangeTableViewFn, setRowIdFn] = useUnit([$tableView, onChangeTableView, setRowId]);
 
   return (
     <div className={styles.archiveHeaderWrapper}>
@@ -22,9 +22,18 @@ const ArchivesHeader: FC = () => {
       </Text>
 
       <div className={styles.archiveHeaderControls}>
-        <SegmentGroup size="md" value={tableView} onChange={(value) => onChangeTableViewFn(value as TableViewType)}>
-          <Segment value={SEGMENT_INSTANCES}>Экземпляры</Segment>
+        <SegmentGroup
+          size="md"
+          value={tableView}
+          onChange={(value) => {
+            onChangeTableViewFn(value as TableViewType);
+            if (tableView === SEGMENT_INSTANCES) {
+              setRowIdFn('');
+            }
+          }}
+        >
           <Segment value={SEGMENT_CONFIGURATIONS}>Конфигурации</Segment>
+          <Segment value={SEGMENT_INSTANCES}>Экземпляры</Segment>
         </SegmentGroup>
         <Button size="md" icon={<Icon.Download />} view="secondary" contentType="Icon" />
         <Button size="md" icon={<Icon.Plus />} contentType="Icon" onClick={() => navigate(routes.ARCHIVES_EDIT)} />

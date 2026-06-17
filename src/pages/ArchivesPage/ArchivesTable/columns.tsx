@@ -1,11 +1,14 @@
 import { Button, Icon, Link, Tag, Text, Tooltip } from '@sds-eng/base';
-import { DataGridColumnDef } from '@sds-eng/data-grid';
+import { DataGridCell, DataGridColumnDef } from '@sds-eng/data-grid';
+import { useUnit } from 'effector-react';
 
 import { formatBytes } from '@src/Shared/lib/format/formatBytes';
 import { formatRetention } from '@src/Shared/lib/format/formatRetention';
 import { formatSpeed } from '@src/Shared/lib/format/formatSpeed';
 
 import { ArchiveConfigView, ArchiveInstanceView } from '@src/Entities/Archives/types';
+
+import { onChangeTableView, setRowId } from '@src/Features/TableView/model';
 
 import StatusBadge from './StatusBadge';
 import * as styles from './styles.module.css';
@@ -117,6 +120,25 @@ const configurationActionsHeaderProps = {
   style: { textAlign: 'right' as const },
 };
 
+const InstancesCountLink = ({ cell }: { cell: DataGridCell<ArchiveConfigView, number> }) => {
+  const [onChangeTableViewFn, setRowIdFn] = useUnit([onChangeTableView, setRowId]);
+  return (
+    <Link
+      className={styles.instancesLink}
+      onClick={() => {
+        if (cell.getValue<number>() > 0) {
+          setRowIdFn(cell.row.id);
+          onChangeTableViewFn('instances');
+        } else {
+          onChangeTableViewFn('instances');
+        }
+      }}
+    >
+      {cell.getValue<number>()}
+    </Link>
+  );
+};
+
 export const archiveConfigurationColumns: DataGridColumnDef<ArchiveConfigView>[] = [
   {
     accessorKey: 'configuration',
@@ -139,11 +161,7 @@ export const archiveConfigurationColumns: DataGridColumnDef<ArchiveConfigView>[]
     accessorKey: 'instancesCount',
     header: 'Экземпляры',
     size: 110,
-    Cell: ({ cell }) => (
-      <Link href="#" className={styles.instancesLink} onClick={(event) => event.preventDefault()}>
-        {cell.getValue<number>()}
-      </Link>
-    ),
+    Cell: InstancesCountLink,
   },
   {
     accessorKey: 'maxWriteSpeed',

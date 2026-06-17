@@ -4,7 +4,7 @@ import { useUnit } from 'effector-react';
 import { FC, useMemo } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 
-import { DEFAULT_RESTRICTION_UNIT } from '@src/Entities/Restriction/constants';
+import { DEFAULT_RESTRICTION_UNIT } from '@src/Shared/constants/restrictions';
 
 import DeleteRestrictionModal from './DeleteRestrictionModal';
 import { buildRestrictionColumns, RestrictionGridRow } from './columns';
@@ -20,9 +20,10 @@ type Props = {
   entityPlaceholder: string;
   options: Option[];
   loadingOptions: boolean;
+  loading: boolean;
 };
 
-const RestrictionGrid: FC<Props> = ({ name, entityHeader, entityPlaceholder, options, loadingOptions }) => {
+const RestrictionGrid: FC<Props> = ({ name, entityHeader, entityPlaceholder, options, loadingOptions, loading }) => {
   const { control } = useFormContext<RestrictionsFormValues>();
   const { fields, append, remove } = useFieldArray({ control, name });
   const onOpenDelete = useUnit(onOpenRestrictionDelete);
@@ -46,6 +47,7 @@ const RestrictionGrid: FC<Props> = ({ name, entityHeader, entityPlaceholder, opt
         data={fields as RestrictionGridRow[]}
         columns={columns}
         getRowId={(row) => row.id}
+        state={{ isLoading: loading && fields.length === 0 }}
         layoutMode="grid"
         enableSorting={false}
         enableColumnActions={false}
@@ -53,6 +55,7 @@ const RestrictionGrid: FC<Props> = ({ name, entityHeader, entityPlaceholder, opt
         enableTopToolbar={false}
         enableBottomToolbar={false}
         enablePagination={false}
+        renderEmptyRowsFallback={() => <></>}
       />
       <Button
         kind="ghost"

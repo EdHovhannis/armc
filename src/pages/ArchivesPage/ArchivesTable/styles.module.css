@@ -110,6 +110,7 @@
 }
 
 .tableWrapper {
+  position: relative;
   height: 100%;
   min-height: 0;
   overflow-y: auto;
@@ -150,10 +151,12 @@
   border: none;
 }
 
-.searchToolbarRow {
+.tableToolbarWrapper {
   display: flex;
   justify-content: flex-end;
   padding: 8px 0 0;
+  align-items: center;
+  gap: 8px;
 }
 
 .searchInput {
@@ -180,4 +183,37 @@
   background: var(--sds-eng-palette-gray-gray150) !important;
   border-radius: 4px;
   color: var(--sds-eng-Foreground-foreAccent) !important;
+}
+
+.actionsToolBar {
+  padding: 8px;
+  background-color: var(--sds-eng-palette-cool-cool900);
+  border-radius: 8px;
+  position: fixed;
+  bottom: 8px;
+  right: 50%;
+  transform: translate(50%, -50%);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.actionsToolBarText {
+  color: var(--sds-eng-palette-white);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.actionsToolBarText > :last-child {
+  background-color: var(--sds-eng-palette-pink-pink600);
+  color: var(--sds-eng-palette-white);
+  padding: 4px 8px;
+  border-radius: 50%;
+}
+.actionsToolBarActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }

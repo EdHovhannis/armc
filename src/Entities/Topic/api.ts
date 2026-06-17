@@ -7,8 +7,7 @@ import { AxiosResponseError } from '@src/Shared/api/types';
 
 import { TopicItem, TopicMessageItem } from './types';
 
-export const fetchTopicsFx = createEffect<void, AxiosResponse<TopicItem[]>, AxiosError<AxiosResponseError>>(
-  async () => axios.get('/v1/internal/source/kafka/topics'),
+export const fetchTopicsFx = createEffect<void, AxiosResponse<TopicItem[]>, AxiosError<AxiosResponseError>>(async () =>
   axios.get('/v1/internal/source/kafka/topics'),
 );
 

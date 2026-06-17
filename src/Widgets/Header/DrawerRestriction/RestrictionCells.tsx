@@ -1,10 +1,12 @@
-import { InputNumber, Select } from '@sds-eng/base';
+import { Select } from '@sds-eng/base';
 import { FC } from 'react';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 
+import { RESTRICTION_UNIT_OPTIONS } from '@src/Shared/constants/restrictions';
 import { components } from '@src/Shared/ui/VirtualizedList';
 
-import { RESTRICTION_UNIT_OPTIONS } from '@src/Entities/Restriction/constants';
+import ControllerInputNumber from '@src/Features/Controllers/ControllerInputNumber';
+import ControllerSelectSingle from '@src/Features/Controllers/ControllerSelectSingle';
 
 import * as styles from './styles.module.css';
 import { RestrictionEntityRow, RestrictionListName } from './types';
@@ -20,9 +22,10 @@ type EntitySelectCellProps = {
 };
 
 // Select сущности (индекс/проект) с исключением уже выбранных в других строках значений.
+// Оставлен инлайн: виртуализированный components не ложится на типы общего ControllerSelectSingle
 export const EntitySelectCell: FC<EntitySelectCellProps> = ({ name, index, placeholder, options, loading }) => {
   const { control } = useFormContext();
-  const rows = (useWatch({ control, name }) ?? []) as RestrictionEntityRow[];
+  const rows: RestrictionEntityRow[] = useWatch({ control, name, defaultValue: [] });
   const selectedElsewhere = new Set(
     rows
       .filter((_, rowIndex) => rowIndex !== index)
@@ -62,41 +65,19 @@ type IntervalCellProps = {
   index: number;
 };
 
-// Ячейка «Макс. временной интервал поиска»: целое значение + единица измерения.
-export const IntervalCell: FC<IntervalCellProps> = ({ name, index }) => {
-  const { control } = useFormContext();
-
-  return (
-    <>
-      <div className={styles.drawerRestrictionIntervalValue}>
-        <Controller
-          name={`${name}.${index}.value`}
-          control={control}
-          rules={{ required: true, validate: (value) => Number.isInteger(value) && (value ?? 0) > 0 }}
-          render={({ field, fieldState }) => (
-            <InputNumber
-              placeholder="Введите значение"
-              valueType="number"
-              precision={0}
-              value={field.value}
-              onChange={(value) => field.onChange(value)}
-              onBlur={field.onBlur}
-              error={!!fieldState.error}
-              size="sm"
-            />
-          )}
-        />
-      </div>
-      <div className={styles.drawerRestrictionIntervalUnit}>
-        <Controller
-          name={`${name}.${index}.unit`}
-          control={control}
-          render={({ field }) => {
-            const currentValue = RESTRICTION_UNIT_OPTIONS.find((option) => option.value === field.value) || null;
-            return <Select options={RESTRICTION_UNIT_OPTIONS} value={currentValue} onChange={field.onChange} size="sm" />;
-          }}
-        />
-      </div>
-    </>
-  );
-};
+// ячейка "Макс. временной интервал поиска": целое значение + единица измерения
+export const IntervalCell: FC<IntervalCellProps> = ({ name, index }) => (
+  <>
+    <div className={styles.drawerRestrictionIntervalValue}>
+      <ControllerInputNumber
+        name={`${name}.${index}.value`}
+        placeholder="Введите значение"
+        precision={0}
+        rules={{ required: true, validate: (value) => Number.isInteger(value) && (value ?? 0) > 0 }}
+      />
+    </div>
+    <div className={styles.drawerRestrictionIntervalUnit}>
+      <ControllerSelectSingle name={`${name}.${index}.unit`} options={RESTRICTION_UNIT_OPTIONS} />
+    </div>
+  </>
+);

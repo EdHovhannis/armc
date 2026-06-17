@@ -30,6 +30,7 @@ export const $archiveInstances = combine($archives, (archives): ArchiveInstanceV
 export const $archiveConfigs = combine($archives, (archives): ArchiveConfigView[] =>
   archives.map((item) => {
     return {
+      ...item,
       id: item.id,
       configuration: item.name,
       projectKey: item.project,
@@ -38,6 +39,7 @@ export const $archiveConfigs = combine($archives, (archives): ArchiveConfigView[
       maxIndexSize: item.maxSizeBytes,
       maxRetention: item.maxStorageTimeSec,
       labels: item.labels,
+      instances: item.instances,
     };
   }),
 );

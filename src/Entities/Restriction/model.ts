@@ -5,8 +5,7 @@ import {
   fetchIndexOptionsFx,
   fetchProjectOptionsFx,
   fetchRestrictionAllFx,
-  fetchRestrictionsByIndexFx,
-  fetchRestrictionsByProjectFx,
+  fetchRestrictionsOverviewFx,
   saveRestrictionAllFx,
   saveRestrictionsByIndexFx,
   saveRestrictionsByProjectFx,
@@ -20,16 +19,17 @@ export const $projectOptions = createStore<string[]>([]);
 $projectOptions.on(fetchProjectOptionsFx.doneData, (_, payload) => payload);
 
 export const $restrictionsByIndex = createStore<RestrictionByIndexItem[]>([]);
-$restrictionsByIndex.on(fetchRestrictionsByIndexFx.doneData, (_, payload) => payload);
-$restrictionsByIndex.on(saveRestrictionsByIndexFx.doneData, (_, payload) => payload);
+$restrictionsByIndex
+  .on(fetchRestrictionsOverviewFx.doneData, (_, { byIndex }) => byIndex)
+  .on(saveRestrictionsByIndexFx.doneData, (_, payload) => payload);
 
 export const $restrictionsByProject = createStore<RestrictionByProjectItem[]>([]);
-$restrictionsByProject.on(fetchRestrictionsByProjectFx.doneData, (_, payload) => payload);
-$restrictionsByProject.on(saveRestrictionsByProjectFx.doneData, (_, payload) => payload);
+$restrictionsByProject
+  .on(fetchRestrictionsOverviewFx.doneData, (_, { byProject }) => byProject)
+  .on(saveRestrictionsByProjectFx.doneData, (_, payload) => payload);
 
 export const $restrictionAll = createStore<RestrictionAllItem | null>(null);
-$restrictionAll.on(fetchRestrictionAllFx.doneData, (_, payload) => payload);
-$restrictionAll.on(saveRestrictionAllFx.doneData, (_, payload) => payload);
+$restrictionAll.on([fetchRestrictionAllFx.doneData, saveRestrictionAllFx.doneData], (_, payload) => payload);
 
 export const $optionsIndex = combine($indexOptions, (options) => options.map((name) => ({ value: name, label: name })));
 
@@ -41,6 +41,5 @@ const showSaveSuccessFx = createEffect<void, void>(() => {
 
 sample({
   clock: [saveRestrictionsByIndexFx.done, saveRestrictionsByProjectFx.done, saveRestrictionAllFx.done],
-  fn: () => undefined,
   target: showSaveSuccessFx,
 });

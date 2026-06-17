@@ -3,14 +3,9 @@ import { useUnit } from 'effector-react';
 import { FC, useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
-import {
-  fetchIndexOptionsFx,
-  fetchProjectOptionsFx,
-  fetchRestrictionAllFx,
-  fetchRestrictionsByIndexFx,
-  fetchRestrictionsByProjectFx,
-} from '@src/Entities/Restriction/api';
-import { DEFAULT_RESTRICTION_UNIT } from '@src/Entities/Restriction/constants';
+import { DEFAULT_RESTRICTION_UNIT } from '@src/Shared/constants/restrictions';
+
+import { fetchIndexOptionsFx, fetchProjectOptionsFx, fetchRestrictionAllFx, fetchRestrictionsOverviewFx } from '@src/Entities/Restriction/api';
 import { $optionsIndex, $optionsProject, $restrictionAll, $restrictionsByIndex, $restrictionsByProject } from '@src/Entities/Restriction/model';
 import { RestrictionAllItem, RestrictionByIndexItem, RestrictionByProjectItem } from '@src/Entities/Restriction/types';
 
@@ -21,6 +16,9 @@ import { $restrictionTab, onChangeRestrictionTab } from './model';
 import * as styles from './styles.module.css';
 import { RestrictionsFormValues, RestrictionTab } from './types';
 
+// готовим значения формы из данных стора: indexId/project переименовываем в общее
+// поле entity, чтобы таблица и ячейки были общими для обеих вкладок.
+// all может быть null (бэк ещё не ответил) - подставляем дефолт
 const buildDefaults = (
   byIndex: RestrictionByIndexItem[],
   byProject: RestrictionByProjectItem[],
@@ -41,10 +39,10 @@ const DrawerRestrictionBody: FC = () => {
     storeAll,
     loadingIndex,
     loadingProject,
+    loadingOverview,
     fetchIndexOptions,
     fetchProjectOptions,
-    fetchRestrictionsByIndex,
-    fetchRestrictionsByProject,
+    fetchRestrictionsOverview,
     fetchRestrictionAll,
   ] = useUnit([
     $optionsIndex,
@@ -54,25 +52,25 @@ const DrawerRestrictionBody: FC = () => {
     $restrictionAll,
     fetchIndexOptionsFx.pending,
     fetchProjectOptionsFx.pending,
+    fetchRestrictionsOverviewFx.pending,
     fetchIndexOptionsFx,
     fetchProjectOptionsFx,
-    fetchRestrictionsByIndexFx,
-    fetchRestrictionsByProjectFx,
+    fetchRestrictionsOverviewFx,
     fetchRestrictionAllFx,
   ]);
 
   const methods = useForm<RestrictionsFormValues>({
     mode: 'onChange',
-    defaultValues: { byIndex: [], byProject: [], all: { value: null, unit: DEFAULT_RESTRICTION_UNIT } },
+    // Инициализируем из стора: при повторном открытии Drawer данные уже есть — без мигания.
+    defaultValues: buildDefaults(storeByIndex, storeByProject, storeAll),
   });
 
   useEffect(() => {
     fetchIndexOptions();
     fetchProjectOptions();
-    fetchRestrictionsByIndex();
-    fetchRestrictionsByProject();
+    fetchRestrictionsOverview();
     fetchRestrictionAll();
-  }, [fetchIndexOptions, fetchProjectOptions, fetchRestrictionsByIndex, fetchRestrictionsByProject, fetchRestrictionAll]);
+  }, [fetchIndexOptions, fetchProjectOptions, fetchRestrictionsOverview, fetchRestrictionAll]);
 
   const { reset } = methods;
   useEffect(() => {
@@ -95,6 +93,7 @@ const DrawerRestrictionBody: FC = () => {
             entityPlaceholder="Выберите индекс"
             options={optionsIndex}
             loadingOptions={loadingIndex}
+            loading={loadingOverview}
           />
         )}
         {tab === 'byProject' && (
@@ -104,6 +103,7 @@ const DrawerRestrictionBody: FC = () => {
             entityPlaceholder="Выберите проект"
             options={optionsProject}
             loadingOptions={loadingProject}
+            loading={loadingOverview}
           />
         )}
         {tab === 'all' && <AllIndexesTab />}

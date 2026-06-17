@@ -1,6 +1,6 @@
 import { RestrictionUnit } from '@src/Shared/types/restriction';
 
-// Опции единиц измерения временного интервала (для Select).
+// опции единиц измерения временного интервала (для Select)
 export const RESTRICTION_UNIT_OPTIONS: Array<{ value: RestrictionUnit; label: string }> = [
   { value: 'SECONDS', label: 'секунды' },
   { value: 'MINUTES', label: 'минуты' },
@@ -11,5 +11,5 @@ export const RESTRICTION_UNIT_OPTIONS: Array<{ value: RestrictionUnit; label: st
   { value: 'YEARS', label: 'годы' },
 ];
 
-// Единица измерения по умолчанию для новой строки ограничения.
+// единица измерения по умолчанию для новой строки ограничения
 export const DEFAULT_RESTRICTION_UNIT: RestrictionUnit = 'YEARS';

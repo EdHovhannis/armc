@@ -57,6 +57,9 @@ export interface ArchiveConfigView {
   maxIndexSize: number;
   maxRetention: number | null;
   labels?: string[];
+  instances?: ArchiveInstance[];
+  indexActions?: Action[];
+  flowActions?: Action[];
 }
 
 export interface ArchiveConfiguration {
