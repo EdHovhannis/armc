@@ -120,13 +120,15 @@ const configurationActionsHeaderProps = {
   style: { textAlign: 'right' as const },
 };
 
-const InstancesCountLink = ({ cell }: { cell: DataGridCell<ArchiveConfigView, number> }) => {
+const InstancesCountLink = ({ cell }: { cell: DataGridCell<ArchiveConfigView, unknown> }) => {
   const [onChangeTableViewFn, setRowIdFn] = useUnit([onChangeTableView, setRowId]);
+  const instancesCount = cell.getValue<number>();
+
   return (
     <Link
       className={styles.instancesLink}
       onClick={() => {
-        if (cell.getValue<number>() > 0) {
+        if (instancesCount > 0) {
           setRowIdFn(cell.row.id);
           onChangeTableViewFn('instances');
         } else {
@@ -134,7 +136,7 @@ const InstancesCountLink = ({ cell }: { cell: DataGridCell<ArchiveConfigView, nu
         }
       }}
     >
-      {cell.getValue<number>()}
+      {instancesCount}
     </Link>
   );
 };
