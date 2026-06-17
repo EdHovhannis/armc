@@ -21,6 +21,7 @@ interface ArchivesDataTableProps<TRow extends { id: number | string }> {
   rowCount: number;
   searchValue: string;
   onSearchChange: (value: string) => void;
+  onDeleteSuccess: () => void;
 }
 
 export const ArchivesDataTable = <TRow extends { id: number | string }>({
@@ -33,6 +34,7 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
   searchValue,
   onSearchChange,
   showHideMenuId,
+  onDeleteSuccess,
 }: ArchivesDataTableProps<TRow>) => {
   const [rowSelection, setRowSelectionFn] = useUnit([$selectedRowIds, setRowSelection]);
 
@@ -55,7 +57,7 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
         rowCount={rowCount}
         showHideMenuId={showHideMenuId}
       />
-      {isArchiveActionsShown && <ArchivesActionsToolBar rowSelectionCount={rowSelectionCount} />}
+      {isArchiveActionsShown && <ArchivesActionsToolBar rowSelectionCount={rowSelectionCount} onDeleteSuccess={onDeleteSuccess} />}
       <DataGridTable
         data={data}
         columns={columns as DataGridColumnDef<TRow, unknown>[]}

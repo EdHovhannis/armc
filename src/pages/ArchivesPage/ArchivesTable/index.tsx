@@ -58,6 +58,11 @@ const ArchivesTable: FC = () => {
     fetchArchives({ pageNumber: pagination.pageIndex + 1, pageSize: pagination.pageSize, filters });
   }, [fetchArchives, filters, pagination.pageIndex, pagination.pageSize]);
 
+  const handleDeleteSuccess = useCallback(() => {
+    fetchArchivesCount({ filters });
+    fetchArchives({ pageNumber: pagination.pageIndex + 1, pageSize: pagination.pageSize, filters });
+  }, [fetchArchives, fetchArchivesCount, filters, pagination.pageIndex, pagination.pageSize]);
+
   const instanceByRowId = useMemo(() => {
     if (!rowId) return null;
 
@@ -96,6 +101,7 @@ const ArchivesTable: FC = () => {
           rowCount={getRowCount(archiveConfigsData.length, archiveConfigTableData.length)}
           searchValue={searchValue}
           onSearchChange={handleSearchChange}
+          onDeleteSuccess={handleDeleteSuccess}
         />
       );
     case SEGMENT_INSTANCES:
@@ -111,6 +117,7 @@ const ArchivesTable: FC = () => {
           rowCount={getRowCount(archiveInstanceData.length, archiveInstanceTableData.length)}
           searchValue={searchValue}
           onSearchChange={handleSearchChange}
+          onDeleteSuccess={handleDeleteSuccess}
         />
       );
     default:
