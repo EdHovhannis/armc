@@ -2,21 +2,29 @@ import { DataGridPaginationState } from '@sds-eng/data-grid';
 import { useUnit } from 'effector-react';
 import { FC, useState, useEffect, useMemo, useCallback } from 'react';
 
-import { type ArchiveFilter, fetchArchivesCountFx, fetchArchivesFx } from '@src/Entities/Archives/api';
+import { type ArchiveFilter, fetchArchiveOptionsFx, fetchArchivesCountFx, fetchArchivesFx } from '@src/Entities/Archives/api';
 import { $archiveConfigs, $archiveInstances, $archivesTotalCount } from '@src/Entities/Archives/model';
 
 import { SEGMENT_CONFIGURATIONS, SEGMENT_INSTANCES } from '@src/Features/TableView/constants';
 import { $rowId, $tableView } from '@src/Features/TableView/model';
 
+import { $appliedArchiveFilters } from '../FilterDrawer/model';
+
 import { ArchivesDataTable } from './ArchivesDataTable';
 import { archiveConfigurationColumns, archiveIndexColumns } from './columns';
 
 const ArchivesTable: FC = () => {
+<<<<<<< Updated upstream
+  const [tableView, appliedFilters] = useUnit([$tableView, $appliedArchiveFilters]);
+  const [isArchivesLoading, fetchArchives, fetchArchivesCount, fetchArchiveOptions, archiveInstanceData, archiveConfigsData, totalCount] = useUnit([
+=======
   const [tableView, rowId] = useUnit([$tableView, $rowId]);
   const [isArchivesLoading, fetchArchives, fetchArchivesCount, archiveInstanceData, archiveConfigsData, totalCount] = useUnit([
+>>>>>>> Stashed changes
     fetchArchivesFx.pending,
     fetchArchivesFx,
     fetchArchivesCountFx,
+    fetchArchiveOptionsFx,
     $archiveInstances,
     $archiveConfigs,
     $archivesTotalCount,
@@ -26,9 +34,20 @@ const ArchivesTable: FC = () => {
   const [searchValue, setSearchValue] = useState('');
   const searchQuery = searchValue.trim().toLowerCase();
 
+  // фильтр уровня 1 из дравера + строка поиска одним набором уходят в запрос
   const filters = useMemo<ArchiveFilter[]>(() => {
-    return searchQuery ? [{ field: 'nameLike', op: 'like', values: [`%${searchQuery}%`] }] : [];
-  }, [searchQuery]);
+    const result = [...appliedFilters];
+    if (searchQuery) {
+      result.push({ field: 'nameLike', op: 'like', values: [`%${searchQuery}%`] });
+    }
+    return result;
+  }, [appliedFilters, searchQuery]);
+
+  // смена фильтра возвращает на первую страницу, иначе можно застрять на несуществующей
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPagination((prev) => (prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }));
+  }, [appliedFilters]);
 
   const archiveInstanceTableData = useMemo(
     () => (searchQuery ? archiveInstanceData.filter((item) => item.configName.toLowerCase().includes(searchQuery)) : archiveInstanceData),
@@ -49,6 +68,11 @@ const ArchivesTable: FC = () => {
     setSearchValue(value);
     setPagination((prev) => (prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }));
   }, []);
+
+  // полный список значений для выпадашек фильтра грузим один раз, независимо от фильтра/пагинации
+  useEffect(() => {
+    fetchArchiveOptions();
+  }, [fetchArchiveOptions]);
 
   useEffect(() => {
     fetchArchivesCount({ filters });

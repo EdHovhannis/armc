@@ -52,7 +52,7 @@ export const EntitySelectCell: FC<EntitySelectCellProps> = ({ name, index, place
             loading={loading}
             components={components}
             error={!!fieldState.error}
-            size="sm"
+            size="md"
           />
         );
       }}

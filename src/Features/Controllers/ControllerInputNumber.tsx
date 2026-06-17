@@ -8,7 +8,7 @@ type ControllerInputNumberProps = Pick<InputNumberProps, 'size' | 'placeholder' 
   rules?: RegisterOptions;
 };
 
-const ControllerInputNumber: FC<ControllerInputNumberProps> = ({ name, rules, size = 'sm', ...inputProps }) => {
+const ControllerInputNumber: FC<ControllerInputNumberProps> = ({ name, rules, size = 'md', ...inputProps }) => {
   const { control } = useFormContext();
 
   return (

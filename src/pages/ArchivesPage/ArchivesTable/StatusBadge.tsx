@@ -1,5 +1,4 @@
-import { Icon, Text } from '@sds-eng/base';
-import clsx from 'clsx';
+import { Icon, Text, clsx } from '@sds-eng/base';
 import { FC, ReactNode } from 'react';
 
 import { ArchiveIndexStatus } from '../types';

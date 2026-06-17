@@ -59,7 +59,7 @@ const RestrictionGrid: FC<Props> = ({ name, entityHeader, entityPlaceholder, opt
       />
       <Button
         kind="ghost"
-        size="sm"
+        size="md"
         prefixIcon={<Icon.Plus />}
         className={styles.drawerRestrictionAddButton}
         onClick={() => append({ entity: '', value: null, unit: DEFAULT_RESTRICTION_UNIT })}

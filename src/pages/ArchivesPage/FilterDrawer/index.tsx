@@ -4,7 +4,8 @@ import { FC } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import FilterDrawerBody from './FilterDrawerBody';
-import { $filterDrawerOpen, onChangeFilterDrawerOpen } from './model';
+import { mapFormToArchiveFilters } from './mapFilters';
+import { $filterDrawerOpen, onApplyArchiveFilters, onChangeFilterDrawerOpen, onResetArchiveFilters } from './model';
 import * as styles from './styles.module.css';
 import { FilterFormValues } from './types';
 
@@ -22,18 +23,23 @@ const DEFAULT_VALUES: FilterFormValues = {
 };
 
 const FilterDrawer: FC = () => {
-  const [open, onChangeFilterDrawerOpenFn] = useUnit([$filterDrawerOpen, onChangeFilterDrawerOpen]);
+  const [open, onChangeFilterDrawerOpenFn, applyFilters, resetFilters] = useUnit([
+    $filterDrawerOpen,
+    onChangeFilterDrawerOpen,
+    onApplyArchiveFilters,
+    onResetArchiveFilters,
+  ]);
   const form = useForm<FilterFormValues>({ defaultValues: DEFAULT_VALUES });
 
   const handleClose = () => onChangeFilterDrawerOpenFn(false);
 
   const handleReset = () => {
     form.reset(DEFAULT_VALUES);
-    console.log('Сбросить фильтры');
+    resetFilters();
   };
 
   const onSubmit = form.handleSubmit((data) => {
-    console.log('Применить фильтры:', data);
+    applyFilters(mapFormToArchiveFilters(data));
     handleClose();
   });
 

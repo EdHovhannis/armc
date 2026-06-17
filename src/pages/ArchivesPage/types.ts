@@ -16,14 +16,3 @@ export interface ArchiveIndexRow {
   configVersion?: string;
   instanceVersion?: string;
 }
-
-export interface ArchiveConfigurationRow {
-  id: string;
-  configuration: string;
-  projectKey: string;
-  instancesCount: number;
-  maxWriteSpeed: string;
-  maxIndexSize: string;
-  maxRetention: string;
-  labels: string[];
-}

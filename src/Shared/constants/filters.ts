@@ -7,6 +7,12 @@ export const IN_OPERATOR_OPTIONS: OptionItemType[] = [
   { value: 'IS NOT', label: 'IS NOT' },
 ];
 
+// только IN / NOT IN - для Меток (остальные мультиселекты допускают ещё IS / IS NOT)
+export const IN_NOT_IN_OPERATOR_OPTIONS: OptionItemType[] = [
+  { value: 'IN', label: 'IN' },
+  { value: 'NOT_IN', label: 'NOT IN' },
+];
+
 export const IS_OPERATOR_OPTIONS: OptionItemType[] = [
   { value: 'IS', label: 'IS' },
   { value: 'IS_NOT', label: 'IS NOT' },

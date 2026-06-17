@@ -15,8 +15,6 @@ import { RestrictionAllItem, RestrictionByIndexItem, RestrictionByProjectItem } 
 //   3) уточнить форму ответа overview и источник списка индексов (вопросы бэку);
 //   4) в save-эффектах слать PATCH только по изменённым строкам и DELETE по удалённым.
 
-const RESTRICTIONS_URL = '/v1/internal/index/archive/restrictions';
-
 // предполагаемая форма ответа overview - уточнить при интеграции
 type RestrictionsOverview = {
   byIndex: RestrictionByIndexItem[];
@@ -41,7 +39,7 @@ export const fetchProjectOptionsFx = createEffect<void, string[]>(async () => {
 
 export const fetchRestrictionsOverviewFx = createEffect<void, RestrictionsOverview>(async () => {
   try {
-    const { data } = await axios.get<Partial<RestrictionsOverview>>(`${RESTRICTIONS_URL}/overview`);
+    const { data } = await axios.get<Partial<RestrictionsOverview>>('/v1/internal/index/archive/restrictions/overview');
     return {
       byIndex: data.byIndex ?? restrictionsByIndexMock,
       byProject: data.byProject ?? restrictionsByProjectMock,
@@ -53,7 +51,7 @@ export const fetchRestrictionsOverviewFx = createEffect<void, RestrictionsOvervi
 
 export const fetchRestrictionAllFx = createEffect<void, RestrictionAllItem>(async () => {
   try {
-    const { data } = await axios.get<RestrictionAllItem>(RESTRICTIONS_URL);
+    const { data } = await axios.get<RestrictionAllItem>('/v1/internal/index/archive/restrictions');
     return typeof data?.value === 'number' ? data : restrictionAllMock;
   } catch {
     return restrictionAllMock;
@@ -62,19 +60,25 @@ export const fetchRestrictionAllFx = createEffect<void, RestrictionAllItem>(asyn
 
 export const saveRestrictionsByIndexFx = createEffect<RestrictionByIndexItem[], RestrictionByIndexItem[]>(async (items) => {
   await Promise.allSettled(
-    items.map(({ indexId, value, unit }) => axios.patch(`${RESTRICTIONS_URL}/index/${encodeURIComponent(indexId)}`, { value, unit })),
+    items.map(({ indexId, value, unit }) =>
+      axios.patch(`/v1/internal/index/archive/restrictions/index/${encodeURIComponent(indexId)}`, { value, unit }),
+    ),
   );
   return items;
 });
 
 export const saveRestrictionsByProjectFx = createEffect<RestrictionByProjectItem[], RestrictionByProjectItem[]>(async (items) => {
   await Promise.allSettled(
-    items.map(({ project, value, unit }) => axios.patch(`${RESTRICTIONS_URL}/project/${encodeURIComponent(project)}`, { value, unit })),
+    items.map(({ project, value, unit }) =>
+      axios.patch(`/v1/internal/index/archive/restrictions/project/${encodeURIComponent(project)}`, { value, unit }),
+    ),
   );
   return items;
 });
 
 export const saveRestrictionAllFx = createEffect<RestrictionAllItem, RestrictionAllItem>(async (item) => {
-  await axios.patch(RESTRICTIONS_URL, item).catch(() => undefined);
+  // бэка ограничений ещё нет, в dev/prod летит 404 - глушим ошибку, чтобы .done сработал и сейв не ронял UI.
+  // аналог allSettled в соседних save-эффектах. снять вместе с fallback при интеграции (см. TODO выше)
+  await axios.patch('/v1/internal/index/archive/restrictions', item).catch(() => undefined);
   return item;
 });

@@ -1,11 +1,11 @@
-import { List, ListItem, OptionListProps, SelectNextProps, Text } from '@sds-eng/base';
+import { List, OptionListProps, SelectNextProps } from '@sds-eng/base';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { ElementType, useRef } from 'react';
+import { CSSProperties, ElementType, useRef } from 'react';
 
 import { OptionItemType } from '@src/Shared/types/filter';
 
 const VirtualizedList = (props: OptionListProps<OptionItemType, ElementType<HTMLUListElement>, ElementType<HTMLLIElement>>) => {
-  const { listProps, filteredOptions, onSelectOption } = props;
+  const { listProps, filteredOptions, OptionItemComponent, commonOptionItemProps } = props;
 
   const parentRef = useRef<HTMLUListElement>(null);
 
@@ -17,8 +17,6 @@ const VirtualizedList = (props: OptionListProps<OptionItemType, ElementType<HTML
     overscan: 10,
   });
 
-  const items = rowVirtualizer.getVirtualItems();
-
   return (
     <List
       as="ul"
@@ -28,30 +26,32 @@ const VirtualizedList = (props: OptionListProps<OptionItemType, ElementType<HTML
       className={listProps.className}
       style={{ height: `${rowVirtualizer.getTotalSize()}px`, position: 'relative', maxHeight: '300px' }}
     >
-      {items.map((virtualRow) => {
+      {rowVirtualizer.getVirtualItems().map((virtualRow) => {
         const item = filteredOptions[virtualRow.index];
-        if (item) {
-          const { label, ...rest } = item;
-          return (
-            <ListItem
-              key={virtualRow.key}
-              data-index={virtualRow.index}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: `${virtualRow.size}px`,
-                transform: `translateY(${virtualRow.start}px)`,
-                cursor: 'pointer',
-              }}
-              onClick={(e) => onSelectOption({ label, ...rest }, e)}
-            >
-              <Text ellipsis={{ tooltip: true }}>{label}</Text>
-            </ListItem>
-          );
+        if (!item) {
+          return null;
         }
-        return null;
+
+        // рендерим строку штатным OptionItem - он даёт чекбокс/выбранное состояние для multiple.
+        // позиционирование виртуализации задаём через style самой строки
+        const rowStyle: CSSProperties = {
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: `${virtualRow.size}px`,
+          transform: `translateY(${virtualRow.start}px)`,
+        };
+
+        return (
+          <OptionItemComponent
+            key={virtualRow.key}
+            {...props}
+            option={item}
+            // в типах библиотеки style - DOM CSSStyleDeclaration, в рантайме React ждёт обычный CSSProperties
+            commonOptionItemProps={{ ...commonOptionItemProps, 'data-index': virtualRow.index, style: rowStyle as unknown as CSSStyleDeclaration }}
+          />
+        );
       })}
     </List>
   );
