@@ -1,4 +1,5 @@
 import { Button, Icon } from '@sds-eng/base';
+import { ShowHideColumnsMenu } from '@sds-eng/data-grid';
 import { useUnit } from 'effector-react';
 import { FC, useState } from 'react';
 
@@ -18,7 +19,7 @@ interface ArchivesTableToolBarProps {
   //tableKey
 }
 
-export const ArchivesTableToolBar: FC<ArchivesTableToolBarProps> = ({ onSearchChange, searchValue, isLoading, rowCount }) => {
+export const ArchivesTableToolBar: FC<ArchivesTableToolBarProps> = ({ onSearchChange, searchValue, isLoading, rowCount, showHideMenuId }) => {
   const [columnMenuAnchor, setColumnMenuAnchor] = useState<HTMLElement | null>(null);
   const onChangeFilterDrawerOpenFn = useUnit(onChangeFilterDrawerOpen);
 
@@ -63,8 +64,7 @@ export const ArchivesTableToolBar: FC<ArchivesTableToolBarProps> = ({ onSearchCh
           <Button.Icon className={styles.filterIcons} icon={<Icon.Refresh />} aria-label="Обновить" onClick={() => {}} />
         </div>
         {columnMenuAnchor && (
-          <div>test</div>
-          //   <ShowHideColumnsMenu anchorEl={columnMenuAnchor} setAnchorEl={setColumnMenuAnchor} id={showHideMenuId} table={undefined} />
+          <ShowHideColumnsMenu anchorEl={columnMenuAnchor} setAnchorEl={setColumnMenuAnchor} id={showHideMenuId} table={undefined} />
         )}
       </>
     </div>
