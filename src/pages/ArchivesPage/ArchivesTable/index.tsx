@@ -1,4 +1,3 @@
-import { DataGridPaginationState } from '@sds-eng/data-grid';
 import { useUnit } from 'effector-react';
 import { FC, useState, useEffect, useMemo, useCallback } from 'react';
 
@@ -6,7 +5,7 @@ import { type ArchiveFilter, fetchArchiveOptionsFx, fetchArchivesCountFx, fetchA
 import { $archiveConfigs, $archiveInstances, $archivesTotalCount } from '@src/Entities/Archives/model';
 
 import { SEGMENT_CONFIGURATIONS, SEGMENT_INSTANCES } from '@src/Features/TableView/constants';
-import { $rowId, $tableView } from '@src/Features/TableView/model';
+import { $pagination, $rowId, $tableView, resetPaginationPage, setPagination } from '@src/Features/TableView/model';
 
 import { $appliedArchiveFilters } from '../FilterDrawer/model';
 
@@ -14,7 +13,14 @@ import { ArchivesDataTable } from './ArchivesDataTable';
 import { archiveConfigurationColumns, archiveIndexColumns } from './columns';
 
 const ArchivesTable: FC = () => {
-  const [tableView, rowId, appliedFilters] = useUnit([$tableView, $rowId, $appliedArchiveFilters]);
+  const [tableView, rowId, pagination, setPaginationFn, resetPaginationPageFn, appliedFilters] = useUnit([
+    $tableView,
+    $rowId,
+    $pagination,
+    setPagination,
+    resetPaginationPage,
+    $appliedArchiveFilters,
+  ]);
   const [isArchivesLoading, fetchArchives, fetchArchivesCount, fetchArchiveOptions, archiveInstanceData, archiveConfigsData, totalCount] = useUnit([
     fetchArchivesFx.pending,
     fetchArchivesFx,
@@ -25,7 +31,6 @@ const ArchivesTable: FC = () => {
     $archivesTotalCount,
   ]);
 
-  const [pagination, setPagination] = useState<DataGridPaginationState>({ pageIndex: 0, pageSize: 20 });
   const [searchValue, setSearchValue] = useState('');
   const searchQuery = searchValue.trim().toLowerCase();
 
@@ -39,8 +44,8 @@ const ArchivesTable: FC = () => {
   }, [appliedFilters, searchQuery]);
 
   useEffect(() => {
-    setPagination((prev) => (prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }));
-  }, [appliedFilters]);
+    resetPaginationPageFn();
+  }, [appliedFilters, resetPaginationPageFn]);
 
   const archiveInstanceTableData = useMemo(
     () => (searchQuery ? archiveInstanceData.filter((item) => item.configName.toLowerCase().includes(searchQuery)) : archiveInstanceData),
@@ -59,8 +64,8 @@ const ArchivesTable: FC = () => {
 
   const handleSearchChange = useCallback((value: string) => {
     setSearchValue(value);
-    setPagination((prev) => (prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }));
-  }, []);
+    resetPaginationPageFn();
+  }, [resetPaginationPageFn]);
 
   useEffect(() => {
     fetchArchiveOptions();
@@ -97,6 +102,7 @@ const ArchivesTable: FC = () => {
     return findInstanceByRowId.instances?.map((instance) => ({
       ...instance,
       configName: findInstanceByRowId.configuration,
+      projectName: findInstanceByRowId.projectKey,
       configVersion: instance.version,
       instanceStatus: instance.status.indexing.status,
       currentSizeBytes: instance.status.storage.currentSizeBytes,
@@ -119,7 +125,7 @@ const ArchivesTable: FC = () => {
           tableKey={tableKey}
           showHideMenuId="archives-configuration-show-hide-menu"
           pagination={pagination}
-          onPaginationChange={setPagination}
+          onPaginationChange={setPaginationFn}
           rowCount={getRowCount(archiveConfigsData.length, archiveConfigTableData.length)}
           searchValue={searchValue}
           onSearchChange={handleSearchChange}
@@ -135,7 +141,7 @@ const ArchivesTable: FC = () => {
           tableKey={tableKey}
           showHideMenuId="archives-index-show-hide-menu"
           pagination={pagination}
-          onPaginationChange={setPagination}
+          onPaginationChange={setPaginationFn}
           rowCount={getRowCount(archiveInstanceData.length, archiveInstanceTableData.length)}
           searchValue={searchValue}
           onSearchChange={handleSearchChange}
