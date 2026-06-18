@@ -1,6 +1,6 @@
 import { Button, Icon, Text } from '@sds-eng/base';
 import { useUnit } from 'effector-react';
-import { FC } from 'react';
+import { FC, useState } from 'react';
 
 import { SpeedIcon } from '@src/Shared/assets/icons/SpeedIcon';
 
@@ -10,6 +10,8 @@ import { $archiveConfigs, $archiveInstances } from '@src/Entities/Archives/model
 import { SEGMENT_CONFIGURATIONS, SEGMENT_INSTANCES } from '@src/Features/TableView/constants';
 import { $selectedRowIds, $tableView, setRowSelection } from '@src/Features/TableView/model';
 
+import { DeleteArchiveConfirmModal } from '../DeleteConfigModal';
+
 import * as styles from './styles.module.css';
 
 interface ArchivesActionsToolBarProps {
@@ -18,6 +20,7 @@ interface ArchivesActionsToolBarProps {
 }
 
 export const ArchivesActionsToolBar: FC<ArchivesActionsToolBarProps> = ({ rowSelectionCount, onDeleteSuccess }) => {
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [
     tableView,
     selectedRowIds,
@@ -40,6 +43,13 @@ export const ArchivesActionsToolBar: FC<ArchivesActionsToolBarProps> = ({ rowSel
     deleteArchivesInstancesFx.pending,
   ]);
   const isInstancePage = tableView === SEGMENT_INSTANCES;
+  const deleteEntityName = isInstancePage ? 'экземпляр' : 'архив';
+  const deleteEntityNamePlural = isInstancePage ? 'экземпляры' : 'архивы';
+  const deleteEntityNameGenitive = isInstancePage ? 'экземпляра' : 'архива';
+  const deleteEntityNameGenitivePlural = isInstancePage ? 'экземпляров' : 'архивов';
+  const deleteEntityText = rowSelectionCount === 1 ? deleteEntityName : deleteEntityNamePlural;
+  const deleteEntityRestoreText = rowSelectionCount === 1 ? 'Его' : 'Их';
+  const deleteEntityTitleText = rowSelectionCount === 1 ? deleteEntityNameGenitive : deleteEntityNameGenitivePlural;
 
   const deleteSelectedArchives = async (deleteAction: (urls: string[]) => Promise<unknown>, urls: string[]) => {
     const isDeleted = await deleteAction(urls).then(
@@ -50,6 +60,7 @@ export const ArchivesActionsToolBar: FC<ArchivesActionsToolBarProps> = ({ rowSel
     if (!isDeleted) return;
 
     setRowSelectionFn({});
+    setIsDeleteModalOpen(false);
     onDeleteSuccess();
   };
 
@@ -75,8 +86,6 @@ export const ArchivesActionsToolBar: FC<ArchivesActionsToolBarProps> = ({ rowSel
         await deleteSelectedArchives(deleteArchivesInstances, urlsFordelete);
       }
     }
-
-    //
   };
   return (
     <div className={styles.actionsToolBar}>
@@ -90,10 +99,18 @@ export const ArchivesActionsToolBar: FC<ArchivesActionsToolBarProps> = ({ rowSel
         <Button
           icon={<Icon.Delete />}
           contentType="Icon"
-          onClick={handleDeleteArchive}
+          onClick={() => setIsDeleteModalOpen(true)}
           disabled={isDeleteArchivesPending || isDeleteInstancesPending}
         />
       </div>
+      <DeleteArchiveConfirmModal
+        open={isDeleteModalOpen}
+        title={`Удаление ${deleteEntityTitleText}`}
+        description={`Вы уверены что, хотите удалить ${deleteEntityText} (${rowSelectionCount})? ${deleteEntityRestoreText} будет невозможно восстановить.`}
+        isLoading={isDeleteArchivesPending || isDeleteInstancesPending}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onDelete={handleDeleteArchive}
+      />
     </div>
   );
 };
