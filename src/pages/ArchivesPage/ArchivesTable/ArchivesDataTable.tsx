@@ -60,7 +60,9 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
         layoutMode="semantic"
         defaultColumn={{ minSize: 60, enableColumnFilter: false, enableSorting: false }}
         enableStickyHeader
-        enableRowSelection
+        enableRowSelection={(row) => {
+          return !row.original.instances?.length;
+        }}
         onRowSelectionChange={handleRowSelectionChange}
         enableRowVirtualization={false}
         enablePagination

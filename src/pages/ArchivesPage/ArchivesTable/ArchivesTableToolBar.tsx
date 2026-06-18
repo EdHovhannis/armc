@@ -57,9 +57,7 @@ export const ArchivesTableToolBar = <TRow extends DataGridRowData>({
           />
           <Button.Icon className={styles.filterIcons} icon={<Icon.Refresh />} aria-label="Обновить" onClick={() => {}} />
         </div>
-        {columnMenuAnchor && (
-          <ShowHideColumnsMenu anchorEl={columnMenuAnchor} setAnchorEl={setColumnMenuAnchor} id={showHideMenuId} table={table} />
-        )}
+        {columnMenuAnchor && <ShowHideColumnsMenu anchorEl={columnMenuAnchor} setAnchorEl={setColumnMenuAnchor} id={showHideMenuId} table={table} />}
       </>
     </div>
   );

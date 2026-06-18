@@ -34,9 +34,7 @@ const OverDraftModal: FC = () => {
   }, [reset, rows]);
 
   const selectedRows = rows ?? [];
-  const maxAvailableOverdraft = selectedRows.length
-    ? Math.min(...selectedRows.map((row) => row.metadata.maxAvailableOverdraft))
-    : null;
+  const maxAvailableOverdraft = selectedRows.length ? Math.min(...selectedRows.map((row) => row.metadata.maxAvailableOverdraft)) : null;
 
   const handleSave = handleSubmit(() => {
     onClose();
@@ -45,7 +43,8 @@ const OverDraftModal: FC = () => {
   return (
     <Modal open={!!rows} onClose={onClose} width={520}>
       <ModalHeader showCloseButton closeButtonProps={{ onClick: onClose }}>
-        <Text kind="h4b">Настройка овердрафта</Text>
+        <Text kind="h4b">Сбросить овердрафт скорости</Text>
+        <Text kind="h6n">Овердрафт скорости будет сброшен до значений по умолчанию для всех эеземпляров выбранной зоны</Text>
       </ModalHeader>
       <ModalBody>
         <div className={styles.overDraftModalBody}>
