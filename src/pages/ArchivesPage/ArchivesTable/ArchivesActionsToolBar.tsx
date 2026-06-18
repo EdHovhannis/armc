@@ -11,6 +11,7 @@ import { SEGMENT_CONFIGURATIONS, SEGMENT_INSTANCES } from '@src/Features/TableVi
 import { $selectedRowIds, $tableView, setRowSelection } from '@src/Features/TableView/model';
 
 import { DeleteArchiveConfirmModal } from '../DeleteConfigModal';
+import { onOpenOverDraftModal } from '../OverDraftModal/model';
 
 import * as styles from './styles.module.css';
 
@@ -31,6 +32,7 @@ export const ArchivesActionsToolBar: FC<ArchivesActionsToolBarProps> = ({ rowSel
     setRowSelectionFn,
     deleteArchivesInstances,
     isDeleteInstancesPending,
+    onOpenOverDraft,
   ] = useUnit([
     $tableView,
     $selectedRowIds,
@@ -41,6 +43,7 @@ export const ArchivesActionsToolBar: FC<ArchivesActionsToolBarProps> = ({ rowSel
     setRowSelection,
     deleteArchivesInstancesFx,
     deleteArchivesInstancesFx.pending,
+    onOpenOverDraftModal,
   ]);
   const isInstancePage = tableView === SEGMENT_INSTANCES;
   const deleteEntityName = isInstancePage ? 'экземпляр' : 'архив';
@@ -87,6 +90,12 @@ export const ArchivesActionsToolBar: FC<ArchivesActionsToolBarProps> = ({ rowSel
       }
     }
   };
+
+  const handleOpenOverDraftModal = () => {
+    const selectedInstances = archiveInstances.filter((item) => selectedRowIds[item.id]);
+    onOpenOverDraft(selectedInstances);
+  };
+
   return (
     <div className={styles.actionsToolBar}>
       <div className={styles.actionsToolBarText}>
@@ -95,7 +104,7 @@ export const ArchivesActionsToolBar: FC<ArchivesActionsToolBarProps> = ({ rowSel
       </div>
       <div className={styles.actionsToolBarActions}>
         {isInstancePage && <Button icon={<Icon.Play />} contentType="Icon" onClick={() => console.log('selectedRowIds', selectedRowIds)} />}
-        {isInstancePage && <Button icon={<SpeedIcon />} contentType="Icon" />}
+        {isInstancePage && <Button icon={<SpeedIcon />} contentType="Icon" onClick={handleOpenOverDraftModal} />}
         <Button
           icon={<Icon.Delete />}
           contentType="Icon"

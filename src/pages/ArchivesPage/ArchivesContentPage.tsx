@@ -8,6 +8,7 @@ import DeleteConfigModal from './DeleteConfigModal';
 import FilterDrawer from './FilterDrawer';
 import ArchivesHeader from './Header';
 import LabelsModal from './LabelsModal';
+import OverDraftModal from './OverDraftModal';
 import * as styles from './styles.module.css';
 
 const ArchivesContentPage: FC = () => {
@@ -20,6 +21,7 @@ const ArchivesContentPage: FC = () => {
       <DrawerRestriction />
       <FilterDrawer />
       <LabelsModal />
+      <OverDraftModal />
       <AddInstanceModal />
       <DeleteConfigModal />
     </div>
