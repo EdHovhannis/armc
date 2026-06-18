@@ -64,6 +64,10 @@ export const deleteArchivesFx = createEffect<string[], AxiosResponse<unknown>[],
   Promise.all(urls.map((url) => axios.delete(url))),
 );
 
+export const deleteArchivesInstancesFx = createEffect<string[], AxiosResponse<unknown>[], AxiosError<AxiosResponseError>>(async (urls) =>
+  Promise.all(urls.map((url) => axios.delete(url))),
+);
+
 sample({
   clock: fetchArchivesFx.failData,
   fn: ({ response, status }) => ({ title: 'Не удалось загрузить архивы.', status, message: response?.data.message, data: response?.data }),

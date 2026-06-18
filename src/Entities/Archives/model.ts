@@ -47,9 +47,9 @@ export const $archiveInstances = combine($archives, (archives): ArchiveInstanceV
       (item.instances ?? []).map((instance) => ({
         ...instance,
         configName: item.name,
+        projectName: item.project,
         configVersion: item.version,
         instanceVersion: instance.version,
-        // версия экземпляра разошлась с версией конфигурации - показываем оранжевую иконку обновления
         hasVersionMismatch: instance.version !== item.version,
         instanceStatus: instance.status.indexing.status,
         currentSizeBytes: instance.status.storage.currentSizeBytes,
