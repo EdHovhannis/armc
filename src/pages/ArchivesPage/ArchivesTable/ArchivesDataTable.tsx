@@ -24,6 +24,8 @@ interface ArchivesDataTableProps<TRow extends { id: number | string }> {
   onDeleteSuccess: () => void;
 }
 
+const hasInstances = (row: { id: number | string }): row is { id: number | string; instances?: unknown[] } => 'instances' in row;
+
 export const ArchivesDataTable = <TRow extends { id: number | string }>({
   data,
   columns,
@@ -57,11 +59,12 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
         isLoading={Boolean(isLoading)}
         onScroll={() => {}}
         getRowId={(row) => String(row.id)}
+        rowSelection={rowSelection}
         layoutMode="semantic"
         defaultColumn={{ minSize: 60, enableColumnFilter: false, enableSorting: false }}
         enableStickyHeader
         enableRowSelection={(row) => {
-          return !row.original.instances?.length;
+          return !hasInstances(row.original) || !row.original.instances?.length;
         }}
         onRowSelectionChange={handleRowSelectionChange}
         enableRowVirtualization={false}
@@ -95,9 +98,6 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
         initialState={{
           showColumnFilters: false,
           globalFilter: '',
-        }}
-        state={{
-          rowSelection,
         }}
         bottomToolbarProps={{
           relative: false,
