@@ -37,6 +37,7 @@ export interface ArchiveInstance {
 
 export type ArchiveInstanceView = ArchiveInstance & {
   configName: string;
+  projectName: string;
   configVersion: string;
   instanceStatus: IndexingStatus;
   currentSizeBytes: number;

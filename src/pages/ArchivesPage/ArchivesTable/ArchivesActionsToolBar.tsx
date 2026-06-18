@@ -37,9 +37,22 @@ export const ArchivesActionsToolBar: FC<ArchivesActionsToolBarProps> = ({ rowSel
     deleteArchivesFx.pending,
     setRowSelection,
     deleteArchivesInstancesFx,
-    deleteArchivesFx.pending,
+    deleteArchivesInstancesFx.pending,
   ]);
   const isInstancePage = tableView === SEGMENT_INSTANCES;
+
+  const deleteSelectedArchives = async (deleteAction: (urls: string[]) => Promise<unknown>, urls: string[]) => {
+    const isDeleted = await deleteAction(urls).then(
+      () => true,
+      () => false,
+    );
+
+    if (!isDeleted) return;
+
+    setRowSelectionFn({});
+    onDeleteSuccess();
+  };
+
   const handleDeleteArchive = async () => {
     switch (tableView) {
       case SEGMENT_CONFIGURATIONS:
@@ -50,13 +63,7 @@ export const ArchivesActionsToolBar: FC<ArchivesActionsToolBarProps> = ({ rowSel
               return `/v1/internal/index/archive/task/project/${projectKey}/name/${configuration}/config`;
             });
 
-          try {
-            await deleteArchives(urlsFordelete);
-            setRowSelectionFn({});
-            onDeleteSuccess();
-          } catch {
-            // Ошибка уже обрабатывается через deleteArchivesFx.failData.
-          }
+          await deleteSelectedArchives(deleteArchives, urlsFordelete);
         }
         break;
       case SEGMENT_INSTANCES: {
@@ -65,13 +72,7 @@ export const ArchivesActionsToolBar: FC<ArchivesActionsToolBarProps> = ({ rowSel
           .map(({ projectName, configName, zoneId }) => {
             return `/internal/index/archive/task/project/${projectName}/name/${configName}/zone/${zoneId}/instance`;
           });
-        try {
-          await deleteArchivesInstances(urlsFordelete);
-          setRowSelectionFn({});
-          onDeleteSuccess();
-        } catch {
-          // Ошибка уже обрабатывается через deleteArchivesFx.failData.
-        }
+        await deleteSelectedArchives(deleteArchivesInstances, urlsFordelete);
       }
     }
 

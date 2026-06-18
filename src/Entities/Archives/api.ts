@@ -24,11 +24,16 @@ export interface DeleteArchiveParams {
   taskName: string;
 }
 
-export const deleteArchiveFx = createEffect<DeleteArchiveParams, DeleteArchiveParams>(async ({ project, taskName }) => {
-  await axios
-    .delete(`/v1/internal/index/archive/task/project/${encodeURIComponent(project)}/name/${encodeURIComponent(taskName)}/config`)
-    .catch(() => undefined);
-  return { project, taskName };
+const getArchiveConfigUrl = ({ project, taskName }: DeleteArchiveParams) =>
+  `/v1/internal/index/archive/task/project/${encodeURIComponent(project)}/name/${encodeURIComponent(taskName)}/config`;
+
+const deleteByUrl = (url: string) => axios.delete<unknown>(url);
+
+const deleteByUrls = (urls: string[]) => Promise.all(urls.map(deleteByUrl));
+
+export const deleteArchiveFx = createEffect<DeleteArchiveParams, DeleteArchiveParams>(async (params) => {
+  await deleteByUrl(getArchiveConfigUrl(params)).catch(() => undefined);
+  return params;
 });
 
 const getArchiveListParams = ({ pageNumber, pageSize, filters }: FetchArchivesParams) => ({
@@ -60,13 +65,9 @@ export const fetchArchivesCountFx = createEffect<Pick<FetchArchivesParams, 'filt
     }),
 );
 
-export const deleteArchivesFx = createEffect<string[], AxiosResponse<unknown>[], AxiosError<AxiosResponseError>>(async (urls) =>
-  Promise.all(urls.map((url) => axios.delete(url))),
-);
+export const deleteArchivesFx = createEffect<string[], AxiosResponse<unknown>[], AxiosError<AxiosResponseError>>(deleteByUrls);
 
-export const deleteArchivesInstancesFx = createEffect<string[], AxiosResponse<unknown>[], AxiosError<AxiosResponseError>>(async (urls) =>
-  Promise.all(urls.map((url) => axios.delete(url))),
-);
+export const deleteArchivesInstancesFx = createEffect<string[], AxiosResponse<unknown>[], AxiosError<AxiosResponseError>>(deleteByUrls);
 
 sample({
   clock: fetchArchivesFx.failData,
