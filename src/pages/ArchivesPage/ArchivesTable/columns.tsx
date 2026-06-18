@@ -1,6 +1,7 @@
 import { Button, Icon, Link, Tag, Text, Tooltip } from '@sds-eng/base';
 import { DataGridCell, DataGridColumnDef } from '@sds-eng/data-grid';
 import { useUnit } from 'effector-react';
+import { useNavigate, useSearchParams } from 'react-router';
 
 import { formatBytes } from '@src/Shared/lib/format/formatBytes';
 import { formatRetention } from '@src/Shared/lib/format/formatRetention';
@@ -8,7 +9,9 @@ import { formatSpeed } from '@src/Shared/lib/format/formatSpeed';
 
 import { ArchiveConfigView, ArchiveInstanceView } from '@src/Entities/Archives/types';
 
-import { onChangeTableView, setRowId } from '@src/Features/TableView/model';
+import { $tableView, onChangeTableView, setRowId } from '@src/Features/TableView/model';
+
+import { $appliedArchiveFilters } from '../FilterDrawer/model';
 
 import ConfigurationActionsCell from './ConfigurationActionsCell';
 import StatusBadge from './StatusBadge';
@@ -122,22 +125,49 @@ const configurationActionsHeaderProps = {
 };
 
 const InstancesCountLink = ({ cell }: { cell: DataGridCell<ArchiveConfigView, unknown> }) => {
-  const [onChangeTableViewFn, setRowIdFn] = useUnit([onChangeTableView, setRowId]);
-  const instancesCount = cell.getValue<number>();
+  const [onChangeTableViewFn, setRowIdFn, tableView, appliedFilters] = useUnit([onChangeTableView, setRowId, $tableView, $appliedArchiveFilters]);
+  // const instancesCount = cell.getValue<number>();
 
+  // const searchParams = new URLSearchParams(location.search);
+  // searchParams.set('myParam', 'myValue');
+  // const navigate = useNavigate();
+  // console.log('location.pathname', location.pathname.split('/').at(-1));
   return (
     <Link
       className={styles.instancesLink}
-      onClick={() => {
-        if (instancesCount > 0) {
-          setRowIdFn(cell.row.id);
-          onChangeTableViewFn('instances');
-        } else {
-          onChangeTableViewFn('instances');
-        }
+      onClick={(event) => {
+        event.preventDefault();
+        console.log('appliedFilters', appliedFilters);
+        // const filterData = {
+        //   field: 'name',
+        //   op: 'eq',
+        //   values: ['CI00002823INDEX'],
+        // };
+        // const jsonString = JSON.stringify(filterData);
+
+        // // 3. Кодируем строку для URL
+        // const encodedFilters = encodeURIComponent(jsonString);
+
+        // // 4. Формируем финальный URL
+        // const baseUrl = 'https://example.com';
+        // const finalUrl = `${baseUrl}?someParam=1&filters=${encodedFilters}`;
+
+        // if (tableView === 'configurations') {
+        //   navigate(`/${location.pathname.split('/').at(-1)}/?pageSize=20&pageNumber=1`);
+        //   // onChangeTableViewFn('instances');
+        // }
+
+        // // navigate(`${location.pathname}?${searchParams.toString()}`, { replace: true });
+        // // if (instancesCount > 0) {
+        // //   setRowIdFn(cell.row.id);
+        // //   onChangeTableViewFn('instances');
+        // // } else {
+        // //   onChangeTableViewFn('instances');
+        // // }
       }}
     >
-      {instancesCount}
+      test text
+      {/* {instancesCount} */}
     </Link>
   );
 };

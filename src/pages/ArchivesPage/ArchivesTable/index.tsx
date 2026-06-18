@@ -38,9 +38,7 @@ const ArchivesTable: FC = () => {
     return result;
   }, [appliedFilters, searchQuery]);
 
-  // смена фильтра возвращает на первую страницу, иначе можно застрять на несуществующей
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPagination((prev) => (prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }));
   }, [appliedFilters]);
 
@@ -64,7 +62,6 @@ const ArchivesTable: FC = () => {
     setPagination((prev) => (prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }));
   }, []);
 
-  // полный список значений для выпадашек фильтра грузим один раз, независимо от фильтра/пагинации
   useEffect(() => {
     fetchArchiveOptions();
   }, [fetchArchiveOptions]);
@@ -76,6 +73,12 @@ const ArchivesTable: FC = () => {
   useEffect(() => {
     fetchArchives({ pageNumber: pagination.pageIndex + 1, pageSize: pagination.pageSize, filters });
   }, [fetchArchives, filters, pagination.pageIndex, pagination.pageSize]);
+
+  useEffect(() => {
+    if (window.location) {
+      console.log('test');
+    }
+  }, []);
 
   const handleDeleteSuccess = useCallback(() => {
     fetchArchivesCount({ filters });
