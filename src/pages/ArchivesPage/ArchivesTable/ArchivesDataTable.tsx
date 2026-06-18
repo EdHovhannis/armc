@@ -70,6 +70,7 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
         pagination={pagination}
         onPaginationChange={onPaginationChange}
         enableBottomToolbar
+        enableTopToolbar
         enableFilters={false}
         enableColumnFilters={false}
         enableGlobalFilter={false}
@@ -78,7 +79,7 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
         enableHiding
         enableColumnActions={false}
         enableSorting={false}
-        renderTopToolbarCustomActions={({ table }) => (
+        renderTopToolbar={({ table }) => (
           <ArchivesTableToolBar
             searchValue={searchValue}
             onSearchChange={onSearchChange}
@@ -88,7 +89,7 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
             table={table}
           />
         )}
-        enableToolbarInternalActions={true}
+        enableToolbarInternalActions={false}
         initialState={{
           showColumnFilters: false,
           globalFilter: '',
