@@ -50,13 +50,6 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
   const isArchiveActionsShown = Boolean(rowSelectionCount);
   return (
     <div className={styles.tableWrapper}>
-      <ArchivesTableToolBar
-        searchValue={searchValue}
-        onSearchChange={onSearchChange}
-        isLoading={isLoading}
-        rowCount={rowCount}
-        showHideMenuId={showHideMenuId}
-      />
       {isArchiveActionsShown && <ArchivesActionsToolBar rowSelectionCount={rowSelectionCount} onDeleteSuccess={onDeleteSuccess} />}
       <DataGridTable
         data={data}
@@ -85,6 +78,16 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
         enableHiding
         enableColumnActions={false}
         enableSorting={false}
+        renderTopToolbarCustomActions={({ table }) => (
+          <ArchivesTableToolBar
+            searchValue={searchValue}
+            onSearchChange={onSearchChange}
+            isLoading={isLoading}
+            rowCount={rowCount}
+            showHideMenuId={showHideMenuId}
+            table={table}
+          />
+        )}
         enableToolbarInternalActions={true}
         initialState={{
           showColumnFilters: false,

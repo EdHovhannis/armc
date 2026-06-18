@@ -1,7 +1,7 @@
 import { Button, Icon } from '@sds-eng/base';
-import { ShowHideColumnsMenu } from '@sds-eng/data-grid';
+import { DataGridRowData, DataGridTableInstance, ShowHideColumnsMenu } from '@sds-eng/data-grid';
 import { useUnit } from 'effector-react';
-import { FC, useState } from 'react';
+import { useState } from 'react';
 
 import { SpeedIconRemoved } from '@src/Shared/assets/icons/SpeedIconRemoved';
 
@@ -10,32 +10,26 @@ import { onChangeFilterDrawerOpen } from '../FilterDrawer/model';
 import { ArchivesSearchInput } from './ArchivesSearchInput';
 import * as styles from './styles.module.css';
 
-interface ArchivesTableToolBarProps {
+interface ArchivesTableToolBarProps<TRow extends DataGridRowData> {
   onSearchChange: (value: string) => void;
   searchValue: string;
   isLoading?: boolean;
   rowCount: number;
   showHideMenuId?: string;
-  //tableKey
+  table: DataGridTableInstance<TRow>;
 }
 
-export const ArchivesTableToolBar: FC<ArchivesTableToolBarProps> = ({ onSearchChange, searchValue, isLoading, rowCount, showHideMenuId }) => {
+export const ArchivesTableToolBar = <TRow extends DataGridRowData>({
+  onSearchChange,
+  searchValue,
+  isLoading,
+  rowCount,
+  showHideMenuId,
+  table,
+}: ArchivesTableToolBarProps<TRow>) => {
   const [columnMenuAnchor, setColumnMenuAnchor] = useState<HTMLElement | null>(null);
   const onChangeFilterDrawerOpenFn = useUnit(onChangeFilterDrawerOpen);
 
-  //  const [localTableKey, setLocalTableKey] = useState(tableKey);
-
-  //   const handleClearFilters = useCallback(
-  //     (table: DataGridTableInstance<TRow>) => {
-  //       table.resetColumnFilters();
-  //       table.setGlobalFilter('');
-  //       onSearchChange('');
-  //     },
-  //     [onSearchChange],
-  //   );
-  //  const handleRefresh = useCallback(() => {
-  //     setLocalTableKey((prev) => prev + 1);
-  //   }, []);
   return (
     <div className={styles.tableToolbarWrapper}>
       <ArchivesSearchInput value={searchValue} onChange={onSearchChange} restoreFocusKey={`${searchValue}-${Boolean(isLoading)}-${rowCount}`} />
@@ -64,7 +58,7 @@ export const ArchivesTableToolBar: FC<ArchivesTableToolBarProps> = ({ onSearchCh
           <Button.Icon className={styles.filterIcons} icon={<Icon.Refresh />} aria-label="Обновить" onClick={() => {}} />
         </div>
         {columnMenuAnchor && (
-          <ShowHideColumnsMenu anchorEl={columnMenuAnchor} setAnchorEl={setColumnMenuAnchor} id={showHideMenuId} table={undefined} />
+          <ShowHideColumnsMenu anchorEl={columnMenuAnchor} setAnchorEl={setColumnMenuAnchor} id={showHideMenuId} table={table} />
         )}
       </>
     </div>
