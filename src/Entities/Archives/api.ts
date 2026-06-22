@@ -24,7 +24,6 @@ export interface DeleteArchiveParams {
   taskName: string;
 }
 
-// eslint-disable-next-line import/export
 export interface ExportArchiveConfigParams {
   project: string;
   taskName: string;
@@ -36,12 +35,6 @@ export const exportArchiveConfigFx = createEffect<ExportArchiveConfigParams, Axi
   async ({ project, taskName }) =>
     axios.get(`/v1/internal/index/archive/task/project/${encodeURIComponent(project)}/name/${encodeURIComponent(taskName)}/config`),
 );
-
-// eslint-disable-next-line import/export
-export interface ExportArchiveConfigParams {
-  project: string;
-  taskName: string;
-}
 
 const getArchiveConfigUrl = ({ project, taskName }: DeleteArchiveParams) =>
   `/v1/internal/index/archive/task/project/${encodeURIComponent(project)}/name/${encodeURIComponent(taskName)}/config`;
