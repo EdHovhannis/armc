@@ -1,5 +1,6 @@
 import { useUnit } from 'effector-react';
 import { FC, useState, useEffect, useMemo, useCallback } from 'react';
+import { useSearchParams } from 'react-router';
 
 import { type ArchiveFilter, fetchArchiveOptionsFx, fetchArchivesCountFx, fetchArchivesFx } from '@src/Entities/Archives/api';
 import { $archiveConfigs, $archiveInstances, $archivesTotalCount } from '@src/Entities/Archives/model';
@@ -33,6 +34,7 @@ const ArchivesTable: FC = () => {
 
   const [searchValue, setSearchValue] = useState('');
   const searchQuery = searchValue.trim().toLowerCase();
+  const [searchParams] = useSearchParams();
 
   // фильтр уровня 1 из дравера + строка поиска одним набором уходят в запрос
   const filters = useMemo<ArchiveFilter[]>(() => {
@@ -62,10 +64,13 @@ const ArchivesTable: FC = () => {
     [searchQuery, totalCount],
   );
 
-  const handleSearchChange = useCallback((value: string) => {
-    setSearchValue(value);
-    resetPaginationPageFn();
-  }, [resetPaginationPageFn]);
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      setSearchValue(value);
+      resetPaginationPageFn();
+    },
+    [resetPaginationPageFn],
+  );
 
   useEffect(() => {
     fetchArchiveOptions();
@@ -80,10 +85,36 @@ const ArchivesTable: FC = () => {
   }, [fetchArchives, filters, pagination.pageIndex, pagination.pageSize]);
 
   useEffect(() => {
-    if (window.location) {
-      console.log('test');
+    const hasAnyParams = Array.from(searchParams.keys()).length > 0;
+
+    if (hasAnyParams) {
+      console.log('В URL есть query-параметры', searchParams.has('filters'));
     }
-  }, []);
+    let timerId: NodeJS.Timeout;
+
+    if (searchParams.has('filters')) {
+      const queryParams = searchParams.get('filters');
+
+      timerId = setTimeout(() => {
+        try {
+          const parsedFilter = JSON.parse(queryParams as string);
+
+          fetchArchives({
+            pageNumber: 1,
+            pageSize: 20,
+            filters: [parsedFilter],
+          });
+        } catch (error) {
+          console.error('Ошибка парсинга JSON из URL:', error);
+        }
+      }, 300);
+    }
+    return () => {
+      if (timerId) {
+        clearTimeout(timerId);
+      }
+    };
+  }, [fetchArchives, filters, searchParams]);
 
   const handleDeleteSuccess = useCallback(() => {
     fetchArchivesCount({ filters });
@@ -114,7 +145,6 @@ const ArchivesTable: FC = () => {
   }, [archiveConfigTableData, rowId]);
 
   const [tableKey] = useState(0);
-
   switch (tableView) {
     case SEGMENT_CONFIGURATIONS:
       return (

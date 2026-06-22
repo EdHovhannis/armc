@@ -1,32 +1,17 @@
-import { RestrictionAllItem, RestrictionByIndexItem, RestrictionByProjectItem } from './types';
+import { RestrictionAllItem, RestrictionObjectItem } from './types';
 
-// список доступных индексов (источник опций для вкладки "По индексу")
-export const indexOptionsMock: string[] = [
-  'CI02001608_CI00682968_WAREHOUSE_AND_LOGISTICS_WMS',
-  'CI02001608_CI03222853_PERSON_CREDIT_CHAPAYMANTDAY',
-  'CI02001608_CI00982781-SM-UKO',
-  'CI02001608_CI00982781-SESSION-INTEGRATION',
-  'CI02001608_CI00682968_PINSURANCE_MORTGAGE_MB',
-  'CI02001608_CI00682968_PINSURANCE_MORTGAGE',
-  'CI02001608_CI00682968_PINSURANCE_PRAVTO_MB',
-  'CI02001608_CI00682968_PINSURANCE_HEALTH_MB',
-  'CI02001608_CI00682968_PINS_LOANS_OMN',
-  'CI02001608_CI00682968_PINSURANCE_HEALTH_IB',
-  'CI02001608_CI00682968_PINS_PSS_TERM_MB_crit',
-  'CI02001608_CI00682968_PINS_PSS_TERM_MB_uncrit',
+// опции проектов для вкладки "По проекту" (value = shortName, label = name)
+export const projectOptionsMock: { name: string; shortName: string }[] = [
+  { name: 'abyss_st2', shortName: 'abyss_st2' },
+  { name: 'Fast2', shortName: 'Fast2' },
+  { name: 'Name1', shortName: 'Key1' },
 ];
 
-// список доступных проектов (источник опций для вкладки "По проекту")
-export const projectOptionsMock: string[] = ['C03132782PL', 'CI02001608', 'CI00682968', 'CI03222853', 'C03132782RPS'];
-
-// сохранённые ограничения по индексам
-export const restrictionsByIndexMock: RestrictionByIndexItem[] = [
-  { indexId: 'CI02001608_CI00682968_WAREHOUSE_AND_LOGISTICS_WMS', value: 7, unit: 'YEARS' },
-  { indexId: 'CI02001608_CI03222853_PERSON_CREDIT_CHAPAYMANTDAY', value: 5, unit: 'YEARS' },
+// список объектов с ограничениями (overview) - значения как будто уже догружены
+export const restrictionsOverviewMock: RestrictionObjectItem[] = [
+  { objectType: 'PROJECT', objectId: 'Fast6', objectName: 'Fast6', projectKey: 'Fast6', maxSearchTimeIntervalSec: 5_184_000 },
+  { objectType: 'INDEX', objectId: '25', objectName: 'coord-logs', projectKey: 'abyss_st2', maxSearchTimeIntervalSec: 63_072_000 },
 ];
 
-// сохранённые ограничения по проектам
-export const restrictionsByProjectMock: RestrictionByProjectItem[] = [{ project: 'C03132782PL', value: 2, unit: 'YEARS' }];
-
-// сохранённое глобальное ограничение для всех индексов
-export const restrictionAllMock: RestrictionAllItem = { value: 7, unit: 'YEARS' };
+// сохранённое глобальное ограничение для всех индексов - 4 дня в секундах
+export const restrictionAllMock: RestrictionAllItem = { maxSearchTimeIntervalSec: 345_600 };

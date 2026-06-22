@@ -36,6 +36,12 @@ $archiveOptionsSource.on(fetchArchiveOptionsFx.doneData, (_, payload) => payload
 // поэтому собираем из полного списка $archiveOptionsSource
 export const $optionsArchiveName = combine($archiveOptionsSource, (archives) => archives.map((item) => ({ value: item.name, label: item.name })));
 
+// опции конфигураций с числовым id в value (label = "проект / имя") - для ограничений по индексу,
+// где эндпоинт /restrictions/index/{id} требует именно id конфигурации
+export const $optionsArchiveConfig = combine($archiveOptionsSource, (archives) =>
+  archives.map((item) => ({ value: String(item.id), label: `${item.project} / ${item.name}` })),
+);
+
 export const $optionsArchiveLabel = combine($archiveOptionsSource, (archives) =>
   Array.from(new Set(archives.flatMap((item) => item.labels ?? []))).map((label) => ({ value: label, label })),
 );

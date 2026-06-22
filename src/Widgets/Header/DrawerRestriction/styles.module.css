@@ -19,6 +19,24 @@
   min-width: 0;
 }
 
+/* подсветка строки, добавленной из kebab конфигурации - тот же цвет, что при наведении.
+   фон только на ячейках td (не на tr) одним слоём, иначе полупрозрачный цвет даёт разную насыщенность по углам.
+   !important - грид вешает на ячейку инлайновый backgroundColor: inherit, перебить можно только так */
+.drawerRestrictionHighlightRow td {
+  background: var(--sds-eng-Background-surfaceSecondaryHover, #eef1f2) !important;
+}
+
+/* скругляем только внешние углы строки, чтобы заливка из трёх ячеек выглядела сплошной */
+.drawerRestrictionHighlightRow td:first-child {
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+}
+
+.drawerRestrictionHighlightRow td:last-child {
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
 .drawerRestrictionIntervalCell {
   display: flex;
   gap: 8px;

@@ -1,7 +1,7 @@
 import { Button, Icon, Link, Tag, Text, Tooltip } from '@sds-eng/base';
 import { DataGridCell, DataGridColumnDef } from '@sds-eng/data-grid';
 import { useUnit } from 'effector-react';
-import { useNavigate, useSearchParams } from 'react-router';
+import { useNavigate } from 'react-router';
 
 import { formatBytes } from '@src/Shared/lib/format/formatBytes';
 import { formatRetention } from '@src/Shared/lib/format/formatRetention';
@@ -9,9 +9,7 @@ import { formatSpeed } from '@src/Shared/lib/format/formatSpeed';
 
 import { ArchiveConfigView, ArchiveInstanceView } from '@src/Entities/Archives/types';
 
-import { $tableView, onChangeTableView, setRowId } from '@src/Features/TableView/model';
-
-import { $appliedArchiveFilters } from '../FilterDrawer/model';
+import { $tableView, onChangeTableView } from '@src/Features/TableView/model';
 
 import ConfigurationActionsCell from './ConfigurationActionsCell';
 import StatusBadge from './StatusBadge';
@@ -125,49 +123,35 @@ const configurationActionsHeaderProps = {
 };
 
 const InstancesCountLink = ({ cell }: { cell: DataGridCell<ArchiveConfigView, unknown> }) => {
-  const [onChangeTableViewFn, setRowIdFn, tableView, appliedFilters] = useUnit([onChangeTableView, setRowId, $tableView, $appliedArchiveFilters]);
-  // const instancesCount = cell.getValue<number>();
+  const [onChangeTableViewFn, tableView] = useUnit([onChangeTableView, $tableView]);
+  const navigate = useNavigate();
+  const instancesCount = cell.getValue<number>();
 
-  // const searchParams = new URLSearchParams(location.search);
-  // searchParams.set('myParam', 'myValue');
-  // const navigate = useNavigate();
-  // console.log('location.pathname', location.pathname.split('/').at(-1));
   return (
     <Link
       className={styles.instancesLink}
       onClick={(event) => {
         event.preventDefault();
-        console.log('appliedFilters', appliedFilters);
-        // const filterData = {
-        //   field: 'name',
-        //   op: 'eq',
-        //   values: ['CI00002823INDEX'],
-        // };
-        // const jsonString = JSON.stringify(filterData);
 
-        // // 3. Кодируем строку для URL
-        // const encodedFilters = encodeURIComponent(jsonString);
+        const configName = cell.row.original?.name;
+        const filterData = {
+          field: 'name',
+          op: 'eq',
+          values: [configName],
+        };
+        const jsonString = JSON.stringify(filterData);
+        const encodedFilters = encodeURIComponent(jsonString);
+        const baseUrl = `/${location.pathname.split('/').at(-1)}`;
+        localStorage.setItem('filters', encodedFilters);
+        const finalUrl = `${baseUrl}?filters=${encodedFilters}`;
 
-        // // 4. Формируем финальный URL
-        // const baseUrl = 'https://example.com';
-        // const finalUrl = `${baseUrl}?someParam=1&filters=${encodedFilters}`;
-
-        // if (tableView === 'configurations') {
-        //   navigate(`/${location.pathname.split('/').at(-1)}/?pageSize=20&pageNumber=1`);
-        //   // onChangeTableViewFn('instances');
-        // }
-
-        // // navigate(`${location.pathname}?${searchParams.toString()}`, { replace: true });
-        // // if (instancesCount > 0) {
-        // //   setRowIdFn(cell.row.id);
-        // //   onChangeTableViewFn('instances');
-        // // } else {
-        // //   onChangeTableViewFn('instances');
-        // // }
+        if (tableView === 'configurations') {
+          onChangeTableViewFn('instances');
+          navigate(finalUrl);
+        }
       }}
     >
-      test text
-      {/* {instancesCount} */}
+      {instancesCount}
     </Link>
   );
 };

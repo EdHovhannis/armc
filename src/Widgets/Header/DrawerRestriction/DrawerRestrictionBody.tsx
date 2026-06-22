@@ -4,78 +4,115 @@ import { FC, useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { DEFAULT_RESTRICTION_UNIT } from '@src/Shared/constants/restrictions';
+import { secondsToValueUnit } from '@src/Shared/lib/format/restrictionSeconds';
 
-import { fetchIndexOptionsFx, fetchProjectOptionsFx, fetchRestrictionAllFx, fetchRestrictionsOverviewFx } from '@src/Entities/Restriction/api';
-import { $optionsIndex, $optionsProject, $restrictionAll, $restrictionsByIndex, $restrictionsByProject } from '@src/Entities/Restriction/model';
-import { RestrictionAllItem, RestrictionByIndexItem, RestrictionByProjectItem } from '@src/Entities/Restriction/types';
+import { fetchArchiveOptionsFx } from '@src/Entities/Archives/api';
+import { $optionsArchiveConfig } from '@src/Entities/Archives/model';
+import { fetchProjectOptionsFx, fetchRestrictionAllFx, fetchRestrictionsTableFx } from '@src/Entities/Restriction/api';
+import { $optionsProject, $restrictionAll, $restrictionsByIndex, $restrictionsByProject } from '@src/Entities/Restriction/model';
+import { RestrictionAllItem, RestrictionObjectItem } from '@src/Entities/Restriction/types';
+
+import { $restrictionPreselectIndexId } from '../model';
 
 import AllIndexesTab from './AllIndexesTab';
 import RestrictionFooter from './RestrictionFooter';
 import RestrictionGrid from './RestrictionGrid';
 import { $restrictionTab, onChangeRestrictionTab } from './model';
 import * as styles from './styles.module.css';
-import { RestrictionsFormValues, RestrictionTab } from './types';
+import { RestrictionEntityRow, RestrictionsFormValues, RestrictionTab } from './types';
 
-// готовим значения формы из данных стора: indexId/project переименовываем в общее
-// поле entity, чтобы таблица и ячейки были общими для обеих вкладок.
-// all может быть null (бэк ещё не ответил) - подставляем дефолт
+// пустая строка-заготовка (та же форма, что добавляет кнопка "+ ограничение")
+const emptyRow = (): RestrictionEntityRow => ({ entity: '', value: null, unit: DEFAULT_RESTRICTION_UNIT });
+
+// объект overview -> строка формы. value+unit раскладываем из секунд; если значение не догрузилось - пусто
+const itemToRow = (item: RestrictionObjectItem): RestrictionEntityRow =>
+  item.maxSearchTimeIntervalSec !== null
+    ? { entity: item.objectId, ...secondsToValueUnit(item.maxSearchTimeIntervalSec) }
+    : { entity: item.objectId, value: null, unit: DEFAULT_RESTRICTION_UNIT };
+
+// строки "По индексу". если открыли из kebab конфигурации (preselectIndexId) и её ещё нет в списке -
+// добавляем для неё строку в конец (значение подтянет EntitySelectCell). пустой список -> одна заготовка
+const buildByIndexRows = (items: RestrictionObjectItem[], preselectIndexId: string | null): RestrictionEntityRow[] => {
+  const rows = items.map(itemToRow);
+  if (preselectIndexId && !rows.some((row) => row.entity === preselectIndexId)) {
+    rows.push({ ...emptyRow(), entity: preselectIndexId });
+  }
+  return rows.length ? rows : [emptyRow()];
+};
+
+const buildRows = (items: RestrictionObjectItem[]): RestrictionEntityRow[] => {
+  const rows = items.map(itemToRow);
+  return rows.length ? rows : [emptyRow()];
+};
+
+// готовим значения формы: objectId -> entity (общее поле для обеих вкладок), секунды -> value+unit.
+// all может быть null (бэк ещё не ответил)
 const buildDefaults = (
-  byIndex: RestrictionByIndexItem[],
-  byProject: RestrictionByProjectItem[],
+  byIndex: RestrictionObjectItem[],
+  byProject: RestrictionObjectItem[],
   all: RestrictionAllItem | null,
+  preselectIndexId: string | null,
 ): RestrictionsFormValues => ({
-  byIndex: byIndex.map((item) => ({ entity: item.indexId, value: item.value, unit: item.unit })),
-  byProject: byProject.map((item) => ({ entity: item.project, value: item.value, unit: item.unit })),
-  all: all ? { value: all.value, unit: all.unit } : { value: null, unit: DEFAULT_RESTRICTION_UNIT },
+  byIndex: buildByIndexRows(byIndex, preselectIndexId),
+  byProject: buildRows(byProject),
+  all: all ? secondsToValueUnit(all.maxSearchTimeIntervalSec) : { value: null, unit: DEFAULT_RESTRICTION_UNIT },
 });
 
 const DrawerRestrictionBody: FC = () => {
   const [tab, onTabChange] = useUnit([$restrictionTab, onChangeRestrictionTab]);
+  const preselectIndexId = useUnit($restrictionPreselectIndexId);
   const [
     optionsIndex,
     optionsProject,
     storeByIndex,
     storeByProject,
     storeAll,
-    loadingIndex,
-    loadingProject,
-    loadingOverview,
-    fetchIndexOptions,
+    loadingIndexOptions,
+    loadingProjectOptions,
+    loadingTable,
+    fetchArchiveOptions,
     fetchProjectOptions,
-    fetchRestrictionsOverview,
+    fetchRestrictionsTable,
     fetchRestrictionAll,
   ] = useUnit([
-    $optionsIndex,
+    $optionsArchiveConfig,
     $optionsProject,
     $restrictionsByIndex,
     $restrictionsByProject,
     $restrictionAll,
-    fetchIndexOptionsFx.pending,
+    fetchArchiveOptionsFx.pending,
     fetchProjectOptionsFx.pending,
-    fetchRestrictionsOverviewFx.pending,
-    fetchIndexOptionsFx,
+    fetchRestrictionsTableFx.pending,
+    fetchArchiveOptionsFx,
     fetchProjectOptionsFx,
-    fetchRestrictionsOverviewFx,
+    fetchRestrictionsTableFx,
     fetchRestrictionAllFx,
   ]);
 
   const methods = useForm<RestrictionsFormValues>({
     mode: 'onChange',
     // Инициализируем из стора: при повторном открытии Drawer данные уже есть — без мигания.
-    defaultValues: buildDefaults(storeByIndex, storeByProject, storeAll),
+    defaultValues: buildDefaults(storeByIndex, storeByProject, storeAll, preselectIndexId),
   });
 
   useEffect(() => {
-    fetchIndexOptions();
+    fetchArchiveOptions();
     fetchProjectOptions();
-    fetchRestrictionsOverview();
+    fetchRestrictionsTable();
     fetchRestrictionAll();
-  }, [fetchIndexOptions, fetchProjectOptions, fetchRestrictionsOverview, fetchRestrictionAll]);
+  }, [fetchArchiveOptions, fetchProjectOptions, fetchRestrictionsTable, fetchRestrictionAll]);
 
   const { reset } = methods;
   useEffect(() => {
-    reset(buildDefaults(storeByIndex, storeByProject, storeAll));
-  }, [reset, storeByIndex, storeByProject, storeAll]);
+    reset(buildDefaults(storeByIndex, storeByProject, storeAll, preselectIndexId));
+  }, [reset, storeByIndex, storeByProject, storeAll, preselectIndexId]);
+
+  // открыли из конкретной конфигурации - сразу показываем вкладку "По индексу"
+  useEffect(() => {
+    if (preselectIndexId) {
+      onTabChange('byIndex');
+    }
+  }, [preselectIndexId, onTabChange]);
 
   return (
     <FormProvider {...methods}>
@@ -89,21 +126,25 @@ const DrawerRestrictionBody: FC = () => {
         {tab === 'byIndex' && (
           <RestrictionGrid
             name="byIndex"
+            objectType="INDEX"
             entityHeader="Индекс"
             entityPlaceholder="Выберите индекс"
             options={optionsIndex}
-            loadingOptions={loadingIndex}
-            loading={loadingOverview}
+            loadingOptions={loadingIndexOptions}
+            loading={loadingTable}
+            loaded={storeByIndex}
           />
         )}
         {tab === 'byProject' && (
           <RestrictionGrid
             name="byProject"
+            objectType="PROJECT"
             entityHeader="Проект"
             entityPlaceholder="Выберите проект"
             options={optionsProject}
-            loadingOptions={loadingProject}
-            loading={loadingOverview}
+            loadingOptions={loadingProjectOptions}
+            loading={loadingTable}
+            loaded={storeByProject}
           />
         )}
         {tab === 'all' && <AllIndexesTab />}

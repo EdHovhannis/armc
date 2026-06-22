@@ -1,4 +1,4 @@
-import { Button, Icon } from '@sds-eng/base';
+import { Button, Icon, Tag, Text } from '@sds-eng/base';
 import { DataGridRowData, DataGridTableInstance, ShowHideColumnsMenu } from '@sds-eng/data-grid';
 import { useUnit } from 'effector-react';
 import { useState } from 'react';
@@ -30,11 +30,126 @@ export const ArchivesTableToolBar = <TRow extends DataGridRowData>({
   const [columnMenuAnchor, setColumnMenuAnchor] = useState<HTMLElement | null>(null);
   const onChangeFilterDrawerOpenFn = useUnit(onChangeFilterDrawerOpen);
 
+  const windOw = window.location.search;
+  const parsedUrl = JSON.parse(new URLSearchParams(windOw).get('filters') as string);
   return (
     <div className={styles.tableToolbarWrapper}>
-      <ArchivesSearchInput value={searchValue} onChange={onSearchChange} restoreFocusKey={`${searchValue}-${Boolean(isLoading)}-${rowCount}`} />
+      {parsedUrl && (
+        <div style={{ maxWidth: '800px', maxHeight: '80px', overflowY: 'auto', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+          <Tag key={'item'} aria-label={'На нажатие Backspace элемент удалаяется'} onDelete={() => {}} onClick={() => {}}>
+            <Text kind="bodyS" style={{ color: '#13181B8E' }}>
+              Конфигурация
+            </Text>
+            &nbsp;
+            <Text kind="h6n">{parsedUrl.values[0]}</Text>
+          </Tag>
+          <Tag key={'item'} aria-label={'На нажатие Backspace элемент удалаяется'} onDelete={() => {}} onClick={() => {}}>
+            <Text kind="bodyS" style={{ color: '#13181B8E' }}>
+              Конфигурация
+            </Text>
+            &nbsp;
+            <Text kind="h6n">{parsedUrl.values[0]}</Text>
+          </Tag>
+          <Tag key={'item'} aria-label={'На нажатие Backspace элемент удалаяется'} onDelete={() => {}} onClick={() => {}}>
+            <Text kind="bodyS" style={{ color: '#13181B8E' }}>
+              Конфигурация
+            </Text>
+            &nbsp;
+            <Text kind="h6n">{parsedUrl.values[0]}</Text>
+          </Tag>
+          <Tag key={'item'} aria-label={'На нажатие Backspace элемент удалаяется'} onDelete={() => {}} onClick={() => {}}>
+            <Text kind="bodyS" style={{ color: '#13181B8E' }}>
+              Конфигурация
+            </Text>
+            &nbsp;
+            <Text kind="h6n">{parsedUrl.values[0]}</Text>
+          </Tag>
+          <Tag key={'item'} aria-label={'На нажатие Backspace элемент удалаяется'} onDelete={() => {}} onClick={() => {}}>
+            <Text kind="bodyS" style={{ color: '#13181B8E' }}>
+              Конфигурация
+            </Text>
+            &nbsp;
+            <Text kind="h6n">{parsedUrl.values[0]}</Text>
+          </Tag>
+          <Tag key={'item'} aria-label={'На нажатие Backspace элемент удалаяется'} onDelete={() => {}} onClick={() => {}}>
+            <Text kind="bodyS" style={{ color: '#13181B8E' }}>
+              Конфигурация
+            </Text>
+            &nbsp;
+            <Text kind="h6n">{parsedUrl.values[0]}</Text>
+          </Tag>
+          <Tag key={'item'} aria-label={'На нажатие Backspace элемент удалаяется'} onDelete={() => {}} onClick={() => {}}>
+            <Text kind="bodyS" style={{ color: '#13181B8E' }}>
+              Конфигурация
+            </Text>
+            &nbsp;
+            <Text kind="h6n">{parsedUrl.values[0]}</Text>
+          </Tag>
+          <Tag key={'item'} aria-label={'На нажатие Backspace элемент удалаяется'} onDelete={() => {}} onClick={() => {}}>
+            <Text kind="bodyS" style={{ color: '#13181B8E' }}>
+              Конфигурация
+            </Text>
+            &nbsp;
+            <Text kind="h6n">{parsedUrl.values[0]}</Text>
+          </Tag>
+          <Tag key={'item'} aria-label={'На нажатие Backspace элемент удалаяется'} onDelete={() => {}} onClick={() => {}}>
+            <Text kind="bodyS" style={{ color: '#13181B8E' }}>
+              Конфигурация
+            </Text>
+            &nbsp;
+            <Text kind="h6n">{parsedUrl.values[0]}</Text>
+          </Tag>
+          <Tag key={'item'} aria-label={'На нажатие Backspace элемент удалаяется'} onDelete={() => {}} onClick={() => {}}>
+            <Text kind="bodyS" style={{ color: '#13181B8E' }}>
+              Конфигурация
+            </Text>
+            &nbsp;
+            <Text kind="h6n">{parsedUrl.values[0]}</Text>
+          </Tag>
+          <Tag key={'item'} aria-label={'На нажатие Backspace элемент удалаяется'} onDelete={() => {}} onClick={() => {}}>
+            <Text kind="bodyS" style={{ color: '#13181B8E' }}>
+              Конфигурация
+            </Text>
+            &nbsp;
+            <Text kind="h6n">{parsedUrl.values[0]}</Text>
+          </Tag>
+          <Tag key={'item'} aria-label={'На нажатие Backspace элемент удалаяется'} onDelete={() => {}} onClick={() => {}}>
+            <Text kind="bodyS" style={{ color: '#13181B8E' }}>
+              Конфигурация
+            </Text>
+            &nbsp;
+            <Text kind="h6n">{parsedUrl.values[0]}</Text>
+          </Tag>
+          <Tag key={'item'} aria-label={'На нажатие Backspace элемент удалаяется'} onDelete={() => {}} onClick={() => {}}>
+            <Text kind="bodyS" style={{ color: '#13181B8E' }}>
+              Конфигурация
+            </Text>
+            &nbsp;
+            <Text kind="h6n">{parsedUrl.values[0]}</Text>
+          </Tag>
+          <Tag key={'item'} aria-label={'На нажатие Backspace элемент удалаяется'} onDelete={() => {}} onClick={() => {}}>
+            <Text kind="bodyS" style={{ color: '#13181B8E' }}>
+              Конфигурация
+            </Text>
+            &nbsp;
+            <Text kind="h6n">{parsedUrl.values[0]}</Text>
+          </Tag>
+          <Tag key={'item'} aria-label={'На нажатие Backspace элемент удалаяется'} onDelete={() => {}} onClick={() => {}}>
+            <Text kind="bodyS" style={{ color: '#13181B8E' }}>
+              Конфигурация
+            </Text>
+            &nbsp;
+            <Text kind="h6n">{parsedUrl.values[0]}</Text>
+          </Tag>
+          &nbsp; &nbsp; &nbsp;
+          <Text as="span" kind="bodyS" style={{ color: '#009dff' }}>
+            Сбросить все
+          </Text>
+        </div>
+      )}
       <>
         <div className={styles.tableToolbarRow}>
+          <ArchivesSearchInput value={searchValue} onChange={onSearchChange} restoreFocusKey={`${searchValue}-${Boolean(isLoading)}-${rowCount}`} />
           <div className={styles.filterIcons}>
             <Button.Icon
               icon={<Icon.ColumnThree />}

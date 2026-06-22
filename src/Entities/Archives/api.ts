@@ -24,6 +24,25 @@ export interface DeleteArchiveParams {
   taskName: string;
 }
 
+// eslint-disable-next-line import/export
+export interface ExportArchiveConfigParams {
+  project: string;
+  taskName: string;
+}
+
+// тело конфигурации для экспорта. форму не типизируем - скачиваем ответ как есть в json-файл
+
+export const exportArchiveConfigFx = createEffect<ExportArchiveConfigParams, AxiosResponse<unknown>, AxiosError<AxiosResponseError>>(
+  async ({ project, taskName }) =>
+    axios.get(`/v1/internal/index/archive/task/project/${encodeURIComponent(project)}/name/${encodeURIComponent(taskName)}/config`),
+);
+
+// eslint-disable-next-line import/export
+export interface ExportArchiveConfigParams {
+  project: string;
+  taskName: string;
+}
+
 const getArchiveConfigUrl = ({ project, taskName }: DeleteArchiveParams) =>
   `/v1/internal/index/archive/task/project/${encodeURIComponent(project)}/name/${encodeURIComponent(taskName)}/config`;
 
@@ -79,6 +98,23 @@ sample({
   clock: fetchArchivesCountFx.failData,
   fn: ({ response, status }) => ({
     title: 'Не удалось загрузить количество архивов.',
+    status,
+    message: response?.data.message,
+    data: response?.data,
+  }),
+  target: handleErrorFx,
+});
+
+sample({
+  clock: exportArchiveConfigFx.failData,
+  fn: ({ response, status }) => ({ title: 'Не удалось выгрузить конфигурацию.', status, message: response?.data.message, data: response?.data }),
+  target: handleErrorFx,
+});
+
+sample({
+  clock: fetchArchiveOptionsFx.failData,
+  fn: ({ response, status }) => ({
+    title: 'Не удалось загрузить список значений для фильтра.',
     status,
     message: response?.data.message,
     data: response?.data,

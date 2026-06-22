@@ -1,13 +1,15 @@
-import { Button, Divider, DropdownMenu, DropdownMenuItem, Icon } from '@sds-eng/base';
+import { Button, Divider, DropdownMenu, DropdownMenuItem, Icon, Tooltip } from '@sds-eng/base';
 import { useUnit } from 'effector-react';
 import { FC, useCallback } from 'react';
 import { createSearchParams, useNavigate } from 'react-router';
 
 import routes from '@src/Shared/constants/routes';
+import { downloadJson } from '@src/Shared/lib/downloadJson';
 
+import { exportArchiveConfigFx } from '@src/Entities/Archives/api';
 import { ArchiveConfigView } from '@src/Entities/Archives/types';
 
-import { onChangeHeaderOpenRestrictionDrawer } from '@src/Widgets/Header/model';
+import { onOpenRestrictionDrawerForConfig } from '@src/Widgets/Header/model';
 
 import { onOpenAddInstanceModal } from '../AddInstanceModal/model';
 import { onOpenDeleteConfigModal } from '../DeleteConfigModal/model';
@@ -20,7 +22,7 @@ import * as styles from './styles.module.css';
 const ConfigurationActionsCell: FC<{ row: ArchiveConfigView }> = ({ row }) => {
   const navigate = useNavigate();
   const [onOpenRestrictionDrawer, onOpenLabels, onOpenAddInstance, onOpenDelete] = useUnit([
-    onChangeHeaderOpenRestrictionDrawer,
+    onOpenRestrictionDrawerForConfig,
     onOpenLabelsModal,
     onOpenAddInstanceModal,
     onOpenDeleteConfigModal,
@@ -34,19 +36,20 @@ const ConfigurationActionsCell: FC<{ row: ArchiveConfigView }> = ({ row }) => {
   }, [navigate, row.projectKey, row.configuration]);
 
   const handleRestrictions = useCallback(() => {
-    // открываем общий Drawer ограничений как есть
-    // TODO(restrictions-context): пробросить indexId этой конфигурации и открывать вкладку "По индексу"
-    onOpenRestrictionDrawer(true);
-  }, [onOpenRestrictionDrawer]);
+    // открываем дравер на вкладке "По индексу" с преселектом этой конфигурации (id)
+    onOpenRestrictionDrawer(String(row.id));
+  }, [onOpenRestrictionDrawer, row.id]);
 
   const handleLabels = useCallback(() => {
     onOpenLabels(row);
   }, [onOpenLabels, row]);
 
   const handleExport = useCallback(() => {
-    // TODO(configuration-actions): экспорт конфигурации в JSON, бэк пока не готов
-    console.log('Экспорт', row);
-  }, [row]);
+    // GET конфигурации и скачивание ответа файлом {taskName}.json (как в abyss)
+    exportArchiveConfigFx({ project: row.projectKey, taskName: row.configuration })
+      .then((response) => downloadJson(`${row.configuration}.json`, response.data))
+      .catch(() => undefined); // ошибку покажет handleErrorFx
+  }, [row.projectKey, row.configuration]);
 
   const handleAddInstance = useCallback(() => {
     onOpenAddInstance(row);
@@ -89,9 +92,18 @@ const ConfigurationActionsCell: FC<{ row: ArchiveConfigView }> = ({ row }) => {
 
           <Divider className={styles.configurationActionsDivider} />
 
-          <DropdownMenuItem closeMenuOnClick prefix={<Icon.Delete />} onClick={handleDelete}>
-            Удалить
-          </DropdownMenuItem>
+          {/* Удалить доступно только у конфигураций без экземпляров. с инстансами - дизейблим */}
+          {row.instancesCount === 0 ? (
+            <DropdownMenuItem closeMenuOnClick prefix={<Icon.Delete />} onClick={handleDelete}>
+              Удалить
+            </DropdownMenuItem>
+          ) : (
+            <Tooltip title="Нельзя удалить конфигурацию, пока у неё есть экземпляры">
+              <DropdownMenuItem disabled prefix={<Icon.Delete />}>
+                Удалить
+              </DropdownMenuItem>
+            </Tooltip>
+          )}
         </>
       }
     >

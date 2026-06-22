@@ -1,8 +1,7 @@
-import { Button, Icon } from '@sds-eng/base';
 import { DataGridColumnDef } from '@sds-eng/data-grid';
 import { FieldArrayWithId } from 'react-hook-form';
 
-import { EntitySelectCell, IntervalCell } from './RestrictionCells';
+import { DeleteRestrictionCell, EntitySelectCell, IntervalCell } from './RestrictionCells';
 import * as styles from './styles.module.css';
 import { RestrictionListName, RestrictionsFormValues } from './types';
 
@@ -16,7 +15,8 @@ type BuildColumnsParams = {
   entityPlaceholder: string;
   options: Option[];
   loadingOptions: boolean;
-  onDelete: (index: number, label: string) => void;
+  loadedIds: Set<string>;
+  onDelete: (index: number) => void;
 };
 
 export const buildRestrictionColumns = ({
@@ -25,6 +25,7 @@ export const buildRestrictionColumns = ({
   entityPlaceholder,
   options,
   loadingOptions,
+  loadedIds,
   onDelete,
 }: BuildColumnsParams): DataGridColumnDef<RestrictionGridRow>[] => [
   {
@@ -33,7 +34,16 @@ export const buildRestrictionColumns = ({
     size: 380,
     minSize: 240,
     tableBodyCellProps: { className: styles.drawerRestrictionStretchCell },
-    Cell: ({ row }) => <EntitySelectCell name={name} index={row.index} placeholder={entityPlaceholder} options={options} loading={loadingOptions} />,
+    Cell: ({ row }) => (
+      <EntitySelectCell
+        name={name}
+        index={row.index}
+        placeholder={entityPlaceholder}
+        options={options}
+        loading={loadingOptions}
+        loadedIds={loadedIds}
+      />
+    ),
   },
   {
     id: 'interval',
@@ -53,14 +63,6 @@ export const buildRestrictionColumns = ({
     size: 56,
     minSize: 56,
     enableResizing: false,
-    Cell: ({ row }) => (
-      <Button.Icon
-        icon={<Icon.Delete />}
-        view="secondary"
-        size="sm"
-        aria-label="Удалить ограничение"
-        onClick={() => onDelete(row.index, row.original.entity)}
-      />
-    ),
+    Cell: ({ row }) => <DeleteRestrictionCell name={name} index={row.index} loadedIds={loadedIds} onDelete={onDelete} />,
   },
 ];

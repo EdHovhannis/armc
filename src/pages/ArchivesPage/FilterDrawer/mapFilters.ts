@@ -2,19 +2,21 @@ import { ArchiveFilter } from '@src/Entities/Archives/api';
 
 import { FilterFormValues } from './types';
 
-// TODO(archives-filter-api): формат filters=[{field, op, values}] и пара name/eq подтверждены
-// реальным запросом из соседнего стенда. Остальные field/op - предположение по полям
-// ArchiveConfiguration, уточнить у бэка при интеграции (особенно операторы in/nin/ne и диапазоны).
+// TODO(archives-filter-api): формат filters=[{field, op, values}] подтверждён реальными запросами со стенда.
+// select-операторы по полю name: IS = eq, IS NOT = isNot, IN = in, NOT IN = notIn (вербальные camelCase, не ne/nin).
+// операторы сравнения (Скорость обработки -> field maxOverdraftPercent): >= = ge, <= = le, = = eq (короткие ge/le, не gte/lte).
+// подтверждённые field: name, maxOverdraftPercent, label (ед.ч., не labels).
+// Остальные field (project/status/zone/version/диапазонные размеры) и единицы - предположение, уточнить у бэка.
 
 // оператор из формы -> op в запросе
 const OPERATOR_TO_OP: Record<string, string> = {
   IS: 'eq',
-  'IS NOT': 'ne',
-  IS_NOT: 'ne',
+  'IS NOT': 'isNot',
+  IS_NOT: 'isNot',
   IN: 'in',
-  NOT_IN: 'nin',
-  '>=': 'gte',
-  '<=': 'lte',
+  NOT_IN: 'notIn',
+  '>=': 'ge',
+  '<=': 'le',
   '=': 'eq',
 };
 
@@ -24,23 +26,23 @@ const toOp = (operator: string): string => OPERATOR_TO_OP[operator] ?? 'eq';
 const FIELD_CONFIGURATION = 'name';
 const FIELD_PROJECT = 'project';
 const FIELD_STATUS = 'status';
-const FIELD_LABELS = 'labels';
+const FIELD_LABELS = 'label';
 const FIELD_ZONE = 'zone';
 const FIELD_VERSION = 'version';
-const FIELD_PROCESSING_SPEED = 'processingRate';
+const FIELD_PROCESSING_SPEED = 'maxOverdraftPercent';
 const FIELD_MAX_WRITE_SPEED = 'maxDataRateBytesPerSec';
 const FIELD_MAX_INDEX_SIZE = 'maxSizeBytes';
 const FIELD_MAX_RETENTION = 'maxStorageTimeSec';
 
-// from/to задают gte/lte независимо от оператора в дропдауне.
+// from/to задают ge/le независимо от оператора в дропдауне (вокабуляр ge/le подтверждён стендом).
 // TODO(archives-filter-api): единицы измерения (unit) пока не конвертируются и не отправляются
 const rangeFilters = (field: string, from: string, to: string): ArchiveFilter[] => {
   const result: ArchiveFilter[] = [];
   if (from.trim()) {
-    result.push({ field, op: 'gte', values: [from.trim()] });
+    result.push({ field, op: 'ge', values: [from.trim()] });
   }
   if (to.trim()) {
-    result.push({ field, op: 'lte', values: [to.trim()] });
+    result.push({ field, op: 'le', values: [to.trim()] });
   }
   return result;
 };
