@@ -11,12 +11,10 @@ import {
   RETENTION_UNIT_OPTIONS,
   STATUS_OPTIONS,
   WRITE_SPEED_UNIT_OPTIONS,
-  ZONE_OPTIONS,
 } from '@src/Shared/constants/filters';
+import { OptionItemType } from '@src/Shared/types/filter';
 
-import { $optionsArchiveLabel, $optionsArchiveName, $archiveFilterValues } from '@src/Entities/Archives/model';
-import {} from '@src/Entities/Archives/model';
-import { $optionsProject } from '@src/Entities/Project/model';
+import { $archiveFilterValues } from '@src/Entities/Archives/model';
 
 import ControllerSelectMultiple from '@src/Features/Controllers/ControllerSelectMultiple';
 import ControllerSelectSingle from '@src/Features/Controllers/ControllerSelectSingle';
@@ -26,13 +24,14 @@ import FilterDrawerField from './FilterDrawerField';
 import FilterDrawerRange from './FilterDrawerRange';
 import * as styles from './styles.module.css';
 
+const toOptionItems = (items: string[]): OptionItemType[] => items.map((item) => ({ value: item, label: item }));
+
 const FilterDrawerBody: FC = () => {
-  const [configurationOptions, projectOptions, labelOptions, archiveFilterValues] = useUnit([
-    $optionsArchiveName,
-    $optionsProject,
-    $optionsArchiveLabel,
-    $archiveFilterValues,
-  ]);
+  const archiveFilterValues = useUnit($archiveFilterValues);
+  const nameOptions = toOptionItems(archiveFilterValues.names);
+  const projectOptions = toOptionItems(archiveFilterValues.projects);
+  const labelOptions = toOptionItems(archiveFilterValues.labels);
+  const zoneOptions = toOptionItems(archiveFilterValues.zones);
 
   return (
     <div className={styles.filterDrawerBody}>
@@ -40,7 +39,7 @@ const FilterDrawerBody: FC = () => {
         <div className={styles.filterDrawerValueField}>
           <ControllerSelectMultiple
             name="configuration.values"
-            options={archiveFilterValues.names}
+            options={nameOptions}
             isSearchable
             virtualized
             placeholder="Выберите значение"
@@ -50,7 +49,7 @@ const FilterDrawerBody: FC = () => {
 
       <FilterDrawerField title="Ключ проекта" operatorName="projectKey.operator" operatorOptions={IN_OPERATOR_OPTIONS}>
         <div className={styles.filterDrawerValueField}>
-          <ControllerSelectMultiple name="projectKey.values" options={archiveFilterValues.projects} isSearchable placeholder="Выберите значение" />
+          <ControllerSelectMultiple name="projectKey.values" options={projectOptions} isSearchable placeholder="Выберите значение" />
         </div>
       </FilterDrawerField>
 
@@ -69,7 +68,7 @@ const FilterDrawerBody: FC = () => {
         <div className={styles.filterDrawerValueField}>
           <ControllerSelectMultiple
             name="labels.values"
-            options={archiveFilterValues.labels}
+            options={labelOptions}
             isSearchable
             virtualized
             placeholder="Выберите значение"
@@ -81,7 +80,7 @@ const FilterDrawerBody: FC = () => {
         <div className={styles.filterDrawerValueField}>
           <ControllerSelectSingle
             name="zone.value"
-            options={archiveFilterValues.zones}
+            options={zoneOptions}
             placeholder="Выберите значение"
             canClear
             formatOptionLabel={(label) => <Text kind="bodyS">{label}</Text>}

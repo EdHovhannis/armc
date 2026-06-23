@@ -5,7 +5,7 @@ import { axios } from '@src/Shared/api/axios';
 import { handleErrorFx } from '@src/Shared/api/model';
 import { AxiosResponseError } from '@src/Shared/api/types';
 
-import { ArchiveConfiguration } from './types';
+import { ArchiveConfiguration, FilterItems } from './types';
 
 export interface FetchArchivesParams {
   pageNumber: number;
@@ -81,7 +81,7 @@ export const deleteArchivesInstancesFx = createEffect<string[], AxiosResponse<un
 
 export const fetchArchivesFiltersFx = createEffect<
   Pick<FetchArchivesParams, 'filters'> | void,
-  AxiosResponse<number>,
+  AxiosResponse<FilterItems>,
   AxiosError<AxiosResponseError>
 >(async () => axios.get('/v1/internal/index/archive/list/filter-values'));
 
