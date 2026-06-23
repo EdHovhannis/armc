@@ -2,7 +2,6 @@ import MaterialTable from '@material-table/core';
 import React from 'react';
 
 interface ServiceRow {
-  localeCompare(b: ServiceRow): number;
   id: string;
   service: string;
   zone: string;
@@ -13,10 +12,30 @@ interface ServiceRow {
   timeInStatus: string;
 }
 
+const formatTimeInStatus = (updatedAt: string): string => {
+  const updatedAtTime = new Date(updatedAt).getTime();
+
+  if (Number.isNaN(updatedAtTime)) {
+    return '';
+  }
+
+  const diffInMinutes = Math.max(0, Math.floor((Date.now() - updatedAtTime) / 60000));
+
+  if (diffInMinutes < 60) {
+    return `${diffInMinutes} мин`;
+  }
+
+  const diffInHours = Math.floor(diffInMinutes / 60);
+
+  if (diffInHours < 24) {
+    return `${diffInHours} ч`;
+  }
+
+  return `${Math.floor(diffInHours / 24)} д`;
+};
+
 const transformData = (data: any[]): ServiceRow[] => {
   return data.map((item) => {
-    const timeInStatus = '12 мин';
-
     return {
       id: `${item.service}-${item.zone}`,
       service: item.service,
@@ -33,7 +52,7 @@ const transformData = (data: any[]): ServiceRow[] => {
           second: '2-digit',
         })
         .replace(',', ''),
-      timeInStatus: timeInStatus,
+      timeInStatus: formatTimeInStatus(item.updatedAt),
     };
   });
 };

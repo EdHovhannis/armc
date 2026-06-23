@@ -9,6 +9,13 @@ import ConfirmDialog from '../../ConfirmDialog';
 import HealthTable from './HealthTable';
 import { getTextForConfirm } from './helpers';
 
+type SelectedHealthRow = {
+  zone: string;
+  service: string;
+};
+
+type ServiceByZone = Record<string, string[]>;
+
 const useStyles = makeStyles(() =>
   createStyles({
     titleAndActions: {
@@ -31,17 +38,17 @@ export const HealthCheckSettings = () => {
   const healthCheckConfigs = useSelector((state: ApplicationState) => state.config);
   const { healthCheckConfigData, healthCheckConfigZones, isHealthCheckConfigsLoading } = healthCheckConfigs;
 
-  const stableZones = useMemo(() => {
+  const stableZones: string[] = useMemo(() => {
     if (!healthCheckConfigZones) return [];
     return [...healthCheckConfigZones].sort((a, b) => String(a).localeCompare(String(b)));
   }, [healthCheckConfigZones]);
 
-  const [serviceByZone, setServiceByZone] = useState<any>({});
-  const [prevkeys, setPrevKeys] = useState<any>(null);
+  const [serviceByZone, setServiceByZone] = useState<ServiceByZone>({});
+  const [prevkeys, setPrevKeys] = useState<string[] | null>(null);
 
   if (stableZones !== prevkeys) {
     setPrevKeys(stableZones);
-    setServiceByZone(Object.fromEntries(stableZones.map((k) => [k, []])));
+    setServiceByZone(Object.fromEntries(stableZones.map((k): [string, string[]] => [k, []])));
   }
 
   const [changeSetting, setChangeSettingDialogOpen] = useState({
@@ -53,9 +60,9 @@ export const HealthCheckSettings = () => {
     dispatch(fetchHealthCheckConfig());
   }, [dispatch]);
 
-  const handleSelectRow = useCallback((rowData: any) => {
+  const handleSelectRow = useCallback((rowData: SelectedHealthRow[]) => {
     console.log('rowData', rowData);
-    const result = rowData.reduce((acc, item) => {
+    const result = rowData.reduce<ServiceByZone>((acc, item) => {
       const zoneKey = item.zone.toUpperCase();
 
       if (!acc[zoneKey]) {
@@ -97,7 +104,7 @@ export const HealthCheckSettings = () => {
   const isDisable = !Object.values(serviceByZone).some((arr: any) => arr.length > 0);
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div>
       <Grid style={{ padding: 40 }}>
         <div className={classes.titleAndActions}>
           <h3 style={{ flex: 1 }}>Управление состоянием здоровья сервисов</h3>
