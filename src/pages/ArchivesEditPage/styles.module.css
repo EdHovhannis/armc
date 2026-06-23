@@ -1,0 +1,9 @@
+.archiveEditPageWrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: calc(100% - 52px);
+  overflow: auto;
+  padding: 24px;
+  gap: 16px;
+}

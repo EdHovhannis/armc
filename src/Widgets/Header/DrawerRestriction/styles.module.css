@@ -1,0 +1,80 @@
+.drawerRestrictionBody {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.drawerRestrictionTabs {
+  width: 100%;
+}
+
+.drawerRestrictionGridWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.drawerRestrictionStretchCell > * {
+  flex: 1;
+  min-width: 0;
+}
+
+/* подсветка строки, добавленной из kebab конфигурации - тот же цвет, что при наведении.
+   фон только на ячейках td (не на tr) одним слоём, иначе полупрозрачный цвет даёт разную насыщенность по углам.
+   !important - грид вешает на ячейку инлайновый backgroundColor: inherit, перебить можно только так */
+.drawerRestrictionHighlightRow td {
+  background: var(--sds-eng-Background-surfaceSecondaryHover, #eef1f2) !important;
+}
+
+/* скругляем только внешние углы строки, чтобы заливка из трёх ячеек выглядела сплошной */
+.drawerRestrictionHighlightRow td:first-child {
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+}
+
+.drawerRestrictionHighlightRow td:last-child {
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+.drawerRestrictionIntervalCell {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.drawerRestrictionIntervalValue {
+  flex: 1;
+}
+
+.drawerRestrictionIntervalUnit {
+  width: 120px;
+  flex-shrink: 0;
+}
+
+.drawerRestrictionAddButton {
+  align-self: flex-start;
+}
+
+.drawerRestrictionAllTab {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 540px;
+}
+
+.drawerRestrictionAllLabel {
+  color: var(--sds-eng-Foreground-foreSecondary, #5e6a71);
+}
+
+.drawerRestrictionAllInterval {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.drawerRestrictionFooter {
+  display: flex;
+  justify-content: flex-start;
+}

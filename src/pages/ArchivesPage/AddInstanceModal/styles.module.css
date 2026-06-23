@@ -1,0 +1,21 @@
+.addInstanceModalBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.addInstanceModalZone {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.addInstanceModalHint {
+  color: var(--sds-eng-Foreground-foreSecondary, #060a0ca8);
+}
+
+.addInstanceModalFooter {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}

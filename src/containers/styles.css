@@ -1,4 +1,0 @@
-/* Стиль нужен чтобы перебить стили от mui, чтобы DataGrid работал корректно */
-.abyssDataGridWrapperBoxContent * {
-  box-sizing: content-box;
-}
