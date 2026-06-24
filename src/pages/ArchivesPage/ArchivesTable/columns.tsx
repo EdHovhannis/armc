@@ -1,4 +1,4 @@
-import { Button, Icon, Link, Tag, Text, Tooltip } from '@sds-eng/base';
+import { Button, Icon, Link, Text, Tooltip } from '@sds-eng/base';
 import { DataGridCell, DataGridColumnDef } from '@sds-eng/data-grid';
 import { useUnit } from 'effector-react';
 import { MouseEvent } from 'react';
@@ -17,6 +17,7 @@ import { onApplyArchiveFilters } from '../FilterDrawer/model';
 
 import ColumnHeaderMultiSelectFilter from './ColumnHeaderMultiSelectFilter';
 import ConfigurationActionsCell from './ConfigurationActionsCell';
+import LabelsCell from './LabelsCell';
 import StatusBadge from './StatusBadge';
 import * as styles from './styles.module.css';
 
@@ -213,18 +214,7 @@ export const archiveConfigurationColumns: DataGridColumnDef<ArchiveConfigView>[]
     tableHeadCellProps: filterColumnHeadCellProps,
     size: 200,
     minSize: 120,
-    Cell: ({ cell }) => {
-      const labels = cell.getValue<string[]>();
-      return (
-        <div className={styles.labelsCell}>
-          {labels?.map((label) => (
-            <Tag key={label} as="span" className={styles.labelTag}>
-              {label}
-            </Tag>
-          ))}
-        </div>
-      );
-    },
+    Cell: ({ row }) => <LabelsCell row={row.original} />,
     tableBodyCellProps: {
       style: { textOverflow: 'unset', overflow: 'visible', whiteSpace: 'normal' },
     },

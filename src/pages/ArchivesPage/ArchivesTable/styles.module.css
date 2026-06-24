@@ -259,6 +259,16 @@
   color: var(--sds-eng-Foreground-foreSecondary, #060a0ca8);
 }
 
+.labelTagClickable {
+  cursor: pointer;
+}
+
+.labelTagClickable:hover {
+  color: var(--sds-eng-Foreground-foreAccent);
+  background-color: var(--sds-eng-palette-arctic-arctic100, #e8f0fe);
+  border-color: var(--sds-eng-palette-arctic-arctic200, #c5d9fc);
+}
+
 .filterChipsReset {
   margin-left: 8px;
   color: var(--sds-eng-Foreground-foreAccent);
