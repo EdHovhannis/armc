@@ -172,6 +172,7 @@
   min-width: 0;
   max-height: 80px;
   overflow-y: auto;
+  max-width: 1240px;
 }
 
 .filterChipField {
