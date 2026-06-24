@@ -49,7 +49,6 @@ interface ArchiveFilterChipProps {
 const ArchiveFilterChip: FC<ArchiveFilterChipProps> = ({ filter, filterIndex, fieldLabel, onUpdateValues, onRemoveFilter }) => {
   const [archiveFilterValues, fetchArchivesFilters] = useUnit([$archiveFilterValues, fetchArchivesFiltersFx]);
 
-  const isMultiValue = filter.values.length > 1;
   const chipValueText = filter.values.length === 1 ? getValueLabel(filter.field, filter.values[0] ?? '') : `Выбрано ${filter.values.length}`;
 
   const menuOptions = useMemo(() => {
@@ -92,14 +91,6 @@ const ArchiveFilterChip: FC<ArchiveFilterChipProps> = ({ filter, filterIndex, fi
       <Text kind="textSb">{chipValueText}</Text>
     </>
   );
-
-  if (!isMultiValue) {
-    return (
-      <Tag onDelete={handleRemoveFilter}>
-        {chipContent}
-      </Tag>
-    );
-  }
 
   return (
     <DropdownMenu
