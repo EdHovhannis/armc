@@ -200,6 +200,59 @@
   margin: 4px 0;
 }
 
+.columnHeaderFilter {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  width: 100%;
+}
+
+.columnHeaderFilterTitle {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.columnHeaderFilterButton,
+.columnHeaderFilterActive {
+  flex-shrink: 0;
+}
+
+.columnHeaderFilterActive {
+  color: var(--sds-eng-Foreground-foreAccent) !important;
+  background: var(--sds-eng-palette-arctic-arctic100, #e8f0fe) !important;
+}
+
+.columnHeaderFilterPopover {
+  width: 280px;
+  max-width: 280px;
+}
+
+.columnHeaderFilterMenu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.columnHeaderFilterOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.columnHeaderFilterOption {
+  margin: 0;
+}
+
+.columnHeaderFilterEmpty {
+  padding: 8px 0;
+  color: var(--sds-eng-Foreground-foreSecondary, #060a0ca8);
+}
+
 .filterChipsReset {
   margin-left: 8px;
   color: var(--sds-eng-Foreground-foreAccent);

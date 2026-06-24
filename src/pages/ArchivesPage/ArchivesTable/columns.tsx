@@ -6,6 +6,7 @@ import { MouseEvent } from 'react';
 import { formatBytes } from '@src/Shared/lib/format/formatBytes';
 import { formatRetention } from '@src/Shared/lib/format/formatRetention';
 import { formatSpeed } from '@src/Shared/lib/format/formatSpeed';
+import { STATUS_OPTIONS } from '@src/Shared/constants/filters';
 
 import { ArchiveConfigView, ArchiveInstanceView } from '@src/Entities/Archives/types';
 
@@ -14,14 +15,21 @@ import { onChangeTableView } from '@src/Features/TableView/model';
 
 import { onApplyArchiveFilters } from '../FilterDrawer/model';
 
+import ColumnHeaderMultiSelectFilter from './ColumnHeaderMultiSelectFilter';
 import ConfigurationActionsCell from './ConfigurationActionsCell';
 import StatusBadge from './StatusBadge';
 import * as styles from './styles.module.css';
+
+const createColumnHeaderFilter = (title: string, field: string, options?: typeof STATUS_OPTIONS) =>
+  function ColumnHeaderFilter() {
+    return <ColumnHeaderMultiSelectFilter title={title} field={field} options={options} />;
+  };
 
 export const archiveIndexColumns: DataGridColumnDef<ArchiveInstanceView>[] = [
   {
     accessorKey: 'configName',
     header: 'Конфигурация',
+    Header: createColumnHeaderFilter('Конфигурация', 'name'),
     size: 200,
     minSize: 120,
     Cell: ({ cell }) => (
@@ -39,6 +47,7 @@ export const archiveIndexColumns: DataGridColumnDef<ArchiveInstanceView>[] = [
   {
     accessorKey: 'instanceStatus',
     header: 'Статус',
+    Header: createColumnHeaderFilter('Статус', 'status', STATUS_OPTIONS),
     size: 140,
     minSize: 130,
     Cell: ({ cell }) => <StatusBadge status={cell.getValue<ArchiveInstanceView['instanceStatus']>()} />,
@@ -149,6 +158,7 @@ export const archiveConfigurationColumns: DataGridColumnDef<ArchiveConfigView>[]
   {
     accessorKey: 'configuration',
     header: 'Конфигурация',
+    Header: createColumnHeaderFilter('Конфигурация', 'name'),
     size: 220,
     minSize: 140,
     Cell: ({ cell }) => (
@@ -160,6 +170,7 @@ export const archiveConfigurationColumns: DataGridColumnDef<ArchiveConfigView>[]
   {
     accessorKey: 'projectKey',
     header: 'Ключ проекта',
+    Header: createColumnHeaderFilter('Ключ проекта', 'project'),
     size: 120,
     Cell: ({ cell }) => <Text kind="bodyS">{cell.getValue<string>()}</Text>,
   },
@@ -190,6 +201,7 @@ export const archiveConfigurationColumns: DataGridColumnDef<ArchiveConfigView>[]
   {
     accessorKey: 'labels',
     header: 'Метки',
+    Header: createColumnHeaderFilter('Метки', 'label'),
     size: 200,
     minSize: 120,
     Cell: ({ cell }) => {

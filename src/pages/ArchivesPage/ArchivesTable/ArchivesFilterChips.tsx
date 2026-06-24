@@ -5,20 +5,8 @@ import { FC, useCallback } from 'react';
 import { $appliedArchiveFilters, onApplyArchiveFilters, onResetArchiveFilters } from '../FilterDrawer/model';
 
 import ArchiveFilterChip from './ArchiveFilterChip';
+import { FIELD_LABELS } from './filterFieldUtils';
 import * as styles from './styles.module.css';
-
-const FIELD_LABELS: Record<string, string> = {
-  name: 'Конфигурация',
-  project: 'Проект',
-  status: 'Статус',
-  label: 'Метки',
-  zone: 'Зона',
-  version: 'Версия',
-  maxOverdraftPercent: 'Скорость обработки',
-  maxDataRateBytesPerSec: 'Макс. скорость записи',
-  maxSizeBytes: 'Макс. размер индекса',
-  maxStorageTimeSec: 'Макс. время хранения',
-};
 
 const getChipKey = (filter: { field: string; op: string }, index: number) => `${filter.field}-${filter.op}-${index}`;
 
