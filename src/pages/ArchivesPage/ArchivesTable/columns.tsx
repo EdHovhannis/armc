@@ -25,11 +25,16 @@ const createColumnHeaderFilter = (title: string, field: string, options?: typeof
     return <ColumnHeaderMultiSelectFilter title={title} field={field} options={options} />;
   };
 
+const filterColumnHeadCellProps = {
+  className: `${styles.tableHeadCell} ${styles.tableHeadCellFilter}`,
+};
+
 export const archiveIndexColumns: DataGridColumnDef<ArchiveInstanceView>[] = [
   {
     accessorKey: 'configName',
     header: 'Конфигурация',
     Header: createColumnHeaderFilter('Конфигурация', 'name'),
+    tableHeadCellProps: filterColumnHeadCellProps,
     size: 200,
     minSize: 120,
     Cell: ({ cell }) => (
@@ -48,6 +53,7 @@ export const archiveIndexColumns: DataGridColumnDef<ArchiveInstanceView>[] = [
     accessorKey: 'instanceStatus',
     header: 'Статус',
     Header: createColumnHeaderFilter('Статус', 'status', STATUS_OPTIONS),
+    tableHeadCellProps: filterColumnHeadCellProps,
     size: 140,
     minSize: 130,
     Cell: ({ cell }) => <StatusBadge status={cell.getValue<ArchiveInstanceView['instanceStatus']>()} />,
@@ -159,6 +165,7 @@ export const archiveConfigurationColumns: DataGridColumnDef<ArchiveConfigView>[]
     accessorKey: 'configuration',
     header: 'Конфигурация',
     Header: createColumnHeaderFilter('Конфигурация', 'name'),
+    tableHeadCellProps: filterColumnHeadCellProps,
     size: 220,
     minSize: 140,
     Cell: ({ cell }) => (
@@ -171,6 +178,7 @@ export const archiveConfigurationColumns: DataGridColumnDef<ArchiveConfigView>[]
     accessorKey: 'projectKey',
     header: 'Ключ проекта',
     Header: createColumnHeaderFilter('Ключ проекта', 'project'),
+    tableHeadCellProps: filterColumnHeadCellProps,
     size: 120,
     Cell: ({ cell }) => <Text kind="bodyS">{cell.getValue<string>()}</Text>,
   },
@@ -202,6 +210,7 @@ export const archiveConfigurationColumns: DataGridColumnDef<ArchiveConfigView>[]
     accessorKey: 'labels',
     header: 'Метки',
     Header: createColumnHeaderFilter('Метки', 'label'),
+    tableHeadCellProps: filterColumnHeadCellProps,
     size: 200,
     minSize: 120,
     Cell: ({ cell }) => {

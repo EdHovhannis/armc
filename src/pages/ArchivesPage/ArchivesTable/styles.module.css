@@ -139,6 +139,11 @@
   border-bottom: 1px solid var(--sds-eng-Border-borderBase, #060a0c1a);
 }
 
+.tableHeadCellFilter {
+  overflow: visible !important;
+  z-index: 3;
+}
+
 .fixedBottomToolbar {
   background-color: var(--sds-eng-Background-backBase, #ffffff);
   border-top: 1px solid var(--sds-eng-Border-borderBase, #060a0c1a);
@@ -228,6 +233,7 @@
 .columnHeaderFilterPopover {
   width: 280px;
   max-width: 280px;
+  background: var(--sds-eng-Background-backBase, #ffffff);
 }
 
 .columnHeaderFilterMenu {

@@ -9,6 +9,7 @@ import { $archiveFilterValues } from '@src/Entities/Archives/model';
 
 import { $appliedArchiveFilters, onApplyArchiveFilters } from '../FilterDrawer/model';
 
+import { COLUMN_FILTER_POPOVER_Z_INDEX, useArchivesTablePortalContainer } from './ArchivesTablePortalContext';
 import { getFieldFilterValues, getOptionsForField, removeFieldFromFilters, upsertFieldFilter } from './filterFieldUtils';
 import * as styles from './styles.module.css';
 
@@ -21,6 +22,7 @@ interface ColumnHeaderMultiSelectFilterProps {
 const ColumnHeaderMultiSelectFilter: FC<ColumnHeaderMultiSelectFilterProps> = ({ title, field, options: staticOptions }) => {
   const [appliedFilters, applyFilters] = useUnit([$appliedArchiveFilters, onApplyArchiveFilters]);
   const [archiveFilterValues, fetchArchivesFilters] = useUnit([$archiveFilterValues, fetchArchivesFiltersFx]);
+  const portalContainer = useArchivesTablePortalContainer();
   const [search, setSearch] = useState('');
   const [draftValues, setDraftValues] = useState<string[]>([]);
 
@@ -78,10 +80,15 @@ const ColumnHeaderMultiSelectFilter: FC<ColumnHeaderMultiSelectFilterProps> = ({
       <Popover
         placement="bottom-start"
         disabledArrow
+        zIndex={COLUMN_FILTER_POPOVER_Z_INDEX}
+        hideOnScroll={false}
         contentWrapperProps={{ className: styles.columnHeaderFilterPopover }}
         dropdownProps={{
           action: 'click',
           onStateChange: handleStateChange,
+          disablePortal: false,
+          zIndex: COLUMN_FILTER_POPOVER_Z_INDEX,
+          container: portalContainer ?? undefined,
         }}
         description={
           <div className={styles.columnHeaderFilterMenu}>

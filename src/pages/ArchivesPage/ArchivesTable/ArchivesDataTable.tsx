@@ -1,12 +1,13 @@
 import { DataGridColumnDef, DataGridPaginationState, DataGridRowSelectionState, DataGridUpdater } from '@sds-eng/data-grid';
 import { useUnit } from 'effector-react';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 
 import { $selectedRowIds, setRowSelection } from '@src/Features/TableView/model';
 
 import DataGridTable from '@src/Widgets/DataGridTable';
 
 import { ArchivesActionsToolBar } from './ArchivesActionsToolBar';
+import { ArchivesTablePortalContext } from './ArchivesTablePortalContext';
 import { ArchivesTableToolBar } from './ArchivesTableToolBar';
 import * as styles from './styles.module.css';
 
@@ -50,8 +51,11 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
 
   const rowSelectionCount = Object.values(rowSelection).length;
   const isArchiveActionsShown = Boolean(rowSelectionCount);
+  const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
+
   return (
-    <div className={styles.tableWrapper}>
+    <ArchivesTablePortalContext.Provider value={portalContainer}>
+      <div ref={setPortalContainer} className={styles.tableWrapper}>
       {isArchiveActionsShown && <ArchivesActionsToolBar rowSelectionCount={rowSelectionCount} onDeleteSuccess={onDeleteSuccess} />}
       <DataGridTable
         data={data}
@@ -120,6 +124,7 @@ export const ArchivesDataTable = <TRow extends { id: number | string }>({
         tableBodyCellProps={{ className: styles.tableCell }}
         tableHeadCellProps={{ className: styles.tableHeadCell }}
       />
-    </div>
+      </div>
+    </ArchivesTablePortalContext.Provider>
   );
 };
