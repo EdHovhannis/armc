@@ -1,11 +1,10 @@
-import { Tag, Text } from '@sds-eng/base';
+import { Text } from '@sds-eng/base';
 import { useUnit } from 'effector-react';
-import { FC } from 'react';
-
-import { ArchiveFilter } from '@src/Entities/Archives/api';
+import { FC, useCallback } from 'react';
 
 import { $appliedArchiveFilters, onApplyArchiveFilters, onResetArchiveFilters } from '../FilterDrawer/model';
 
+import ArchiveFilterChip from './ArchiveFilterChip';
 import * as styles from './styles.module.css';
 
 const FIELD_LABELS: Record<string, string> = {
@@ -21,14 +20,29 @@ const FIELD_LABELS: Record<string, string> = {
   maxStorageTimeSec: 'Макс. время хранения',
 };
 
-const getChipKey = (filter: ArchiveFilter, index: number) => `${filter.field}-${filter.op}-${index}`;
+const getChipKey = (filter: { field: string; op: string }, index: number) => `${filter.field}-${filter.op}-${index}`;
 
 const ArchivesFilterChips: FC = () => {
   const [appliedFilters, applyFilters, resetFilters] = useUnit([$appliedArchiveFilters, onApplyArchiveFilters, onResetArchiveFilters]);
 
-  if (!appliedFilters.length) return null;
+  const removeFilter = useCallback(
+    (index: number) => applyFilters(appliedFilters.filter((_, itemIndex) => itemIndex !== index)),
+    [appliedFilters, applyFilters],
+  );
 
-  const removeFilter = (index: number) => applyFilters(appliedFilters.filter((_, itemIndex) => itemIndex !== index));
+  const updateFilterValues = useCallback(
+    (index: number, values: string[]) => {
+      if (!values.length) {
+        removeFilter(index);
+        return;
+      }
+
+      applyFilters(appliedFilters.map((filter, itemIndex) => (itemIndex === index ? { ...filter, values } : filter)));
+    },
+    [appliedFilters, applyFilters, removeFilter],
+  );
+
+  if (!appliedFilters.length) return null;
 
   return (
     <div className={styles.filterChips}>
@@ -36,13 +50,14 @@ const ArchivesFilterChips: FC = () => {
         const fieldLabel = FIELD_LABELS[filter.field] ?? filter.field;
 
         return (
-          <Tag key={getChipKey(filter, index)} onDelete={() => removeFilter(index)}>
-            <Text kind="bodyS" className={styles.filterChipField}>
-              {fieldLabel}
-            </Text>
-            &nbsp;
-            <Text kind="textSb">{filter.values.length === 1 ? filter.values : `Выбрано ${filter.values.length}`}</Text>
-          </Tag>
+          <ArchiveFilterChip
+            key={getChipKey(filter, index)}
+            filter={filter}
+            filterIndex={index}
+            fieldLabel={fieldLabel}
+            onUpdateValues={updateFilterValues}
+            onRemoveFilter={removeFilter}
+          />
         );
       })}
         <Text as="span" kind="bodyS" className={styles.filterChipsReset} onClick={() => resetFilters()}>
