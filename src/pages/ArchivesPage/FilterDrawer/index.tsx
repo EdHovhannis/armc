@@ -6,27 +6,15 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { fetchArchivesFiltersFx } from '@src/Entities/Archives/api';
 
 import FilterDrawerBody from './FilterDrawerBody';
-import { mapFormToArchiveFilters } from './mapFilters';
-import { $filterDrawerOpen, onApplyArchiveFilters, onChangeFilterDrawerOpen, onResetArchiveFilters } from './model';
+import { DEFAULT_FILTER_FORM_VALUES, mapArchiveFiltersToForm, mapFormToArchiveFilters } from './mapFilters';
+import { $appliedArchiveFilters, $filterDrawerOpen, onApplyArchiveFilters, onChangeFilterDrawerOpen, onResetArchiveFilters } from './model';
 import * as styles from './styles.module.css';
 import { FilterFormValues } from './types';
 
-const DEFAULT_VALUES: FilterFormValues = {
-  configuration: { operator: 'IN', values: [] },
-  projectKey: { operator: 'IN', values: [] },
-  status: { operator: 'IN', values: [] },
-  labels: { operator: 'IN', values: [] },
-  zone: { operator: 'IS', value: '' },
-  configVersion: { operator: 'IS', value: '' },
-  processingSpeed: { operator: '>=', value: '' },
-  maxWriteSpeed: { operator: 'IN', from: '', to: '', unit: 'B/s' },
-  maxIndexSize: { operator: 'IN', from: '', to: '', unit: 'B' },
-  maxRetention: { operator: 'IN', from: '', to: '', unit: 'сек' },
-};
-
 const FilterDrawer: FC = () => {
-  const [open, onChangeFilterDrawerOpenFn, applyFilters, resetFilters, fetchArchivesFilters] = useUnit([
+  const [open, appliedFilters, onChangeFilterDrawerOpenFn, applyFilters, resetFilters, fetchArchivesFilters] = useUnit([
     $filterDrawerOpen,
+    $appliedArchiveFilters,
     onChangeFilterDrawerOpen,
     onApplyArchiveFilters,
     onResetArchiveFilters,
@@ -39,12 +27,16 @@ const FilterDrawer: FC = () => {
     }
   }, [fetchArchivesFilters, open]);
 
-  const form = useForm<FilterFormValues>({ defaultValues: DEFAULT_VALUES });
+  const form = useForm<FilterFormValues>({ defaultValues: DEFAULT_FILTER_FORM_VALUES });
+
+  useEffect(() => {
+    form.reset(appliedFilters.length ? mapArchiveFiltersToForm(appliedFilters) : DEFAULT_FILTER_FORM_VALUES);
+  }, [appliedFilters, form]);
 
   const handleClose = () => onChangeFilterDrawerOpenFn(false);
 
   const handleReset = () => {
-    form.reset(DEFAULT_VALUES);
+    form.reset(DEFAULT_FILTER_FORM_VALUES);
     resetFilters();
   };
 
