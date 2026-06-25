@@ -1,6 +1,6 @@
 import { combine, createEvent, createStore, sample } from 'effector';
 
-import { addLabelFx } from '@src/Entities/Label/api';
+import { addLabelFx, deleteLabelFx } from '@src/Entities/Label/api';
 
 import { FetchArchivesParams, deleteArchiveFx, fetchArchivesCountFx, fetchArchivesFiltersFx, fetchArchivesFx } from './api';
 import { ArchiveConfigView, ArchiveConfiguration, ArchiveInstanceView, FilterItems } from './types';
@@ -11,24 +11,37 @@ $archives.on(fetchArchivesFx.doneData, (_, payload) => payload.data);
 const $lastFetchArchivesParams = createStore<FetchArchivesParams | null>(null).on(fetchArchivesFx, (_, params) => params);
 const $lastFetchCountFilters = createStore<Pick<FetchArchivesParams, 'filters'>>({}).on(fetchArchivesCountFx, (_, params) => params ?? {});
 
+const refetchLastArchives = createEvent();
+
 sample({
-  clock: deleteArchiveFx.done,
+  clock: refetchLastArchives,
   source: $lastFetchArchivesParams,
   filter: (params): params is FetchArchivesParams => params !== null,
+  fn: (params) => params!,
   target: fetchArchivesFx,
+});
+
+export const labelsModalOpened = createEvent();
+export const labelsModalClosed = createEvent();
+
+const $labelsDirty = createStore(false)
+  .on(deleteLabelFx.done, () => true)
+  .reset(labelsModalOpened);
+
+sample({ clock: deleteArchiveFx.done, target: refetchLastArchives });
+sample({ clock: addLabelFx.done, target: refetchLastArchives });
+
+sample({
+  clock: labelsModalClosed,
+  source: $labelsDirty,
+  filter: Boolean,
+  target: refetchLastArchives,
 });
 
 sample({
   clock: deleteArchiveFx.done,
   source: $lastFetchCountFilters,
   target: fetchArchivesCountFx,
-});
-
-sample({
-  clock: addLabelFx.done,
-  source: $lastFetchArchivesParams,
-  filter: (params): params is FetchArchivesParams => params !== null,
-  target: fetchArchivesFx,
 });
 
 export const $archivesTotalCount = createStore<number>(0);
@@ -45,15 +58,6 @@ export const $archiveFilterValues = createStore<FilterItems>({
   zones: [],
 });
 $archiveFilterValues.on(fetchArchivesFiltersFx.doneData, (_, payload) => payload.data);
-
-export const refetchArchivesList = createEvent();
-
-sample({
-  clock: refetchArchivesList,
-  source: $lastFetchArchivesParams,
-  filter: (params): params is FetchArchivesParams => params !== null,
-  target: fetchArchivesFx,
-});
 
 export const $archiveInstances = combine($archives, (archives): ArchiveInstanceView[] =>
   archives

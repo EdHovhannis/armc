@@ -1,9 +1,9 @@
 import { notification } from '@sds-eng/base';
 import { createEffect, createEvent, createStore, sample } from 'effector';
 
-import { refetchArchivesList } from '@src/Entities/Archives/model';
+import { labelsModalClosed, labelsModalOpened } from '@src/Entities/Archives/model';
 import { ArchiveConfigView } from '@src/Entities/Archives/types';
-import { addLabelFx, deleteLabelFx } from '@src/Entities/Label/api';
+import { addLabelFx } from '@src/Entities/Label/api';
 
 export const $labelsModalRow = createStore<ArchiveConfigView | null>(null);
 
@@ -12,16 +12,8 @@ export const onCloseLabelsModal = createEvent();
 
 $labelsModalRow.on(onOpenLabelsModal, (_, row) => row).reset(onCloseLabelsModal, addLabelFx.done);
 
-const $labelsDeleted = createStore(false)
-  .on(deleteLabelFx.done, () => true)
-  .reset(onOpenLabelsModal, onCloseLabelsModal);
-
-sample({
-  clock: onCloseLabelsModal,
-  source: $labelsDeleted,
-  filter: Boolean,
-  target: refetchArchivesList,
-});
+sample({ clock: onOpenLabelsModal, target: labelsModalOpened });
+sample({ clock: onCloseLabelsModal, target: labelsModalClosed });
 
 const showLabelAddedFx = createEffect(() => {
   notification({ title: 'Метка добавлена', status: 'success' });
