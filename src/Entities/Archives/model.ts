@@ -1,5 +1,7 @@
 import { combine, createStore, sample } from 'effector';
 
+import { addLabelFx } from '@src/Entities/Label/api';
+
 import { FetchArchivesParams, deleteArchiveFx, fetchArchiveOptionsFx, fetchArchivesCountFx, fetchArchivesFiltersFx, fetchArchivesFx } from './api';
 import { ArchiveConfigView, ArchiveConfiguration, ArchiveInstanceView, FilterItems } from './types';
 
@@ -20,6 +22,18 @@ sample({
   clock: deleteArchiveFx.done,
   source: $lastFetchCountFilters,
   target: fetchArchivesCountFx,
+});
+
+sample({
+  clock: addLabelFx.done,
+  source: $lastFetchArchivesParams,
+  filter: (params): params is FetchArchivesParams => params !== null,
+  target: fetchArchivesFx,
+});
+
+sample({
+  clock: addLabelFx.done,
+  target: fetchArchiveOptionsFx,
 });
 
 export const $archivesTotalCount = createStore<number>(0);
