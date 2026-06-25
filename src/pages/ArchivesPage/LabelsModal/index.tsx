@@ -3,7 +3,7 @@ import { useUnit } from 'effector-react';
 import { FC, KeyboardEvent, useEffect } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 
-import { addLabelFx } from '@src/Entities/Label/api';
+import { addLabelFx, deleteLabelFx } from '@src/Entities/Label/api';
 
 import { $labelsModalRow, onCloseLabelsModal } from './model';
 import * as styles from './styles.module.css';
@@ -14,7 +14,13 @@ type LabelsFormValues = {
 };
 
 const LabelsModal: FC = () => {
-  const [row, onClose, addLabel, saving] = useUnit([$labelsModalRow, onCloseLabelsModal, addLabelFx, addLabelFx.pending]);
+  const [row, onClose, addLabel, deleteLabel, saving] = useUnit([
+    $labelsModalRow,
+    onCloseLabelsModal,
+    addLabelFx,
+    deleteLabelFx,
+    addLabelFx.pending,
+  ]);
 
   const { control, reset, setValue, getValues } = useForm<LabelsFormValues>({
     defaultValues: { labels: [], newLabel: '' },
@@ -40,6 +46,8 @@ const LabelsModal: FC = () => {
   };
 
   const handleRemoveLabel = (label: string) => {
+    if (!row) return;
+    deleteLabel({ project: row.projectKey, taskName: row.configuration, label });
     setValue(
       'labels',
       getValues('labels').filter((item) => item !== label),

@@ -1,7 +1,7 @@
 import { useUnit } from 'effector-react';
 import { FC, useState, useEffect, useMemo, useCallback } from 'react';
 
-import { type ArchiveFilter, fetchArchiveOptionsFx, fetchArchivesCountFx, fetchArchivesFx } from '@src/Entities/Archives/api';
+import { type ArchiveFilter, fetchArchivesCountFx, fetchArchivesFx } from '@src/Entities/Archives/api';
 import { $archiveConfigs, $archiveInstances, $archivesTotalCount } from '@src/Entities/Archives/model';
 
 import { SEGMENT_CONFIGURATIONS, SEGMENT_INSTANCES } from '@src/Features/TableView/constants';
@@ -23,11 +23,10 @@ const ArchivesTable: FC = () => {
     resetPaginationPage,
     $appliedArchiveFilters,
   ]);
-  const [isArchivesLoading, fetchArchives, fetchArchivesCount, fetchArchiveOptions, archiveInstanceData, archiveConfigsData, totalCount] = useUnit([
+  const [isArchivesLoading, fetchArchives, fetchArchivesCount, archiveInstanceData, archiveConfigsData, totalCount] = useUnit([
     fetchArchivesFx.pending,
     fetchArchivesFx,
     fetchArchivesCountFx,
-    fetchArchiveOptionsFx,
     $archiveInstances,
     $archiveConfigs,
     $archivesTotalCount,
@@ -70,10 +69,6 @@ const ArchivesTable: FC = () => {
     },
     [resetPaginationPageFn],
   );
-
-  useEffect(() => {
-    fetchArchiveOptions();
-  }, [fetchArchiveOptions]);
 
   useEffect(() => {
     fetchArchivesCount({ filters });

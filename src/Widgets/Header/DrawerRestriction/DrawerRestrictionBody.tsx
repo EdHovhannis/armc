@@ -6,7 +6,6 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { DEFAULT_RESTRICTION_UNIT } from '@src/Shared/constants/restrictions';
 import { secondsToValueUnit } from '@src/Shared/lib/format/restrictionSeconds';
 
-import { fetchArchiveOptionsFx } from '@src/Entities/Archives/api';
 import { $optionsArchiveConfig } from '@src/Entities/Archives/model';
 import { fetchProjectOptionsFx, fetchRestrictionAllFx, fetchRestrictionsTableFx } from '@src/Entities/Restriction/api';
 import { $optionsProject, $restrictionAll, $restrictionsByIndex, $restrictionsByProject } from '@src/Entities/Restriction/model';
@@ -61,33 +60,19 @@ const buildDefaults = (
 const DrawerRestrictionBody: FC = () => {
   const [tab, onTabChange] = useUnit([$restrictionTab, onChangeRestrictionTab]);
   const preselectIndexId = useUnit($restrictionPreselectIndexId);
-  const [
-    optionsIndex,
-    optionsProject,
-    storeByIndex,
-    storeByProject,
-    storeAll,
-    loadingIndexOptions,
-    loadingProjectOptions,
-    loadingTable,
-    fetchArchiveOptions,
-    fetchProjectOptions,
-    fetchRestrictionsTable,
-    fetchRestrictionAll,
-  ] = useUnit([
-    $optionsArchiveConfig,
-    $optionsProject,
-    $restrictionsByIndex,
-    $restrictionsByProject,
-    $restrictionAll,
-    fetchArchiveOptionsFx.pending,
-    fetchProjectOptionsFx.pending,
-    fetchRestrictionsTableFx.pending,
-    fetchArchiveOptionsFx,
-    fetchProjectOptionsFx,
-    fetchRestrictionsTableFx,
-    fetchRestrictionAllFx,
-  ]);
+  const [optionsIndex, optionsProject, storeByIndex, storeByProject, storeAll, loadingProjectOptions, loadingTable, fetchProjectOptions, fetchRestrictionsTable, fetchRestrictionAll] =
+    useUnit([
+      $optionsArchiveConfig,
+      $optionsProject,
+      $restrictionsByIndex,
+      $restrictionsByProject,
+      $restrictionAll,
+      fetchProjectOptionsFx.pending,
+      fetchRestrictionsTableFx.pending,
+      fetchProjectOptionsFx,
+      fetchRestrictionsTableFx,
+      fetchRestrictionAllFx,
+    ]);
 
   const methods = useForm<RestrictionsFormValues>({
     mode: 'onChange',
@@ -96,11 +81,10 @@ const DrawerRestrictionBody: FC = () => {
   });
 
   useEffect(() => {
-    fetchArchiveOptions();
     fetchProjectOptions();
     fetchRestrictionsTable();
     fetchRestrictionAll();
-  }, [fetchArchiveOptions, fetchProjectOptions, fetchRestrictionsTable, fetchRestrictionAll]);
+  }, [fetchProjectOptions, fetchRestrictionsTable, fetchRestrictionAll]);
 
   const { reset } = methods;
   useEffect(() => {
@@ -130,7 +114,7 @@ const DrawerRestrictionBody: FC = () => {
             entityHeader="Индекс"
             entityPlaceholder="Выберите индекс"
             options={optionsIndex}
-            loadingOptions={loadingIndexOptions}
+            loadingOptions={false}
             loading={loadingTable}
             loaded={storeByIndex}
           />

@@ -1,8 +1,8 @@
-import { combine, createStore, sample } from 'effector';
+import { combine, createEvent, createStore, sample } from 'effector';
 
 import { addLabelFx } from '@src/Entities/Label/api';
 
-import { FetchArchivesParams, deleteArchiveFx, fetchArchiveOptionsFx, fetchArchivesCountFx, fetchArchivesFiltersFx, fetchArchivesFx } from './api';
+import { FetchArchivesParams, deleteArchiveFx, fetchArchivesCountFx, fetchArchivesFiltersFx, fetchArchivesFx } from './api';
 import { ArchiveConfigView, ArchiveConfiguration, ArchiveInstanceView, FilterItems } from './types';
 
 export const $archives = createStore<ArchiveConfiguration[]>([]);
@@ -31,20 +31,10 @@ sample({
   target: fetchArchivesFx,
 });
 
-sample({
-  clock: addLabelFx.done,
-  target: fetchArchiveOptionsFx,
-});
-
 export const $archivesTotalCount = createStore<number>(0);
 $archivesTotalCount.on(fetchArchivesCountFx.doneData, (_, payload) => payload.data);
 
-export const $archiveOptionsSource = createStore<ArchiveConfiguration[]>([]);
-$archiveOptionsSource.on(fetchArchiveOptionsFx.doneData, (_, payload) => payload.data);
-
-export const $optionsArchiveName = combine($archiveOptionsSource, (archives) => archives.map((item) => ({ value: item.name, label: item.name })));
-
-export const $optionsArchiveConfig = combine($archiveOptionsSource, (archives) =>
+export const $optionsArchiveConfig = combine($archives, (archives) =>
   archives.map((item) => ({ value: String(item.id), label: `${item.project} / ${item.name}` })),
 );
 
@@ -56,9 +46,14 @@ export const $archiveFilterValues = createStore<FilterItems>({
 });
 $archiveFilterValues.on(fetchArchivesFiltersFx.doneData, (_, payload) => payload.data);
 
-export const $optionsArchiveLabel = combine($archiveOptionsSource, (archives) =>
-  Array.from(new Set(archives.flatMap((item) => item.labels ?? []))).map((label) => ({ value: label, label })),
-);
+export const refetchArchivesList = createEvent();
+
+sample({
+  clock: refetchArchivesList,
+  source: $lastFetchArchivesParams,
+  filter: (params): params is FetchArchivesParams => params !== null,
+  target: fetchArchivesFx,
+});
 
 export const $archiveInstances = combine($archives, (archives): ArchiveInstanceView[] =>
   archives
