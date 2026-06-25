@@ -29,9 +29,8 @@ export interface FetchArchiveIdParams {
   name: string;
 }
 
-// проверка существования архива по проекту/имени: бэк отдаёт id уже созданного индекса
-export const fetchArchiveIdFx = createEffect<FetchArchiveIdParams, AxiosResponse<unknown>, AxiosError<AxiosResponseError>>(async ({ project, name }) =>
-  axios.get(`/v1/internal/index/archive/project/${encodeURIComponent(project)}/name/${encodeURIComponent(name)}/id`),
+export const fetchArchiveIdFx = createEffect<FetchArchiveIdParams, AxiosResponse<unknown>, AxiosError<AxiosResponseError>>(
+  async ({ project, name }) => axios.get(`/v1/internal/index/archive/project/${encodeURIComponent(project)}/name/${encodeURIComponent(name)}/id`),
 );
 
 sample({

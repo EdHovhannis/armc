@@ -54,9 +54,9 @@
 }
 
 .labelTag {
-  color: var(--sds-eng-Foreground-foreSecondary, #060a0ca8);
-  background-color: var(--sds-eng-Background-surfaceSecondary, #060a0c0a);
-  border: 1px solid var(--sds-eng-Border-borderBase, #060a0c1a);
+  color: var(--sds-eng-Foreground-foreSecondary);
+  background-color: var(--sds-eng-Background-surfaceSecondary);
+  border: 1px solid var(--sds-eng-Border-borderBase);
   border-radius: 4px;
   white-space: nowrap;
 }
@@ -220,14 +220,18 @@
   white-space: nowrap;
 }
 
-.columnHeaderFilterButton,
-.columnHeaderFilterActive {
-  flex-shrink: 0;
+.columnHeaderFilterButton {
+  position: relative;
 }
 
 .columnHeaderFilterActive {
-  color: var(--sds-eng-Foreground-foreAccent) !important;
-  background: var(--sds-eng-palette-arctic-arctic100, #e8f0fe) !important;
+  background: var(--sds-eng-palette-red-red700);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  z-index: 3;
+  position: absolute;
+  right: 0px;
 }
 
 .columnHeaderFilterPopover {
@@ -263,8 +267,7 @@
 
 .labelTagClickable:hover {
   color: var(--sds-eng-Foreground-foreAccent);
-  background-color: var(--sds-eng-palette-arctic-arctic100, #e8f0fe);
-  border-color: var(--sds-eng-palette-arctic-arctic200, #c5d9fc);
+  background-color: var(--sds-eng-palette-arctic-arctic100);
 }
 
 .filterChipsReset {

@@ -4,11 +4,6 @@ import { CSSProperties, ElementType, useLayoutEffect, useState } from 'react';
 
 import { OptionItemType } from '@src/Shared/types/filter';
 
-// Виртуализатор (@tanstack/react-virtual) обновляет видимые строки асинхронно через ResizeObserver
-// и помечен как несовместимый с ре-рендерами React. На коротких списках это даёт баг "опции иногда
-// не видны, а с console.log/после ещё одного рендера всё появляется". Поэтому короткие списки
-// (а это почти все наши селекты - проекты, статусы, фильтры) рендерим напрямую, без виртуализации,
-// и оставляем виртуализатор только для действительно длинных списков (метки/имена на тысячи строк).
 const VIRTUALIZATION_THRESHOLD = 60;
 const OPTION_ROW_HEIGHT = 32;
 
@@ -17,11 +12,8 @@ type VirtualizedListPropsType = OptionListProps<OptionItemType, ElementType<HTML
 const VirtualizedRows = (props: VirtualizedListPropsType) => {
   const { listProps, filteredOptions, OptionItemComponent, commonOptionItemProps } = props;
 
-  // scroll-элемент держим в state (а не ref): присвоение ref.current не вызывает ре-рендер,
-  // из-за чего виртуализатор читал getScrollElement() === null и рисовал пустой список.
   const [scrollElement, setScrollElement] = useState<HTMLUListElement | null>(null);
 
-  // eslint-disable-next-line react-hooks/incompatible-library
   const rowVirtualizer = useVirtualizer({
     count: filteredOptions.length,
     getScrollElement: () => scrollElement,
@@ -29,8 +21,6 @@ const VirtualizedRows = (props: VirtualizedListPropsType) => {
     overscan: 10,
   });
 
-  // форсируем синхронный пересчёт после монтирования scroll-элемента и при изменении набора опций,
-  // чтобы не зависеть от асинхронного ResizeObserver на первом открытии дропдауна.
   useLayoutEffect(() => {
     if (scrollElement) {
       rowVirtualizer.measure();

@@ -5,10 +5,9 @@ import { Controller, useFormContext, useWatch } from 'react-hook-form';
 
 import { components } from '@src/Shared/ui/VirtualizedList';
 
+import { fetchCurrentProjectLimitsFx } from '@src/Entities/Limits/api';
 import { fetchProjectsFx } from '@src/Entities/Project/api';
 import { $optionsProject } from '@src/Entities/Project/model';
-
-import { fetchCurrentProjectLimitsFx } from '@src/Entities/Limits/api';
 
 import { fetchArchiveIdFx } from './api';
 import * as styles from './styles.module.css';
@@ -25,7 +24,6 @@ const StepIndexName: FC = () => {
   const name = useWatch({ control, name: 'name', defaultValue: '' }) as string;
   const project = useWatch({ control, name: 'project', defaultValue: '' }) as string;
 
-  // как только выбран проект - тянем квоту проекта; если заполнено и имя - проверяем индекс по проекту/имени
   useEffect(() => {
     const projectValue = project?.trim();
     const nameValue = name?.trim();

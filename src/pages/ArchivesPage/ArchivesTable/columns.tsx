@@ -145,9 +145,6 @@ const InstancesCountLink = ({ cell }: { cell: DataGridCell<ArchiveConfigView, un
   const [onChangeTableViewFn, applyFilters] = useUnit([onChangeTableView, onApplyArchiveFilters]);
   const instancesCount = cell.getValue<number>();
 
-  // клик по числу экземпляров - дрилл-даун на вкладку Экземпляры. Применяем фильтр по имени конфигурации
-  // через общий стор: URL обновится сам (ссылку можно расшарить), а серверная фильтрация конфигов
-  // оставит в выдаче только инстансы этой конфигурации
   const handleClick = (event: MouseEvent) => {
     event.preventDefault();
     applyFilters([{ field: 'name', op: 'eq', values: [cell.row.original.configuration] }]);
