@@ -48,9 +48,9 @@ const ArchivesFilterChips: FC = () => {
           />
         );
       })}
-        <Text as="span" kind="bodyS" className={styles.filterChipsReset} onClick={() => resetFilters()}>
-          Сбросить все
-        </Text> 
+      <Text as="span" kind="bodyS" className={styles.filterChipsReset} onClick={() => resetFilters()}>
+        Сбросить все
+      </Text>
     </div>
   );
 };

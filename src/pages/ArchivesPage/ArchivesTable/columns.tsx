@@ -3,10 +3,10 @@ import { DataGridCell, DataGridColumnDef } from '@sds-eng/data-grid';
 import { useUnit } from 'effector-react';
 import { MouseEvent } from 'react';
 
+import { STATUS_OPTIONS } from '@src/Shared/constants/filters';
 import { formatBytes } from '@src/Shared/lib/format/formatBytes';
 import { formatRetention } from '@src/Shared/lib/format/formatRetention';
 import { formatSpeed } from '@src/Shared/lib/format/formatSpeed';
-import { STATUS_OPTIONS } from '@src/Shared/constants/filters';
 
 import { ArchiveConfigView, ArchiveInstanceView } from '@src/Entities/Archives/types';
 

@@ -1,5 +1,6 @@
-import { ArchiveFilter } from '@src/Entities/Archives/api';
 import { CompareOperator, IsOperator, SelectOperator } from '@src/Shared/types/filter';
+
+import { ArchiveFilter } from '@src/Entities/Archives/api';
 
 import { FilterFormValues } from './types';
 

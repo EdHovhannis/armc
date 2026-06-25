@@ -231,8 +231,6 @@
 }
 
 .columnHeaderFilterPopover {
-  width: 280px;
-  max-width: 280px;
   background: var(--sds-eng-Background-backBase, #ffffff);
 }
 

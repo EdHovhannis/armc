@@ -37,13 +37,7 @@ const FilterDrawerBody: FC = () => {
     <div className={styles.filterDrawerBody}>
       <FilterDrawerField title="Конфигурация" operatorName="configuration.operator" operatorOptions={IN_OPERATOR_OPTIONS}>
         <div className={styles.filterDrawerValueField}>
-          <ControllerSelectMultiple
-            name="configuration.values"
-            options={nameOptions}
-            isSearchable
-            virtualized
-            placeholder="Выберите значение"
-          />
+          <ControllerSelectMultiple name="configuration.values" options={nameOptions} isSearchable virtualized placeholder="Выберите значение" />
         </div>
       </FilterDrawerField>
 
@@ -66,13 +60,7 @@ const FilterDrawerBody: FC = () => {
 
       <FilterDrawerField title="Метки" operatorName="labels.operator" operatorOptions={IN_NOT_IN_OPERATOR_OPTIONS}>
         <div className={styles.filterDrawerValueField}>
-          <ControllerSelectMultiple
-            name="labels.values"
-            options={labelOptions}
-            isSearchable
-            virtualized
-            placeholder="Выберите значение"
-          />
+          <ControllerSelectMultiple name="labels.values" options={labelOptions} isSearchable virtualized placeholder="Выберите значение" />
         </div>
       </FilterDrawerField>
 

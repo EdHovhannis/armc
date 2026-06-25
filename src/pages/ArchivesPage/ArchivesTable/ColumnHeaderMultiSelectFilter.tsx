@@ -41,9 +41,7 @@ const ColumnHeaderMultiSelectFilter: FC<ColumnHeaderMultiSelectFilterProps> = ({
     if (!query) {
       return options;
     }
-    return options.filter(
-      (option) => option.label.toLowerCase().includes(query) || option.value.toLowerCase().includes(query),
-    );
+    return options.filter((option) => option.label.toLowerCase().includes(query) || option.value.toLowerCase().includes(query));
   }, [options, search]);
 
   const isActive = appliedValues.length > 0;
@@ -92,14 +90,7 @@ const ColumnHeaderMultiSelectFilter: FC<ColumnHeaderMultiSelectFilterProps> = ({
         }}
         description={
           <div className={styles.columnHeaderFilterMenu}>
-            <TextField
-              value={search}
-              onChange={setSearch}
-              placeholder="Поиск..."
-              size="sm"
-              prefix={<Icon.Search />}
-              canClear
-            />
+            <TextField value={search} onChange={setSearch} placeholder="Поиск..." size="sm" prefix={<Icon.Search />} canClear />
             <div className={styles.columnHeaderFilterOptions}>
               {filteredOptions.length ? (
                 filteredOptions.map((option) => (
@@ -120,8 +111,8 @@ const ColumnHeaderMultiSelectFilter: FC<ColumnHeaderMultiSelectFilterProps> = ({
             </div>
           </div>
         }
-        primaryButtonProps={{ text: 'Применить', onClick: handleApply }}
-        secondaryButtonProps={{ text: 'Сбросить', onClick: handleReset }}
+        primaryButtonProps={{ text: 'Применить', onClick: handleApply, size: 'sm' }}
+        secondaryButtonProps={{ text: 'Сбросить', onClick: handleReset, size: 'sm' }}
       >
         <Button.Icon
           size="xs"
