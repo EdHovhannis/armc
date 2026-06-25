@@ -10,9 +10,7 @@ type AddLabelParams = {
 
 export const addLabelFx = createEffect<AddLabelParams, AddLabelParams>(async ({ project, taskName, label }) => {
   await axios
-    .post(
-      `/v1/internal/index/archive/task/project/${encodeURIComponent(project)}/name/${encodeURIComponent(taskName)}/label/${encodeURIComponent(label)}`,
-    )
+    .post(`/v1/index/archive/task/project/${encodeURIComponent(project)}/name/${encodeURIComponent(taskName)}/label/${encodeURIComponent(label)}`)
     .catch(() => undefined);
   return { project, taskName, label };
 });
