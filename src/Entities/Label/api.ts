@@ -11,14 +11,12 @@ type AddLabelParams = {
   label: string;
 };
 
-export const addLabelFx = createEffect<AddLabelParams, AddLabelParams, AxiosError<AxiosResponseError>>(
-  async ({ project, taskName, label }) => {
-    await axios.post(
-      `/v1/internal/index/archive/task/project/${encodeURIComponent(project)}/name/${encodeURIComponent(taskName)}/label/${encodeURIComponent(label)}`,
-    );
-    return { project, taskName, label };
-  },
-);
+export const addLabelFx = createEffect<AddLabelParams, AddLabelParams, AxiosError<AxiosResponseError>>(async ({ project, taskName, label }) => {
+  await axios.post(
+    `/v1/index/archive/task/project/${encodeURIComponent(project)}/name/${encodeURIComponent(taskName)}/label/${encodeURIComponent(label)}`,
+  );
+  return { project, taskName, label };
+});
 
 sample({
   clock: addLabelFx.failData,
