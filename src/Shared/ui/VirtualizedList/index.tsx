@@ -1,25 +1,41 @@
 import { List, OptionListProps, SelectNextProps } from '@sds-eng/base';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { CSSProperties, ElementType, useState } from 'react';
+import { CSSProperties, ElementType, useLayoutEffect, useState } from 'react';
 
 import { OptionItemType } from '@src/Shared/types/filter';
 
-const VirtualizedList = (props: OptionListProps<OptionItemType, ElementType<HTMLUListElement>, ElementType<HTMLLIElement>>) => {
+// Виртуализатор (@tanstack/react-virtual) обновляет видимые строки асинхронно через ResizeObserver
+// и помечен как несовместимый с ре-рендерами React. На коротких списках это даёт баг "опции иногда
+// не видны, а с console.log/после ещё одного рендера всё появляется". Поэтому короткие списки
+// (а это почти все наши селекты - проекты, статусы, фильтры) рендерим напрямую, без виртуализации,
+// и оставляем виртуализатор только для действительно длинных списков (метки/имена на тысячи строк).
+const VIRTUALIZATION_THRESHOLD = 60;
+const OPTION_ROW_HEIGHT = 32;
+
+type VirtualizedListPropsType = OptionListProps<OptionItemType, ElementType<HTMLUListElement>, ElementType<HTMLLIElement>>;
+
+const VirtualizedRows = (props: VirtualizedListPropsType) => {
   const { listProps, filteredOptions, OptionItemComponent, commonOptionItemProps } = props;
 
-  // храним scroll-элемент в state, а не в ref: присвоение ref.current не вызывает ре-рендер,
-  // поэтому при открытии дропдауна (или когда опции приходят асинхронно) виртуализатор успевал
-  // прочитать getScrollElement() === null и отрисовать пустой список. Через state монтирование
-  // элемента триггерит ре-рендер, и виртуализатор корректно пересчитывает видимые строки.
+  // scroll-элемент держим в state (а не ref): присвоение ref.current не вызывает ре-рендер,
+  // из-за чего виртуализатор читал getScrollElement() === null и рисовал пустой список.
   const [scrollElement, setScrollElement] = useState<HTMLUListElement | null>(null);
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const rowVirtualizer = useVirtualizer({
     count: filteredOptions.length,
     getScrollElement: () => scrollElement,
-    estimateSize: () => 32,
+    estimateSize: () => OPTION_ROW_HEIGHT,
     overscan: 10,
   });
+
+  // форсируем синхронный пересчёт после монтирования scroll-элемента и при изменении набора опций,
+  // чтобы не зависеть от асинхронного ResizeObserver на первом открытии дропдауна.
+  useLayoutEffect(() => {
+    if (scrollElement) {
+      rowVirtualizer.measure();
+    }
+  }, [scrollElement, filteredOptions.length, rowVirtualizer]);
 
   return (
     <List
@@ -36,8 +52,6 @@ const VirtualizedList = (props: OptionListProps<OptionItemType, ElementType<HTML
           return null;
         }
 
-        // рендерим строку штатным OptionItem - он даёт чекбокс/выбранное состояние для multiple.
-        // позиционирование виртуализации задаём через style самой строки
         const rowStyle: CSSProperties = {
           position: 'absolute',
           top: 0,
@@ -52,13 +66,32 @@ const VirtualizedList = (props: OptionListProps<OptionItemType, ElementType<HTML
             key={virtualRow.key}
             {...props}
             option={item}
-            // в типах библиотеки style - DOM CSSStyleDeclaration, в рантайме React ждёт обычный CSSProperties
             commonOptionItemProps={{ ...commonOptionItemProps, 'data-index': virtualRow.index, style: rowStyle as unknown as CSSStyleDeclaration }}
           />
         );
       })}
     </List>
   );
+};
+
+const PlainRows = (props: VirtualizedListPropsType) => {
+  const { listProps, filteredOptions, OptionItemComponent } = props;
+
+  return (
+    <List as="ul" role="list" interactive={false} className={listProps.className} style={{ maxHeight: '300px' }}>
+      {filteredOptions.map((item, index) => (
+        <OptionItemComponent key={item.value ?? index} {...props} option={item} />
+      ))}
+    </List>
+  );
+};
+
+const VirtualizedList = (props: VirtualizedListPropsType) => {
+  if (props.filteredOptions.length > VIRTUALIZATION_THRESHOLD) {
+    return <VirtualizedRows {...props} />;
+  }
+
+  return <PlainRows {...props} />;
 };
 
 export const components = { OptionList: VirtualizedList } as SelectNextProps<
