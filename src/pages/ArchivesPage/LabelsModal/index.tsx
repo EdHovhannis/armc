@@ -3,7 +3,7 @@ import { useUnit } from 'effector-react';
 import { FC, KeyboardEvent, useEffect } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 
-import { saveLabelsFx } from '@src/Entities/Label/api';
+import { addLabelFx } from '@src/Entities/Label/api';
 
 import { $labelsModalRow, onCloseLabelsModal } from './model';
 import * as styles from './styles.module.css';
@@ -13,22 +13,13 @@ type LabelsFormValues = {
   newLabel: string;
 };
 
-// две метки считаем одинаковым набором независимо от порядка
-const isSameLabels = (left: string[], right: string[]) => {
-  if (left.length !== right.length) return false;
-  const sortedLeft = [...left].sort();
-  const sortedRight = [...right].sort();
-  return sortedLeft.every((label, index) => label === sortedRight[index]);
-};
-
 const LabelsModal: FC = () => {
-  const [row, onClose, saveLabels, saving] = useUnit([$labelsModalRow, onCloseLabelsModal, saveLabelsFx, saveLabelsFx.pending]);
+  const [row, onClose, addLabel, saving] = useUnit([$labelsModalRow, onCloseLabelsModal, addLabelFx, addLabelFx.pending]);
 
-  const { control, handleSubmit, reset, setValue, getValues } = useForm<LabelsFormValues>({
+  const { control, reset, setValue, getValues } = useForm<LabelsFormValues>({
     defaultValues: { labels: [], newLabel: '' },
   });
 
-  // при открытии модалки заливаем метки из строки таблицы
   useEffect(() => {
     if (row) {
       reset({ labels: row.labels ?? [], newLabel: '' });
@@ -38,11 +29,11 @@ const LabelsModal: FC = () => {
   const labels = useWatch({ control, name: 'labels', defaultValue: [] });
   const newLabel = useWatch({ control, name: 'newLabel', defaultValue: '' });
 
-  const isChanged = !!row && !isSameLabels(labels, row.labels ?? []);
+  const trimmedNewLabel = newLabel.trim();
+  const canSave = !!trimmedNewLabel;
 
   const handleAddLabel = () => {
     const value = newLabel.trim();
-    // TODO(labels): уточнить у аналитика регистрозависимость - Audit и audit это одна метка или разные. сейчас сравнение регистрозависимое (тут и в isSameLabels)
     if (!value || labels.includes(value)) return;
     setValue('labels', [...labels, value]);
     setValue('newLabel', '');
@@ -62,10 +53,10 @@ const LabelsModal: FC = () => {
     }
   };
 
-  const handleSave = handleSubmit(({ labels: nextLabels }) => {
-    if (!row) return;
-    saveLabels({ project: row.projectKey, taskName: row.configuration, labels: nextLabels });
-  });
+  const handleSave = () => {
+    if (!row || !trimmedNewLabel) return;
+    addLabel({ project: row.projectKey, taskName: row.configuration, label: trimmedNewLabel });
+  };
 
   return (
     <Modal open={!!row} onClose={onClose} width={740}>
@@ -96,7 +87,7 @@ const LabelsModal: FC = () => {
         </div>
       </ModalBody>
       <ModalFooter className={styles.labelsModalFooter}>
-        <Button view="primary" disabled={!isChanged} isLoading={saving} onClick={handleSave}>
+        <Button view="primary" disabled={!canSave} isLoading={saving} onClick={handleSave}>
           Сохранить
         </Button>
         <Button view="secondary" kind="ghost" onClick={onClose}>
