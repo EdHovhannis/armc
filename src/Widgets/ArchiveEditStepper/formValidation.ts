@@ -18,4 +18,5 @@ export const isQuotaFilled = (quota: QuotaFormValue) =>
   isFilledNumber(quota.maxDataRateBytesPerSec) && isFilledNumber(quota.maxSizeBytes) && isFilledNumber(quota.maxStorageTimeSec);
 
 export const isQuotaEstimateReady = (quota: QuotaFormValue) =>
-  isFilledNumber(quota.maxDataRateBytesPerSec) && isFilledNumber(quota.maxSizeBytes);
+  isFilledNumber(quota.maxDataRateBytesPerSec) &&
+  (isFilledNumber(quota.maxSizeBytes) || isFilledNumber(quota.maxStorageTimeSec));

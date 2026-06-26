@@ -5,7 +5,13 @@ import { axios } from '@src/Shared/api/axios';
 import { handleErrorFx } from '@src/Shared/api/model';
 import { AxiosResponseError } from '@src/Shared/api/types';
 
-import { EstimateOverdraftItem, ProjectEstimateItem, ProjectLimitItem, QuotaEstimateRequestParams } from './types';
+import {
+  EstimateOverdraftItem,
+  OverdraftEstimateRequestParams,
+  ProjectEstimateItem,
+  ProjectLimitItem,
+  QuotaEstimateRequestParams,
+} from './types';
 
 export const fetchCurrentProjectLimitsFx = createEffect<string, AxiosResponse<ProjectLimitItem>, AxiosError<AxiosResponseError>>(async (project) =>
   axios.get(`/v1/index/archive/quota/project/${project}`),
@@ -27,15 +33,11 @@ export const fetchCurrentEstimateFx = createEffect<
   }),
 );
 
-const MOCK_OVERDRAFT = {
-  maxDataRateBytesPerSec: 100,
-  maxSizeBytes: 1048576,
-  maxStorageTimeSec: 10485,
-};
-
-export const fetchCurrentOverdraftEstimateFx = createEffect<void, AxiosResponse<EstimateOverdraftItem>, AxiosError<AxiosResponseError>>(async () =>
-  axios.post('/v1/internal/index/archive/task/overdraft/estimate', MOCK_OVERDRAFT),
-);
+export const fetchCurrentOverdraftEstimateFx = createEffect<
+  OverdraftEstimateRequestParams,
+  AxiosResponse<EstimateOverdraftItem>,
+  AxiosError<AxiosResponseError>
+>(async (body) => axios.post('/v1/internal/index/archive/task/overdraft/estimate', body));
 
 sample({
   clock: fetchCurrentProjectLimitsFx.failData,

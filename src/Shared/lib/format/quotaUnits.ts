@@ -25,11 +25,24 @@ const DATE_UNIT_SECONDS: Record<DateUnitValue, number> = {
 
 const DATE_UNITS_DESC: DateUnitValue[] = ['MONTH', 'WEEKS', 'DAYS', 'HOURS', 'MIN', 'SEC'];
 
+const SIZE_UNITS_DESC: SizeUnitValue[] = ['TB', 'GB', 'MB'];
+const SPEED_UNITS_DESC: SpeedUnitValue[] = ['MB/s', 'KB/s', 'B/s'];
+
 export const speedUnitToBytesPerSec = (value: number, unit: SpeedUnitValue) => value * SPEED_MULTIPLIERS[unit];
 
 export const sizeUnitToBytes = (value: number, unit: SizeUnitValue) => value * SIZE_MULTIPLIERS[unit];
 
 export const dateUnitToSeconds = (value: number, unit: DateUnitValue) => value * DATE_UNIT_SECONDS[unit];
+
+export const bytesToSpeedUnit = (bytesPerSec: number): { value: number; unit: SpeedUnitValue } => {
+  const unit = SPEED_UNITS_DESC.find((item) => bytesPerSec >= SPEED_MULTIPLIERS[item]) ?? 'B/s';
+  return { value: bytesPerSec / SPEED_MULTIPLIERS[unit], unit };
+};
+
+export const bytesToSizeUnit = (bytes: number): { value: number; unit: SizeUnitValue } => {
+  const unit = SIZE_UNITS_DESC.find((item) => bytes >= SIZE_MULTIPLIERS[item]) ?? 'MB';
+  return { value: bytes / SIZE_MULTIPLIERS[unit], unit };
+};
 
 export const secondsToDateUnit = (seconds: number): { value: number; unit: DateUnitValue } => {
   const unit = DATE_UNITS_DESC.find((item) => seconds > 0 && seconds % DATE_UNIT_SECONDS[item] === 0) ?? 'SEC';

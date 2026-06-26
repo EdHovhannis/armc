@@ -2,9 +2,16 @@ import { clsx, Select, Text, InputNumber, StatusCard } from '@sds-eng/base';
 import { useUnit } from 'effector-react';
 import { FC, useEffect, useState } from 'react';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
+import { useSearchParams } from 'react-router';
 
 import { DATE_LIMITS_UNIT_OPTIONS, SIZE_LIMITS_UNIT_OPTIONS, SPEED_LIMITS_UNIT_OPTIONS } from '@src/Shared/constants/options';
-import { dateUnitToSeconds, secondsToDateUnit, sizeUnitToBytes, speedUnitToBytesPerSec } from '@src/Shared/lib/format/quotaUnits';
+import {
+  bytesToSizeUnit,
+  dateUnitToSeconds,
+  secondsToDateUnit,
+  sizeUnitToBytes,
+  speedUnitToBytesPerSec,
+} from '@src/Shared/lib/format/quotaUnits';
 import { DateUnitOption, SizeUnitOption, SpeedUnitOption } from '@src/Shared/types/filter';
 
 import { $isLimitFeatureSettingEnabled } from '@src/Entities/FeatureFlags/model';
@@ -15,6 +22,7 @@ import LimitsInfo from '@src/Features/Limits/ui/LimitsInfo';
 import LimitsProjectInfo from '@src/Features/Limits/ui/LimitsProjectInfo';
 
 import { isFilledNumber, isKafkaSourcesFilled, isQuotaEstimateReady } from '@src/Widgets/ArchiveEditStepper/formValidation';
+
 import { $archiveEditName, $archiveEditProjectShortName } from '../model';
 
 import * as styles from './styles.module.css';
@@ -27,49 +35,56 @@ type UnitState = {
   date: DateUnitOption;
 };
 
+type QuotaFormValues = {
+  maxDataRateBytesPerSec?: number;
+  maxSizeBytes?: number;
+  maxStorageTimeSec?: number;
+};
+
 const StepLimits: FC = () => {
   const { control, setValue } = useFormContext();
+  const [searchParams] = useSearchParams();
+  const isEditMode = Boolean(searchParams.get('name')?.trim());
   const [state, setState] = useState<UnitState>({
     speed: SPEED_LIMITS_UNIT_OPTIONS[0],
     size: SIZE_LIMITS_UNIT_OPTIONS[0],
     date: DATE_LIMITS_UNIT_OPTIONS[5],
   });
-  const [archiveName, projectShortName, fetchCurrentEstimate, fetchCurrentOverdraftEstimate, warnings, blockers, isLimitFeatureSettingEnabled] =
-    useUnit([
-      $archiveEditName,
-      $archiveEditProjectShortName,
-      fetchCurrentEstimateFx,
-      fetchCurrentOverdraftEstimateFx,
-      $currentEstimateWarnings,
-      $currentEstimateBlockers,
-      $isLimitFeatureSettingEnabled,
-    ]);
+  const [archiveName, projectShortName, warnings, blockers, isLimitFeatureSettingEnabled] = useUnit([
+    $archiveEditName,
+    $archiveEditProjectShortName,
+    $currentEstimateWarnings,
+    $currentEstimateBlockers,
+    $isLimitFeatureSettingEnabled,
+  ]);
   const [kafkaSources, quota] = useWatch({
     control,
     name: ['source.kafka', 'quota'],
     defaultValue: { 'source.kafka': [], quota: {} },
   });
-  const quotaValues = (quota ?? {}) as {
-    maxDataRateBytesPerSec?: number;
-    maxSizeBytes?: number;
-    maxStorageTimeSec?: number;
-  };
-
-  useEffect(() => {
-    fetchCurrentOverdraftEstimate();
-  }, [fetchCurrentOverdraftEstimate]);
+  const quotaValues = (quota ?? {}) as QuotaFormValues;
 
   useEffect(() => {
     const unsubscribe = fetchCurrentEstimateFx.done.watch(({ params, result }) => {
-      if (params.maxStoreDurationSec !== null) return;
+      if (params.maxStoreDurationSec === null) {
+        const seconds = result.data.maxStoreDurationSec;
+        if (isFilledNumber(seconds) && seconds > 0) {
+          const { value, unit } = secondsToDateUnit(seconds);
+          const dateOption = DATE_LIMITS_UNIT_OPTIONS.find((option) => option.value === unit) ?? DATE_LIMITS_UNIT_OPTIONS[5];
+          setValue('quota.maxStorageTimeSec', value);
+          setState((prev) => ({ ...prev, date: dateOption }));
+        }
+      }
 
-      const seconds = result.data.maxStoreDurationSec;
-      if (!isFilledNumber(seconds) || seconds <= 0) return;
-
-      const { value, unit } = secondsToDateUnit(seconds);
-      const dateOption = DATE_LIMITS_UNIT_OPTIONS.find((option) => option.value === unit) ?? DATE_LIMITS_UNIT_OPTIONS[5];
-      setValue('quota.maxStorageTimeSec', value);
-      setState((prev) => ({ ...prev, date: dateOption }));
+      if (params.maxSizeBytes === null) {
+        const sizeBytes = result.data.maxSizeBytes;
+        if (isFilledNumber(sizeBytes) && sizeBytes > 0) {
+          const { value, unit } = bytesToSizeUnit(sizeBytes);
+          const sizeOption = SIZE_LIMITS_UNIT_OPTIONS.find((option) => option.value === unit) ?? SIZE_LIMITS_UNIT_OPTIONS[0];
+          setValue('quota.maxSizeBytes', value);
+          setState((prev) => ({ ...prev, size: sizeOption }));
+        }
+      }
     });
 
     return unsubscribe;
@@ -82,32 +97,40 @@ const StepLimits: FC = () => {
       return undefined;
     }
 
+    const maxDataRateBytesPerSec = speedUnitToBytesPerSec(quotaValues.maxDataRateBytesPerSec!, state.speed.value);
+    const maxSizeBytes = isFilledNumber(quotaValues.maxSizeBytes) ? sizeUnitToBytes(quotaValues.maxSizeBytes, state.size.value) : null;
     const maxStorageTimeSec = isFilledNumber(quotaValues.maxStorageTimeSec)
       ? dateUnitToSeconds(quotaValues.maxStorageTimeSec, state.date.value)
       : null;
 
     const timer = setTimeout(() => {
-      fetchCurrentEstimate({
+      const estimatePayload = {
         project: projectShortName,
-        name: archiveName.trim() || null,
-        maxDataRateBytesPerSec: speedUnitToBytesPerSec(quotaValues.maxDataRateBytesPerSec!, state.speed.value),
+        name: isEditMode ? archiveName.trim() || null : null,
+        maxDataRateBytesPerSec,
         maxStoreDurationSec: maxStorageTimeSec,
-        maxSizeBytes: sizeUnitToBytes(quotaValues.maxSizeBytes!, state.size.value),
+        maxSizeBytes,
         sources: sources.map((source) => ({ project: source.project!, name: source.name! })),
+      };
+
+      fetchCurrentEstimateFx(estimatePayload);
+      fetchCurrentOverdraftEstimateFx({
+        maxDataRateBytesPerSec,
+        maxSizeBytes,
+        maxStorageTimeSec,
       });
     }, ESTIMATE_DEBOUNCE_MS);
 
     return () => clearTimeout(timer);
   }, [
     archiveName,
+    isEditMode,
     projectShortName,
     kafkaSources,
-    quotaValues.maxDataRateBytesPerSec,
-    quotaValues.maxSizeBytes,
+    quotaValues,
     state.speed,
     state.size,
     state.date,
-    fetchCurrentEstimate,
   ]);
 
   return (

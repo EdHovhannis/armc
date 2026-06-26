@@ -47,6 +47,12 @@ export type QuotaEstimateRequestParams = {
   name: string | null;
   maxDataRateBytesPerSec: number;
   maxStoreDurationSec: number | null;
-  maxSizeBytes: number;
+  maxSizeBytes: number | null;
   sources: QuotaEstimateSource[];
+};
+
+export type OverdraftEstimateRequestParams = {
+  maxDataRateBytesPerSec: number;
+  maxSizeBytes: number | null;
+  maxStorageTimeSec: number | null;
 };
