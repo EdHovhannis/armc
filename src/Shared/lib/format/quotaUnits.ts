@@ -23,8 +23,15 @@ const DATE_UNIT_SECONDS: Record<DateUnitValue, number> = {
   MONTH: 2_592_000,
 };
 
+const DATE_UNITS_DESC: DateUnitValue[] = ['MONTH', 'WEEKS', 'DAYS', 'HOURS', 'MIN', 'SEC'];
+
 export const speedUnitToBytesPerSec = (value: number, unit: SpeedUnitValue) => value * SPEED_MULTIPLIERS[unit];
 
 export const sizeUnitToBytes = (value: number, unit: SizeUnitValue) => value * SIZE_MULTIPLIERS[unit];
 
 export const dateUnitToSeconds = (value: number, unit: DateUnitValue) => value * DATE_UNIT_SECONDS[unit];
+
+export const secondsToDateUnit = (seconds: number): { value: number; unit: DateUnitValue } => {
+  const unit = DATE_UNITS_DESC.find((item) => seconds > 0 && seconds % DATE_UNIT_SECONDS[item] === 0) ?? 'SEC';
+  return { value: seconds / DATE_UNIT_SECONDS[unit], unit };
+};

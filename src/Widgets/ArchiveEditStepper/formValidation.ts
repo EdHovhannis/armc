@@ -16,3 +16,6 @@ export const isKafkaSourcesFilled = (sources: KafkaSourceFormValue[]) =>
 
 export const isQuotaFilled = (quota: QuotaFormValue) =>
   isFilledNumber(quota.maxDataRateBytesPerSec) && isFilledNumber(quota.maxSizeBytes) && isFilledNumber(quota.maxStorageTimeSec);
+
+export const isQuotaEstimateReady = (quota: QuotaFormValue) =>
+  isFilledNumber(quota.maxDataRateBytesPerSec) && isFilledNumber(quota.maxSizeBytes);

@@ -46,7 +46,7 @@ export type QuotaEstimateRequestParams = {
   project: string;
   name: string | null;
   maxDataRateBytesPerSec: number;
-  maxStoreDurationSec: number;
+  maxStoreDurationSec: number | null;
   maxSizeBytes: number;
   sources: QuotaEstimateSource[];
 };

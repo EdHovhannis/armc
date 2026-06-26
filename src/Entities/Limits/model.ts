@@ -9,7 +9,7 @@ $currentProjectLimits.on(fetchCurrentProjectLimitsFx.doneData, (_, payload) => p
 
 export const $currentProjectEstimate = createStore<ProjectEstimate>(INIT_PROJECT_ESTIMATE);
 $currentProjectEstimate
-  .on(fetchCurrentEstimateFx.done, (_, { result }) => ({
+  .on(fetchCurrentEstimateFx.done, (_, { params, result }) => ({
     maxStoreDurationSec: result.data.maxStoreDurationSec,
     maxOverdraftPercent: result.data.flowEstimateConfig.maxOverdraftPercent,
     maxDataRateBytesPerSec: result.data.maxDataRateBytesPerSec,
@@ -17,8 +17,7 @@ $currentProjectEstimate
     slotsCount: result.data.slotsCount,
     bytesPerSecOnSlot: result.data.bytesPerSecOnSlot,
     correctPartitionsToSlotsRatio: result.data.correctPartitionsToSlotsRatio,
-    // estimateBySize: !!params.maxSizeBytes
-    estimateBySize: true,
+    estimateBySize: params.maxStoreDurationSec === null,
   }))
   .reset([fetchCurrentEstimateFx.failData]);
 

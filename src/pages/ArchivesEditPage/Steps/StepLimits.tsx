@@ -4,7 +4,7 @@ import { FC, useEffect, useState } from 'react';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 
 import { DATE_LIMITS_UNIT_OPTIONS, SIZE_LIMITS_UNIT_OPTIONS, SPEED_LIMITS_UNIT_OPTIONS } from '@src/Shared/constants/options';
-import { dateUnitToSeconds, sizeUnitToBytes, speedUnitToBytesPerSec } from '@src/Shared/lib/format/quotaUnits';
+import { dateUnitToSeconds, secondsToDateUnit, sizeUnitToBytes, speedUnitToBytesPerSec } from '@src/Shared/lib/format/quotaUnits';
 import { DateUnitOption, SizeUnitOption, SpeedUnitOption } from '@src/Shared/types/filter';
 
 import { $isLimitFeatureSettingEnabled } from '@src/Entities/FeatureFlags/model';
@@ -14,7 +14,7 @@ import { $currentEstimateBlockers, $currentEstimateWarnings } from '@src/Entitie
 import LimitsInfo from '@src/Features/Limits/ui/LimitsInfo';
 import LimitsProjectInfo from '@src/Features/Limits/ui/LimitsProjectInfo';
 
-import { isKafkaSourcesFilled, isQuotaFilled } from '../lib/formValidation';
+import { isFilledNumber, isKafkaSourcesFilled, isQuotaEstimateReady } from '@src/Widgets/ArchiveEditStepper/formValidation';
 import { $archiveEditName, $archiveEditProjectShortName } from '../model';
 
 import * as styles from './styles.module.css';
@@ -28,7 +28,7 @@ type UnitState = {
 };
 
 const StepLimits: FC = () => {
-  const { control } = useFormContext();
+  const { control, setValue } = useFormContext();
   const [state, setState] = useState<UnitState>({
     speed: SPEED_LIMITS_UNIT_OPTIONS[0],
     size: SIZE_LIMITS_UNIT_OPTIONS[0],
@@ -49,29 +49,49 @@ const StepLimits: FC = () => {
     name: ['source.kafka', 'quota'],
     defaultValue: { 'source.kafka': [], quota: {} },
   });
+  const quotaValues = (quota ?? {}) as {
+    maxDataRateBytesPerSec?: number;
+    maxSizeBytes?: number;
+    maxStorageTimeSec?: number;
+  };
 
   useEffect(() => {
     fetchCurrentOverdraftEstimate();
   }, [fetchCurrentOverdraftEstimate]);
 
   useEffect(() => {
-    const quotaValues = (quota ?? {}) as {
-      maxDataRateBytesPerSec?: number;
-      maxSizeBytes?: number;
-      maxStorageTimeSec?: number;
-    };
+    const unsubscribe = fetchCurrentEstimateFx.done.watch(({ params, result }) => {
+      if (params.maxStoreDurationSec !== null) return;
+
+      const seconds = result.data.maxStoreDurationSec;
+      if (!isFilledNumber(seconds) || seconds <= 0) return;
+
+      const { value, unit } = secondsToDateUnit(seconds);
+      const dateOption = DATE_LIMITS_UNIT_OPTIONS.find((option) => option.value === unit) ?? DATE_LIMITS_UNIT_OPTIONS[5];
+      setValue('quota.maxStorageTimeSec', value);
+      setState((prev) => ({ ...prev, date: dateOption }));
+    });
+
+    return unsubscribe;
+  }, [setValue]);
+
+  useEffect(() => {
     const sources = (kafkaSources ?? []) as Array<{ project: string | null; name: string | null }>;
 
-    if (!projectShortName || !isQuotaFilled(quotaValues) || !isKafkaSourcesFilled(sources)) {
+    if (!projectShortName || !isQuotaEstimateReady(quotaValues) || !isKafkaSourcesFilled(sources)) {
       return undefined;
     }
+
+    const maxStorageTimeSec = isFilledNumber(quotaValues.maxStorageTimeSec)
+      ? dateUnitToSeconds(quotaValues.maxStorageTimeSec, state.date.value)
+      : null;
 
     const timer = setTimeout(() => {
       fetchCurrentEstimate({
         project: projectShortName,
         name: archiveName.trim() || null,
         maxDataRateBytesPerSec: speedUnitToBytesPerSec(quotaValues.maxDataRateBytesPerSec!, state.speed.value),
-        maxStoreDurationSec: dateUnitToSeconds(quotaValues.maxStorageTimeSec!, state.date.value),
+        maxStoreDurationSec: maxStorageTimeSec,
         maxSizeBytes: sizeUnitToBytes(quotaValues.maxSizeBytes!, state.size.value),
         sources: sources.map((source) => ({ project: source.project!, name: source.name! })),
       });
@@ -82,7 +102,8 @@ const StepLimits: FC = () => {
     archiveName,
     projectShortName,
     kafkaSources,
-    quota,
+    quotaValues.maxDataRateBytesPerSec,
+    quotaValues.maxSizeBytes,
     state.speed,
     state.size,
     state.date,
