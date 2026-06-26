@@ -97,4 +97,3 @@ sample({
   fn: ({ response, status }) => ({ title: 'Не удалось выгрузить конфигурацию.', status, message: response?.data.message, data: response?.data }),
   target: handleErrorFx,
 });
-

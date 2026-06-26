@@ -60,19 +60,29 @@ const buildDefaults = (
 const DrawerRestrictionBody: FC = () => {
   const [tab, onTabChange] = useUnit([$restrictionTab, onChangeRestrictionTab]);
   const preselectIndexId = useUnit($restrictionPreselectIndexId);
-  const [optionsIndex, optionsProject, storeByIndex, storeByProject, storeAll, loadingProjectOptions, loadingTable, fetchProjectOptions, fetchRestrictionsTable, fetchRestrictionAll] =
-    useUnit([
-      $optionsArchiveConfig,
-      $optionsProject,
-      $restrictionsByIndex,
-      $restrictionsByProject,
-      $restrictionAll,
-      fetchProjectOptionsFx.pending,
-      fetchRestrictionsTableFx.pending,
-      fetchProjectOptionsFx,
-      fetchRestrictionsTableFx,
-      fetchRestrictionAllFx,
-    ]);
+  const [
+    optionsIndex,
+    optionsProject,
+    storeByIndex,
+    storeByProject,
+    storeAll,
+    loadingProjectOptions,
+    loadingTable,
+    fetchProjectOptions,
+    fetchRestrictionsTable,
+    fetchRestrictionAll,
+  ] = useUnit([
+    $optionsArchiveConfig,
+    $optionsProject,
+    $restrictionsByIndex,
+    $restrictionsByProject,
+    $restrictionAll,
+    fetchProjectOptionsFx.pending,
+    fetchRestrictionsTableFx.pending,
+    fetchProjectOptionsFx,
+    fetchRestrictionsTableFx,
+    fetchRestrictionAllFx,
+  ]);
 
   const methods = useForm<RestrictionsFormValues>({
     mode: 'onChange',

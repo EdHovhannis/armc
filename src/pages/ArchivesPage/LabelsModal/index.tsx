@@ -14,13 +14,7 @@ type LabelsFormValues = {
 };
 
 const LabelsModal: FC = () => {
-  const [row, onClose, addLabel, deleteLabel, saving] = useUnit([
-    $labelsModalRow,
-    onCloseLabelsModal,
-    addLabelFx,
-    deleteLabelFx,
-    addLabelFx.pending,
-  ]);
+  const [row, onClose, addLabel, deleteLabel, saving] = useUnit([$labelsModalRow, onCloseLabelsModal, addLabelFx, deleteLabelFx, addLabelFx.pending]);
 
   const { control, reset, setValue, getValues } = useForm<LabelsFormValues>({
     defaultValues: { labels: [], newLabel: '' },
