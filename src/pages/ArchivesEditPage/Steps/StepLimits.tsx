@@ -4,16 +4,22 @@ import { FC, useEffect, useState } from 'react';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 
 import { DATE_LIMITS_UNIT_OPTIONS, SIZE_LIMITS_UNIT_OPTIONS, SPEED_LIMITS_UNIT_OPTIONS } from '@src/Shared/constants/options';
+import { dateUnitToSeconds, sizeUnitToBytes, speedUnitToBytesPerSec } from '@src/Shared/lib/format/quotaUnits';
 import { DateUnitOption, SizeUnitOption, SpeedUnitOption } from '@src/Shared/types/filter';
 
 import { $isLimitFeatureSettingEnabled } from '@src/Entities/FeatureFlags/model';
-import { fetchCurrentEstimateFx, fetchCurrentOverdraftEstimateFx, fetchCurrentProjectLimitsFx } from '@src/Entities/Limits/api';
+import { fetchCurrentEstimateFx, fetchCurrentOverdraftEstimateFx } from '@src/Entities/Limits/api';
 import { $currentEstimateBlockers, $currentEstimateWarnings } from '@src/Entities/Limits/model';
 
 import LimitsInfo from '@src/Features/Limits/ui/LimitsInfo';
 import LimitsProjectInfo from '@src/Features/Limits/ui/LimitsProjectInfo';
 
+import { isKafkaSourcesFilled, isQuotaFilled } from '../lib/formValidation';
+import { $archiveEditName, $archiveEditProjectShortName } from '../model';
+
 import * as styles from './styles.module.css';
+
+const ESTIMATE_DEBOUNCE_MS = 500;
 
 type UnitState = {
   speed: SpeedUnitOption;
@@ -28,23 +34,60 @@ const StepLimits: FC = () => {
     size: SIZE_LIMITS_UNIT_OPTIONS[0],
     date: DATE_LIMITS_UNIT_OPTIONS[5],
   });
-  const currentProject = useWatch({ name: 'project', defaultValue: null }) as string | null;
-  const [fetchCurrentProjectLimits, fetchCurrentEstimate, fetchCurrentOverdraftEstimate, warnings, blockers, isLimitFeatureSettingEnabled] = useUnit([
-    fetchCurrentProjectLimitsFx,
-    fetchCurrentEstimateFx,
-    fetchCurrentOverdraftEstimateFx,
-    $currentEstimateWarnings,
-    $currentEstimateBlockers,
-    $isLimitFeatureSettingEnabled,
-  ]);
+  const [archiveName, projectShortName, fetchCurrentEstimate, fetchCurrentOverdraftEstimate, warnings, blockers, isLimitFeatureSettingEnabled] =
+    useUnit([
+      $archiveEditName,
+      $archiveEditProjectShortName,
+      fetchCurrentEstimateFx,
+      fetchCurrentOverdraftEstimateFx,
+      $currentEstimateWarnings,
+      $currentEstimateBlockers,
+      $isLimitFeatureSettingEnabled,
+    ]);
+  const [kafkaSources, quota] = useWatch({
+    control,
+    name: ['source.kafka', 'quota'],
+    defaultValue: { 'source.kafka': [], quota: {} },
+  });
 
   useEffect(() => {
-    // if (typeof currentProject === 'string') {
-    fetchCurrentProjectLimits('abyss');
-    fetchCurrentEstimate({ project: 'abyss' });
     fetchCurrentOverdraftEstimate();
-    // }
-  }, [currentProject, fetchCurrentProjectLimits, fetchCurrentEstimate, fetchCurrentOverdraftEstimate]);
+  }, [fetchCurrentOverdraftEstimate]);
+
+  useEffect(() => {
+    const quotaValues = (quota ?? {}) as {
+      maxDataRateBytesPerSec?: number;
+      maxSizeBytes?: number;
+      maxStorageTimeSec?: number;
+    };
+    const sources = (kafkaSources ?? []) as Array<{ project: string | null; name: string | null }>;
+
+    if (!projectShortName || !isQuotaFilled(quotaValues) || !isKafkaSourcesFilled(sources)) {
+      return undefined;
+    }
+
+    const timer = setTimeout(() => {
+      fetchCurrentEstimate({
+        project: projectShortName,
+        name: archiveName.trim() || null,
+        maxDataRateBytesPerSec: speedUnitToBytesPerSec(quotaValues.maxDataRateBytesPerSec!, state.speed.value),
+        maxStoreDurationSec: dateUnitToSeconds(quotaValues.maxStorageTimeSec!, state.date.value),
+        maxSizeBytes: sizeUnitToBytes(quotaValues.maxSizeBytes!, state.size.value),
+        sources: sources.map((source) => ({ project: source.project!, name: source.name! })),
+      });
+    }, ESTIMATE_DEBOUNCE_MS);
+
+    return () => clearTimeout(timer);
+  }, [
+    archiveName,
+    projectShortName,
+    kafkaSources,
+    quota,
+    state.speed,
+    state.size,
+    state.date,
+    fetchCurrentEstimate,
+  ]);
 
   return (
     <div className={clsx(styles.archiveStepWrapper, styles.archiveStepWrapperFullWidth)}>

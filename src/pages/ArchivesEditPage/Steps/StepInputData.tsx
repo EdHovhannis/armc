@@ -4,7 +4,6 @@ import { FC, useEffect, useMemo } from 'react';
 import { Controller, useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 
 import { INPUTS_FORMAT } from '@src/Shared/constants/common';
-import { components } from '@src/Shared/ui/VirtualizedList';
 
 import { fetchCurrentTopicInfoFx, fetchTopicsFx } from '@src/Entities/Topic/api';
 import { $optionsTopic, $topicMessages } from '@src/Entities/Topic/model';
@@ -67,7 +66,6 @@ const StepInputData: FC = () => {
                       isSearchable
                       loading={loadingTopics}
                       limitByWidth
-                      components={components}
                       value={currentValue}
                       required
                       onChange={(v) => {

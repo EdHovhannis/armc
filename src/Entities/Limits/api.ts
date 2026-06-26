@@ -5,37 +5,26 @@ import { axios } from '@src/Shared/api/axios';
 import { handleErrorFx } from '@src/Shared/api/model';
 import { AxiosResponseError } from '@src/Shared/api/types';
 
-import { EstimateOverdraftItem, ProjectEstimateItem, ProjectLimitItem } from './types';
+import { EstimateOverdraftItem, ProjectEstimateItem, ProjectLimitItem, QuotaEstimateRequestParams } from './types';
 
 export const fetchCurrentProjectLimitsFx = createEffect<string, AxiosResponse<ProjectLimitItem>, AxiosError<AxiosResponseError>>(async (project) =>
   axios.get(`/v1/index/archive/quota/project/${project}`),
 );
 
-const MOCK = {
-  name: 'test_test_one',
-  quotaEstimateRequestClientDto: {
-    maxDataRateBytesPerSec: 100,
-    maxStoreDurationSec: 10485,
-    maxSizeBytes: 1048576,
-    sources: [
-      {
-        project: 'audit_pvm',
-        name: 'arrays-models-2',
-      },
-      {
-        project: 'tlmcltr',
-        name: 'pull-active-pods',
-      },
-      {
-        project: 'audit_pvm',
-        name: 'arrays-2',
-      },
-    ],
-  },
-};
-
-export const fetchCurrentEstimateFx = createEffect<{ project: string }, AxiosResponse<ProjectEstimateItem>, AxiosError<AxiosResponseError>>(
-  async ({ project }) => axios.post(`/v2/index/archive/task/project/${project}/quota/estimate`, MOCK),
+export const fetchCurrentEstimateFx = createEffect<
+  QuotaEstimateRequestParams,
+  AxiosResponse<ProjectEstimateItem>,
+  AxiosError<AxiosResponseError>
+>(async ({ project, name, maxDataRateBytesPerSec, maxStoreDurationSec, maxSizeBytes, sources }) =>
+  axios.post(`/v2/index/archive/task/project/${project}/quota/estimate`, {
+    name,
+    quotaEstimateRequestClientDto: {
+      maxDataRateBytesPerSec,
+      maxStoreDurationSec,
+      maxSizeBytes,
+      sources,
+    },
+  }),
 );
 
 const MOCK_OVERDRAFT = {

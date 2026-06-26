@@ -7,6 +7,8 @@ import { fetchCurrentProjectLimitsFx } from '@src/Entities/Limits/api';
 import { fetchProjectsFx } from '@src/Entities/Project/api';
 import { $optionsProject } from '@src/Entities/Project/model';
 
+import { onChangeArchiveEditName, onChangeArchiveEditProjectShortName } from '../model';
+
 import { fetchArchiveIdFx } from './api';
 import * as styles from './styles.module.css';
 
@@ -25,6 +27,14 @@ const StepIndexName: FC = () => {
   useEffect(() => {
     fetchProjectsFx();
   }, []);
+
+  useEffect(() => {
+    onChangeArchiveEditName(name?.trim() ?? '');
+  }, [name]);
+
+  useEffect(() => {
+    onChangeArchiveEditProjectShortName(project ?? '');
+  }, [project]);
 
   useEffect(() => {
     const projectValue = project?.trim();
