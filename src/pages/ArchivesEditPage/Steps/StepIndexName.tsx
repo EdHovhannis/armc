@@ -3,8 +3,6 @@ import { useUnit } from 'effector-react';
 import { FC, useEffect } from 'react';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 
-import { components } from '@src/Shared/ui/VirtualizedList';
-
 import { fetchCurrentProjectLimitsFx } from '@src/Entities/Limits/api';
 import { fetchProjectsFx } from '@src/Entities/Project/api';
 import { $optionsProject } from '@src/Entities/Project/model';
@@ -23,6 +21,10 @@ const StepIndexName: FC = () => {
 
   const name = useWatch({ control, name: 'name', defaultValue: '' }) as string;
   const project = useWatch({ control, name: 'project', defaultValue: '' }) as string;
+
+  useEffect(() => {
+    fetchProjectsFx();
+  }, []);
 
   useEffect(() => {
     const projectValue = project?.trim();
@@ -68,7 +70,6 @@ const StepIndexName: FC = () => {
                 isSearchable
                 loading={loading}
                 limitByWidth
-                components={components}
                 required
                 {...field}
                 value={currentValue}

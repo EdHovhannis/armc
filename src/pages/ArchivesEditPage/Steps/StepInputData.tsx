@@ -34,6 +34,10 @@ const StepInputData: FC = () => {
   }, [currentValues, optionsTopic]);
 
   useEffect(() => {
+    fetchTopicsFx();
+  }, []);
+
+  useEffect(() => {
     if (fields.length === 0) {
       append({ project: null, name: null });
     }
