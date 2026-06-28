@@ -1,8 +1,7 @@
 import { AxiosError, AxiosResponse } from 'axios';
-import { createEffect, sample } from 'effector';
+import { createEffect } from 'effector';
 
 import { axios } from '@src/Shared/api/axios';
-import { handleErrorFx } from '@src/Shared/api/model';
 import { AxiosResponseError } from '@src/Shared/api/types';
 
 const MOCK = {
@@ -32,9 +31,3 @@ export interface FetchArchiveIdParams {
 export const fetchArchiveIdFx = createEffect<FetchArchiveIdParams, AxiosResponse<unknown>, AxiosError<AxiosResponseError>>(
   async ({ project, name }) => axios.get(`/v1/internal/index/archive/project/${encodeURIComponent(project)}/name/${encodeURIComponent(name)}/id`),
 );
-
-sample({
-  clock: fetchArchiveIdFx.failData,
-  fn: ({ response, status }) => ({ title: 'Не удалось проверить имя индекса.', status, message: response?.data.message, data: response?.data }),
-  target: handleErrorFx,
-});
