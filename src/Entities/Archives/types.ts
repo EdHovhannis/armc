@@ -83,3 +83,40 @@ export interface FilterItems {
   labels: string[];
   zones: string[];
 }
+
+export type PrimaryTimeFieldType = 'CUSTOM' | 'AUTOGENERATE';
+
+export type CreateArchiveConfigPayload = {
+  name: string;
+  processing: Record<string, unknown>;
+  schema: {
+    fields: Array<{
+      name: string;
+      type: string;
+      subType: string | null;
+      format?: string;
+    }>;
+  };
+  source: {
+    kafka: Array<{ project: string; name: string }>;
+    format: { type: string; schemaName: string | null };
+  };
+  quota: {
+    maxStorageTimeSec: number;
+    maxSizeBytes: number;
+    maxDataRateBytesPerSec: number;
+  };
+  primaryTimeField: {
+    type: PrimaryTimeFieldType;
+    field: string;
+    lateMessageRejectionPeriod?: string;
+    earlyMessageRejectionPeriod?: string;
+  };
+  deadLetterQueue?: string | null;
+  labels?: string[];
+};
+
+export interface CreateArchiveParams {
+  project: string;
+  body: CreateArchiveConfigPayload;
+}

@@ -1,3 +1,6 @@
+import { DateUnitValue, SizeUnitValue, SpeedUnitValue } from '@src/Shared/types/filter';
+
+import { PrimaryTimeFieldType } from '@src/Entities/Archives/types';
 import { ProjectLimitItem } from '@src/Entities/Limits/types';
 
 export type ArchiveEditKafkaSource = {
@@ -45,5 +48,18 @@ export type ArchiveEditFormValues = {
   deletedSchemaData: unknown[];
   autoSchema: {
     allFields: unknown[];
+  };
+  primaryTimeField: {
+    type: PrimaryTimeFieldType;
+    field: string;
+    lateMessageRejectionPeriod: string;
+    earlyMessageRejectionPeriod: string;
+  };
+  deadLetterQueue: string | null;
+  labelsText: string;
+  quotaUnits: {
+    speed: SpeedUnitValue;
+    size: SizeUnitValue;
+    date: DateUnitValue;
   };
 };

@@ -84,6 +84,14 @@ const routes: MockRoute[] = [
     },
   },
   {
+    method: 'post',
+    match: /\/archive\/task\/project\/[^/]+\/config$/,
+    resolve: (config) => {
+      const body = typeof config.data === 'string' ? JSON.parse(config.data) : config.data;
+      return { ...archiveConfigFixture, ...body };
+    },
+  },
+  {
     method: 'get',
     match: /\/archive\/task\/project\/[^/]+\/name\/[^/]+\/config$/,
     // экспорт: возвращаем конфигурацию с name из запроса, чтобы совпадал с именем файла

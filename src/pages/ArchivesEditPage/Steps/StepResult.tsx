@@ -1,193 +1,176 @@
 import { ColumnProps, LabelControl, Radio, RadioGroup, Select, Table, Text, TextField } from '@sds-eng/base';
-import { useState } from 'react';
-import { Controller, useFormContext } from 'react-hook-form';
+import { FC, useMemo } from 'react';
+import { Controller, useFormContext, useWatch } from 'react-hook-form';
+
+import { formatBytes } from '@src/Shared/lib/format/formatBytes';
+import { formatSpeed } from '@src/Shared/lib/format/formatSpeed';
+import { sizeUnitToBytes, speedUnitToBytesPerSec } from '@src/Shared/lib/format/quotaUnits';
+
+import { PrimaryTimeFieldType } from '@src/Entities/Archives/types';
+
+import { ArchiveEditFormValues } from '../types';
 
 import * as styles from './styles.module.css';
-interface TempInterface {
+
+type SchemaTableRow = {
   name: string;
   type: string;
   subtype: string;
-}
-interface TempInterfaceDate {
-  name: string;
-  type: string;
-  subtype: string;
-}
-const dataSourceDate: [] = [{ dateField: 'timestamp', sourceFormat: 'UNIX_TIMESTAMP_MILLIS' }];
+};
 
-const columnsDate = [
-  {
-    key: 'dateField',
-    dataIndex: 'dateField',
-    title: 'Поле времени',
-    align: 'right',
-  },
-  {
-    key: 'sourceFormat',
-    dataIndex: 'sourceFormat',
-    title: 'Исходный формат времени',
-    align: 'right',
-  },
+type DateTableRow = {
+  dateField: string;
+  sourceFormat: string;
+};
+
+const columns: ColumnProps<SchemaTableRow>[] = [
+  { key: 'name', dataIndex: 'name', title: 'Поле', align: 'right' },
+  { key: 'type', dataIndex: 'type', title: 'Тип поля', align: 'center' },
+  { key: 'subtype', dataIndex: 'subtype', title: 'Подтип', align: 'left' },
 ];
 
-const dataSource: [] = [
-  { name: 'hostname', type: 'string', subtype: '' },
-  { name: 'app_version', type: 'string', subtype: '' },
-  { name: 'pod', type: 'string', subtype: '' },
+const columnsDate: ColumnProps<DateTableRow>[] = [
+  { key: 'dateField', dataIndex: 'dateField', title: 'Поле времени', align: 'right' },
+  { key: 'sourceFormat', dataIndex: 'sourceFormat', title: 'Исходный формат времени', align: 'right' },
 ];
 
-const columns: ColumnProps<TempInterface>[] = [
-  {
-    key: 'name',
-    dataIndex: 'name',
-    title: 'Поле',
-    align: 'right',
-  },
-  {
-    key: 'type',
-    dataIndex: 'type',
-    title: 'Тип поля',
-    align: 'center',
-  },
-  {
-    key: 'subtype',
-    dataIndex: 'subtype',
-    title: 'Подтип',
-    align: 'left',
-  },
-];
+const isDateField = (field: { type: string; subType?: string }) => field.type === 'DATE' || field.subType === 'DATE';
 
-const StepResult = () => {
-  const [value, setTempValue] = useState('debt');
-  const { control, setValue } = useFormContext();
+const StepResult: FC = () => {
+  const { control } = useFormContext<ArchiveEditFormValues>();
+  const [schemaFields, quota, quotaUnits, flatten, primaryTimeFieldType] = useWatch({
+    control,
+    name: ['schema.fields', 'quota', 'quotaUnits', 'flatten', 'primaryTimeField.type'],
+  });
+
+  const schemaTableData = useMemo<SchemaTableRow[]>(
+    () =>
+      (schemaFields ?? [])
+        .filter((field) => !isDateField(field))
+        .map((field) => ({
+          name: field.name,
+          type: field.type,
+          subtype: field.subType ?? '',
+        })),
+    [schemaFields],
+  );
+
+  const dateTableData = useMemo<DateTableRow[]>(
+    () =>
+      (schemaFields ?? [])
+        .filter(isDateField)
+        .map((field) => ({
+          dateField: field.name,
+          sourceFormat: field.format ?? '',
+        })),
+    [schemaFields],
+  );
+
+  const dateFieldOptions = useMemo(
+    () => dateTableData.map((item) => ({ label: item.dateField, value: item.dateField })),
+    [dateTableData],
+  );
+
+  const archiveSizeLabel = formatBytes(sizeUnitToBytes(quota?.maxSizeBytes ?? 0, quotaUnits?.size ?? 'MB'));
+  const archiveSpeedLabel = formatSpeed(speedUnitToBytesPerSec(quota?.maxDataRateBytesPerSec ?? 0, quotaUnits?.speed ?? 'B/s'));
+  const isCustomTimeField = primaryTimeFieldType === 'CUSTOM';
 
   return (
     <div className={styles.archiveStepWrapper}>
       <div className={styles.archiveIndexInfo}>
-        <Text as="span">Размер архива: 1.19 Gb</Text>
-        <Text as="span"> Скорость записи: 1000 b/s</Text>
-        <Text as="span"> Вложенные поля в JSON раскладываться не будут.</Text>
+        <Text as="span">Размер архива: {archiveSizeLabel}</Text>
+        <Text as="span">Скорость записи: {archiveSpeedLabel}</Text>
+        <Text as="span">Вложенные поля в JSON {flatten ? 'будут' : 'не будут'} раскладываться.</Text>
       </div>
       <div className={styles.archiveIndexTimeInfo}>
         <div>
           <Text kind="h5b">Основное время</Text>
-          <RadioGroup value={value} direction="vertical" name="Vertical" onChange={setTempValue}>
-            <LabelControl value="debt" control={<Radio />} label="использовать поле из схемы" />
-            <LabelControl value="credit" control={<Radio />} label="использовать время записи в хранилище" />
-          </RadioGroup>
+          <Controller
+            name="primaryTimeField.type"
+            control={control}
+            render={({ field }) => (
+              <RadioGroup value={field.value} direction="vertical" name="primaryTimeFieldType" onChange={(value) => field.onChange(value as PrimaryTimeFieldType)}>
+                <LabelControl value="CUSTOM" control={<Radio />} label="использовать поле из схемы" />
+                <LabelControl value="AUTOGENERATE" control={<Radio />} label="использовать время записи в хранилище" />
+              </RadioGroup>
+            )}
+          />
         </div>
-        {value === 'debt' ? (
-          <div>
+        <div className={styles.archiveStepItemWrapper}>
+          {isCustomTimeField ? (
             <Controller
-              name="projectShortName"
+              name="primaryTimeField.field"
               control={control}
-              rules={{}}
               render={({ field }) => {
-                // const currentValue = optionsProject.find((item) => item.value === field.value) || null;
+                const currentValue = dateFieldOptions.find((item) => item.value === field.value) ?? null;
                 return (
                   <Select
-                    defaultValue={null}
                     placeholder="Поле из схемы"
-                    options={[]}
+                    options={dateFieldOptions}
                     canClear
                     isSearchable
-                    loading={false}
                     limitByWidth
                     required
                     {...field}
-                    value={null}
+                    value={currentValue}
+                    onChange={(value) => field.onChange(value ?? '')}
                   />
                 );
               }}
             />
-          </div>
-        ) : (
-          <div>
-            <Controller
-              name="projectShortName"
-              control={control}
-              rules={{}}
-              render={({ field }) => {
-                // const currentValue = optionsProject.find((item) => item.value === field.value) || null;
-                return (
-                  <Select
-                    defaultValue={null}
-                    placeholder="Поле из схемы"
-                    options={[]}
-                    canClear
-                    isSearchable
-                    loading={false}
-                    limitByWidth
-                    required
-                    {...field}
-                    value={null}
-                  />
-                );
-              }}
-            />
-            <Controller
-              name="name"
-              control={control}
-              rules={{}}
-              render={({ field }) => (
-                <TextField placeholder="Допустимый диапазон времени в сообщении (прошлое)" required {...field} defaultValue={'P1D'} />
-              )}
-            />
-            <Controller
-              name="name"
-              control={control}
-              rules={{}}
-              render={({ field }) => (
-                <TextField placeholder="Допустимый диапазон времени в сообщении (будущее)" required {...field} defaultValue={'P1D'} />
-              )}
-            />
-          </div>
-        )}
+          ) : (
+            <>
+              <Controller
+                name="primaryTimeField.lateMessageRejectionPeriod"
+                control={control}
+                render={({ field }) => <TextField placeholder="Допустимый диапазон времени в сообщении (прошлое)" required {...field} />}
+              />
+              <Controller
+                name="primaryTimeField.earlyMessageRejectionPeriod"
+                control={control}
+                render={({ field }) => <TextField placeholder="Допустимый диапазон времени в сообщении (будущее)" required {...field} />}
+              />
+            </>
+          )}
+        </div>
       </div>
 
-      <div>
-        <Text kind="h5b"> Dead Letter Queue</Text>
+      <div className={styles.archiveStepItemWrapper}>
+        <Text kind="h5b">Dead Letter Queue</Text>
         <Controller
-          name="projectShortName"
+          name="deadLetterQueue"
           control={control}
-          rules={{}}
           render={({ field }) => {
-            // const currentValue = optionsProject.find((item) => item.value === field.value) || null;
+            const dlqOptions = schemaTableData.map((item) => ({ label: item.name, value: item.name }));
+            const currentValue = field.value ? dlqOptions.find((item) => item.value === field.value) ?? null : null;
             return (
               <Select
-                defaultValue={null}
                 placeholder="Выберите значение"
-                options={[]}
+                options={dlqOptions}
                 canClear
                 isSearchable
-                loading={false}
                 limitByWidth
-                required
                 {...field}
-                value={null}
+                value={currentValue}
+                onChange={(value) => field.onChange(value ?? null)}
               />
             );
           }}
         />
       </div>
-      <div>
+      <div className={styles.archiveStepItemWrapper}>
         <Text kind="h5b">Метки</Text>
-        <Controller
-          name="name"
-          control={control}
-          rules={{}}
-          render={({ field }) => <TextField placeholder="Введите значение" required {...field} />}
-        />
+        <Controller name="labelsText" control={control} render={({ field }) => <TextField placeholder="Введите значение" {...field} />} />
       </div>
       <div className={styles.archiveIndexDataInfo}>
-        <Text kind="h5b"> Схема индекса</Text>
+        <Text kind="h5b">Схема индекса</Text>
         <div>
-          <Text kind="h5b"> Данные </Text>
-          <Table dataSource={dataSource} columns={columns} />
+          <Text kind="h5b">Данные</Text>
+          <Table dataSource={schemaTableData} columns={columns} />
         </div>
         <div>
-          <Text kind="h5b"> Даты </Text>
-          <Table dataSource={dataSourceDate} columns={columnsDate} />
+          <Text kind="h5b">Даты</Text>
+          <Table dataSource={dateTableData} columns={columnsDate} />
         </div>
       </div>
     </div>

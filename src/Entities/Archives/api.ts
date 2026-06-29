@@ -5,7 +5,7 @@ import { axios } from '@src/Shared/api/axios';
 import { handleErrorFx } from '@src/Shared/api/model';
 import { AxiosResponseError } from '@src/Shared/api/types';
 
-import { ArchiveConfiguration, FilterItems } from './types';
+import { ArchiveConfiguration, CreateArchiveParams, FilterItems } from './types';
 
 export interface FetchArchivesParams {
   pageNumber: number;
@@ -46,6 +46,10 @@ export const deleteArchiveFx = createEffect<DeleteArchiveParams, DeleteArchivePa
   await deleteByUrl(getArchiveConfigUrl(params));
   return params;
 });
+
+export const createArchiveFx = createEffect<CreateArchiveParams, AxiosResponse<unknown>, AxiosError<AxiosResponseError>>(
+  async ({ project, body }) => axios.post(`/v1/internal/index/archive/task/project/${encodeURIComponent(project)}/config`, body),
+);
 
 const getArchiveListParams = ({ pageNumber, pageSize, filters }: FetchArchivesParams) => ({
   pageSize,
@@ -100,5 +104,11 @@ sample({
 sample({
   clock: deleteArchiveFx.failData,
   fn: ({ response, status }) => ({ title: 'Не удалось удалить архив.', status, message: response?.data.message, data: response?.data }),
+  target: handleErrorFx,
+});
+
+sample({
+  clock: createArchiveFx.failData,
+  fn: ({ response, status }) => ({ title: 'Не удалось создать конфигурацию.', status, message: response?.data.message, data: response?.data }),
   target: handleErrorFx,
 });

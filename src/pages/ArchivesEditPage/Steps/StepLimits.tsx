@@ -57,6 +57,12 @@ const StepLimits: FC = () => {
   });
 
   useEffect(() => {
+    setValue('quotaUnits.speed', state.speed.value);
+    setValue('quotaUnits.size', state.size.value);
+    setValue('quotaUnits.date', state.date.value);
+  }, [setValue, state.date.value, state.size.value, state.speed.value]);
+
+  useEffect(() => {
     const unsubscribe = fetchCurrentEstimateFx.done.watch(({ params, result }) => {
       if (params.maxStoreDurationSec === null) {
         const seconds = result.data.maxStoreDurationSec;
