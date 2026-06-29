@@ -17,11 +17,7 @@ $currentProjectEstimate
     slotsCount: result.data.slotsCount,
     bytesPerSecOnSlot: result.data.bytesPerSecOnSlot,
     correctPartitionsToSlotsRatio: result.data.correctPartitionsToSlotsRatio,
-<<<<<<< HEAD
-    estimateBySize: true,
-=======
     estimateBySize: params.maxStoreDurationSec === null,
->>>>>>> 117d8ff6dfc12b87e25bb941f934836f8cc78cc2
   }))
   .reset([fetchCurrentEstimateFx.failData]);
 

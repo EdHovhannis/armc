@@ -1,6 +1,5 @@
 import { combine, createEvent, createStore, sample } from 'effector';
 
-<<<<<<< HEAD
 import {
   changeInstanceOverdraftFx,
   changeInstancesOverdraftFx,
@@ -12,9 +11,7 @@ import {
   resumeInstancesFx,
   suspendInstancesFx,
 } from '@src/Entities/Instance/api';
-=======
 import { addLabelFx, deleteLabelFx } from '@src/Entities/Label/api';
->>>>>>> 117d8ff6dfc12b87e25bb941f934836f8cc78cc2
 
 import { FetchArchivesParams, deleteArchiveFx, fetchArchivesCountFx, fetchArchivesFiltersFx, fetchArchivesFx } from './api';
 import { ArchiveConfigView, ArchiveConfiguration, ArchiveInstanceView, FilterItems } from './types';

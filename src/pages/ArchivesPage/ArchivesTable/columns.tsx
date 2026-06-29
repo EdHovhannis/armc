@@ -17,13 +17,9 @@ import { onApplyArchiveFilters } from '../FilterDrawer/model';
 
 import ColumnHeaderMultiSelectFilter from './ColumnHeaderMultiSelectFilter';
 import ConfigurationActionsCell from './ConfigurationActionsCell';
-<<<<<<< HEAD
 import InstanceActionsCell from './InstanceActionsCell';
 import InstanceStatusCell from './InstanceStatusCell';
-=======
 import LabelsCell from './LabelsCell';
-import StatusBadge from './StatusBadge';
->>>>>>> 117d8ff6dfc12b87e25bb941f934836f8cc78cc2
 import * as styles from './styles.module.css';
 
 const createColumnHeaderFilter = (title: string, field: string, options?: typeof STATUS_OPTIONS) =>
