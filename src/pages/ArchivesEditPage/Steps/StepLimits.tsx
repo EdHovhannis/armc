@@ -1,6 +1,6 @@
 import { clsx, Select, Text, InputNumber, StatusCard } from '@sds-eng/base';
 import { useUnit } from 'effector-react';
-import { FC, useEffect, useMemo, useState } from 'react';
+import { FC, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 import { useSearchParams } from 'react-router';
 
@@ -35,6 +35,27 @@ type QuotaFormValues = {
   maxStorageTimeSec?: number;
 };
 
+type KafkaSourceFormValue = {
+  project: string | null;
+  name: string | null;
+};
+
+type EstimatePayload = {
+  estimate: {
+    project: string;
+    name: string | null;
+    maxDataRateBytesPerSec: number;
+    maxStoreDurationSec: number | null;
+    maxSizeBytes: number | null;
+    sources: Array<{ project: string; name: string }>;
+  };
+  overdraft: {
+    maxDataRateBytesPerSec: number;
+    maxSizeBytes: number | null;
+    maxStorageTimeSec: number | null;
+  };
+};
+
 const StepLimits: FC = () => {
   const { control, setValue } = useFormContext();
   const [searchParams] = useSearchParams();
@@ -51,12 +72,56 @@ const StepLimits: FC = () => {
     $currentEstimateBlockers,
     $isLimitFeatureSettingEnabled,
   ]);
-  const [kafkaSources, quota] = useWatch({
+  const [kafkaSources, maxDataRateBytesPerSec, maxSizeBytes, maxStorageTimeSec] = useWatch({
     control,
-    name: ['source.kafka', 'quota'],
-    defaultValue: { 'source.kafka': [], quota: {} },
+    name: ['source.kafka', 'quota.maxDataRateBytesPerSec', 'quota.maxSizeBytes', 'quota.maxStorageTimeSec'],
   });
-  const quotaValues = useMemo(() => (quota ?? {}) as QuotaFormValues, [quota]);
+  const sourcesKey = useMemo(
+    () => JSON.stringify(((kafkaSources ?? []) as KafkaSourceFormValue[]).map(({ project, name }) => ({ project, name }))),
+    [kafkaSources],
+  );
+  const lastFetchedPayloadKeyRef = useRef<string | null>(null);
+  const estimatePayload = useMemo((): EstimatePayload | null => {
+    const sources = JSON.parse(sourcesKey) as KafkaSourceFormValue[];
+    const quotaValues: QuotaFormValues = { maxDataRateBytesPerSec, maxSizeBytes, maxStorageTimeSec };
+
+    if (!projectShortName || !isQuotaEstimateReady(quotaValues) || !isKafkaSourcesFilled(sources)) {
+      return null;
+    }
+
+    const maxDataRateBytesPerSecValue = speedUnitToBytesPerSec(quotaValues.maxDataRateBytesPerSec!, state.speed.value);
+    const maxSizeBytesValue = isFilledNumber(quotaValues.maxSizeBytes) ? sizeUnitToBytes(quotaValues.maxSizeBytes, state.size.value) : null;
+    const maxStorageTimeSecValue = isFilledNumber(quotaValues.maxStorageTimeSec)
+      ? dateUnitToSeconds(quotaValues.maxStorageTimeSec, state.date.value)
+      : null;
+
+    return {
+      estimate: {
+        project: projectShortName,
+        name: isEditMode ? archiveName.trim() || null : null,
+        maxDataRateBytesPerSec: maxDataRateBytesPerSecValue,
+        maxStoreDurationSec: maxStorageTimeSecValue,
+        maxSizeBytes: maxSizeBytesValue,
+        sources: sources.map((source) => ({ project: source.project!, name: source.name! })),
+      },
+      overdraft: {
+        maxDataRateBytesPerSec: maxDataRateBytesPerSecValue,
+        maxSizeBytes: maxSizeBytesValue,
+        maxStorageTimeSec: maxStorageTimeSecValue,
+      },
+    };
+  }, [
+    archiveName,
+    isEditMode,
+    maxDataRateBytesPerSec,
+    maxSizeBytes,
+    maxStorageTimeSec,
+    projectShortName,
+    sourcesKey,
+    state.date.value,
+    state.size.value,
+    state.speed.value,
+  ]);
 
   useEffect(() => {
     const unsubscribe = fetchCurrentEstimateFx.done.watch(({ params, result }) => {
@@ -85,38 +150,24 @@ const StepLimits: FC = () => {
   }, [setValue]);
 
   useEffect(() => {
-    const sources = (kafkaSources ?? []) as Array<{ project: string | null; name: string | null }>;
-
-    if (!projectShortName || !isQuotaEstimateReady(quotaValues) || !isKafkaSourcesFilled(sources)) {
+    if (!estimatePayload) {
+      lastFetchedPayloadKeyRef.current = null;
       return undefined;
     }
 
-    const maxDataRateBytesPerSec = speedUnitToBytesPerSec(quotaValues.maxDataRateBytesPerSec!, state.speed.value);
-    const maxSizeBytes = isFilledNumber(quotaValues.maxSizeBytes) ? sizeUnitToBytes(quotaValues.maxSizeBytes, state.size.value) : null;
-    const maxStorageTimeSec = isFilledNumber(quotaValues.maxStorageTimeSec)
-      ? dateUnitToSeconds(quotaValues.maxStorageTimeSec, state.date.value)
-      : null;
-
+    const payloadKey = JSON.stringify(estimatePayload);
     const timer = setTimeout(() => {
-      const estimatePayload = {
-        project: projectShortName,
-        name: isEditMode ? archiveName.trim() || null : null,
-        maxDataRateBytesPerSec,
-        maxStoreDurationSec: maxStorageTimeSec,
-        maxSizeBytes,
-        sources: sources.map((source) => ({ project: source.project!, name: source.name! })),
-      };
+      if (lastFetchedPayloadKeyRef.current === payloadKey) {
+        return;
+      }
 
-      fetchCurrentEstimateFx(estimatePayload);
-      fetchCurrentOverdraftEstimateFx({
-        maxDataRateBytesPerSec,
-        maxSizeBytes,
-        maxStorageTimeSec,
-      });
+      lastFetchedPayloadKeyRef.current = payloadKey;
+      fetchCurrentEstimateFx(estimatePayload.estimate);
+      fetchCurrentOverdraftEstimateFx(estimatePayload.overdraft);
     }, ESTIMATE_DEBOUNCE_MS);
 
     return () => clearTimeout(timer);
-  }, [archiveName, isEditMode, projectShortName, kafkaSources, quotaValues, state.speed, state.size, state.date]);
+  }, [estimatePayload]);
 
   return (
     <div className={clsx(styles.archiveStepWrapper, styles.archiveStepWrapperFullWidth)}>
