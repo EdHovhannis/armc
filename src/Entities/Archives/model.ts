@@ -1,12 +1,35 @@
 import { combine, createEvent, createStore, sample } from 'effector';
 
+<<<<<<< HEAD
+import {
+  changeInstanceOverdraftFx,
+  changeInstancesOverdraftFx,
+  deleteInstanceFx,
+  fetchInstanceStatusFx,
+  resetInstanceOverdraftFx,
+  resetInstancesOverdraftFx,
+  resetZoneOverdraftFx,
+  resumeInstancesFx,
+  suspendInstancesFx,
+} from '@src/Entities/Instance/api';
+=======
 import { addLabelFx, deleteLabelFx } from '@src/Entities/Label/api';
+>>>>>>> 117d8ff6dfc12b87e25bb941f934836f8cc78cc2
 
 import { FetchArchivesParams, deleteArchiveFx, fetchArchivesCountFx, fetchArchivesFiltersFx, fetchArchivesFx } from './api';
 import { ArchiveConfigView, ArchiveConfiguration, ArchiveInstanceView, FilterItems } from './types';
 
 export const $archives = createStore<ArchiveConfiguration[]>([]);
-$archives.on(fetchArchivesFx.doneData, (_, payload) => payload.data);
+$archives
+  .on(fetchArchivesFx.doneData, (_, payload) => payload.data)
+  .on(fetchInstanceStatusFx.doneData, (archives, { instanceId, status }) =>
+    archives.map((arch) => ({
+      ...arch,
+      instances: arch.instances?.map((instance) =>
+        instance.id === instanceId ? { ...instance, status: { ...instance.status, indexing: { status } } } : instance,
+      ),
+    })),
+  );
 
 const $lastFetchArchivesParams = createStore<FetchArchivesParams | null>(null).on(fetchArchivesFx, (_, params) => params);
 const $lastFetchCountFilters = createStore<Pick<FetchArchivesParams, 'filters'>>({}).on(fetchArchivesCountFx, (_, params) => params ?? {});

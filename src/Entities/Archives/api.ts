@@ -57,6 +57,19 @@ export const fetchArchivesFx = createEffect<FetchArchivesParams, AxiosResponse<A
   async (params) => axios.get('/v1/internal/index/archive/list/paginated', { params: getArchiveListParams(params) }),
 );
 
+<<<<<<< HEAD
+// полный список конфигураций (без фильтра) для выпадашек фильтра - они должны показывать
+// весь исходный набор, а не то, что осталось на текущей отфильтрованной странице.
+// отдельного справочника имён/меток бэк не даёт, поэтому тянем весь список разом большим pageSize.
+// TODO(archives-filter-api): заменить на справочник имён/меток, когда бэк его предоставит
+const ARCHIVE_OPTIONS_PAGE_SIZE = 10000;
+
+export const fetchArchiveOptionsFx = createEffect<void, AxiosResponse<ArchiveConfiguration[]>, AxiosError<AxiosResponseError>>(async () =>
+  axios.get('/v1/internal/index/archive/list/paginated', { params: { pageSize: ARCHIVE_OPTIONS_PAGE_SIZE, pageNumber: 1 } }),
+);
+
+=======
+>>>>>>> 117d8ff6dfc12b87e25bb941f934836f8cc78cc2
 export const fetchArchivesCountFx = createEffect<Pick<FetchArchivesParams, 'filters'> | void, AxiosResponse<number>, AxiosError<AxiosResponseError>>(
   async (params) =>
     axios.get('/v1/internal/index/archive/list/page-count', {

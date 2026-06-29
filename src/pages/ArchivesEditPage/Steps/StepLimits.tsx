@@ -57,6 +57,40 @@ const StepLimits: FC = () => {
     defaultValue: { 'source.kafka': [], quota: {} },
   });
   const quotaValues = useMemo(() => (quota ?? {}) as QuotaFormValues, [quota]);
+<<<<<<< HEAD
+
+  useEffect(() => {
+    const unsubscribe = fetchCurrentEstimateFx.done.watch(({ params, result }) => {
+      if (params.maxStoreDurationSec === null) {
+        const seconds = result.data.maxStoreDurationSec;
+        if (isFilledNumber(seconds) && seconds > 0) {
+          const { value, unit } = secondsToDateUnit(seconds);
+          const dateOption = DATE_LIMITS_UNIT_OPTIONS.find((option) => option.value === unit) ?? DATE_LIMITS_UNIT_OPTIONS[5];
+          setValue('quota.maxStorageTimeSec', value);
+          setState((prev) => ({ ...prev, date: dateOption }));
+        }
+      }
+
+      if (params.maxSizeBytes === null) {
+        const sizeBytes = result.data.maxSizeBytes;
+        if (isFilledNumber(sizeBytes) && sizeBytes > 0) {
+          const { value, unit } = bytesToSizeUnit(sizeBytes);
+          const sizeOption = SIZE_LIMITS_UNIT_OPTIONS.find((option) => option.value === unit) ?? SIZE_LIMITS_UNIT_OPTIONS[0];
+          setValue('quota.maxSizeBytes', value);
+          setState((prev) => ({ ...prev, size: sizeOption }));
+        }
+      }
+    });
+
+    return unsubscribe;
+  }, [setValue]);
+
+  useEffect(() => {
+    fetchCurrentProjectLimits('abyss');
+    fetchCurrentEstimate({ project: 'abyss' });
+    fetchCurrentOverdraftEstimate();
+  }, [currentProject, fetchCurrentProjectLimits, fetchCurrentEstimate, fetchCurrentOverdraftEstimate]);
+=======
 
   useEffect(() => {
     const unsubscribe = fetchCurrentEstimateFx.done.watch(({ params, result }) => {
@@ -117,6 +151,7 @@ const StepLimits: FC = () => {
 
     return () => clearTimeout(timer);
   }, [archiveName, isEditMode, projectShortName, kafkaSources, quotaValues, state.speed, state.size, state.date]);
+>>>>>>> 117d8ff6dfc12b87e25bb941f934836f8cc78cc2
 
   return (
     <div className={clsx(styles.archiveStepWrapper, styles.archiveStepWrapperFullWidth)}>
