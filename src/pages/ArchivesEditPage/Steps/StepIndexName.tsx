@@ -4,6 +4,7 @@ import { FC, useEffect } from 'react';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 
 import { fetchCurrentProjectLimitsFx } from '@src/Entities/Limits/api';
+import { $currentProjectLimits } from '@src/Entities/Limits/model';
 import { fetchProjectsFx } from '@src/Entities/Project/api';
 import { $optionsProject } from '@src/Entities/Project/model';
 
@@ -13,12 +14,13 @@ import { fetchArchiveIdFx } from './api';
 import * as styles from './styles.module.css';
 
 const StepIndexName: FC = () => {
-  const { control } = useFormContext();
-  const [optionsProject, loading, fetchProjectLimits, fetchArchiveId] = useUnit([
+  const { control, setValue } = useFormContext();
+  const [optionsProject, loading, fetchProjectLimits, fetchArchiveId, currentProjectLimits] = useUnit([
     $optionsProject,
     fetchProjectsFx.pending,
     fetchCurrentProjectLimitsFx,
     fetchArchiveIdFx,
+    $currentProjectLimits,
   ]);
 
   const name = useWatch({ control, name: 'name', defaultValue: '' }) as string;
@@ -35,6 +37,17 @@ const StepIndexName: FC = () => {
   useEffect(() => {
     onChangeArchiveEditProjectShortName(project ?? '');
   }, [project]);
+
+  useEffect(() => {
+    const projectValue = project?.trim() ?? '';
+    setValue('projectShortName', projectValue);
+    const selectedProject = optionsProject.find((item) => item.value === projectValue);
+    setValue('projectName', selectedProject?.name ?? projectValue);
+  }, [project, optionsProject, setValue]);
+
+  useEffect(() => {
+    setValue('availableQuota', currentProjectLimits);
+  }, [currentProjectLimits, setValue]);
 
   useEffect(() => {
     const projectValue = project?.trim();
