@@ -3,30 +3,20 @@ import { useUnit } from 'effector-react';
 import { FC } from 'react';
 
 import { $isLimitFeatureSettingEnabled } from '@src/Entities/FeatureFlags/model';
-import { fetchCurrentEstimateFx, fetchCurrentOverdraftEstimateFx, fetchCurrentProjectLimitsFx } from '@src/Entities/Limits/api';
-import { $currentEstimateOverdraft, $currentProjectEstimate, $currentProjectLimits } from '@src/Entities/Limits/model';
+import { fetchCurrentEstimateFx, fetchCurrentProjectLimitsFx } from '@src/Entities/Limits/api';
+import { $currentProjectEstimate, $currentProjectLimits } from '@src/Entities/Limits/model';
 
 import * as styles from './styles.module.css';
 const LimitsProjectInfo: FC = () => {
-  const [
-    currentProjectLimits,
-    isLimitFeatureSettingEnabled,
-    currentProjectEstimate,
-    overdraftValue,
-    loadingEstimate,
-    loadingLimits,
-    loadingOverdraft,
-  ] = useUnit([
+  const [currentProjectLimits, isLimitFeatureSettingEnabled, currentProjectEstimate, loadingEstimate, loadingLimits] = useUnit([
     $currentProjectLimits,
     $isLimitFeatureSettingEnabled,
     $currentProjectEstimate,
-    $currentEstimateOverdraft,
     fetchCurrentEstimateFx.pending,
     fetchCurrentProjectLimitsFx.pending,
-    fetchCurrentOverdraftEstimateFx.pending,
   ]);
   const maxOverdraftPercent = currentProjectEstimate.maxOverdraftPercent;
-  const overdraftColor = overdraftValue < maxOverdraftPercent ? '#FFA500' : '#4CAF50';
+  const overdraftColor = maxOverdraftPercent === 0 ? '#FF0000' : '#4CAF50';
   return (
     <table className={styles.archiveLimitsTable}>
       <thead>
@@ -60,15 +50,13 @@ const LimitsProjectInfo: FC = () => {
           </Text>
         </tr>
         {isLimitFeatureSettingEnabled && (
-          <tr style={{ color: overdraftValue === 0 ? '#FF0000' : overdraftColor }}>
+          <tr style={{ color: overdraftColor }}>
             <Text as="td" kind="textSn" className={styles.archiveLimitsTableInfoText}>
               Максимальный овердрафт скорости
             </Text>
             <Text as="td" kind="textSn" className={styles.archiveLimitsTableInfoText}>
-              <Skeleton isLoading={loadingOverdraft}>
-                <span className={styles.archiveLimitsTableInfoSpan}>
-                  {overdraftValue < maxOverdraftPercent ? overdraftValue : maxOverdraftPercent}%
-                </span>
+              <Skeleton isLoading={loadingEstimate}>
+                <span className={styles.archiveLimitsTableInfoSpan}>{maxOverdraftPercent}%</span>
               </Skeleton>
             </Text>
           </tr>

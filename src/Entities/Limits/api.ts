@@ -5,7 +5,7 @@ import { axios } from '@src/Shared/api/axios';
 import { handleErrorFx } from '@src/Shared/api/model';
 import { AxiosResponseError } from '@src/Shared/api/types';
 
-import { EstimateOverdraftItem, OverdraftEstimateRequestParams, ProjectEstimateItem, ProjectLimitItem, QuotaEstimateRequestParams } from './types';
+import { ProjectEstimateItem, ProjectLimitItem, QuotaEstimateRequestParams } from './types';
 
 export const fetchCurrentProjectLimitsFx = createEffect<string, AxiosResponse<ProjectLimitItem>, AxiosError<AxiosResponseError>>(async (project) =>
   axios.get(`/v1/index/archive/quota/project/${project}`),
@@ -24,12 +24,6 @@ export const fetchCurrentEstimateFx = createEffect<QuotaEstimateRequestParams, A
     }),
 );
 
-export const fetchCurrentOverdraftEstimateFx = createEffect<
-  OverdraftEstimateRequestParams,
-  AxiosResponse<EstimateOverdraftItem>,
-  AxiosError<AxiosResponseError>
->(async (body) => axios.post('/v1/internal/index/archive/task/overdraft/estimate', body));
-
 sample({
   clock: fetchCurrentProjectLimitsFx.failData,
   fn: ({ response, status }) => ({ title: 'Не удалось загрузить лимиты по проекту.', status, message: response?.data.message, data: response?.data }),
@@ -40,17 +34,6 @@ sample({
   clock: fetchCurrentEstimateFx.failData,
   fn: ({ response, status }) => ({
     title: 'Не удалось рассчитать лимиты по проекту.',
-    status,
-    message: response?.data.message,
-    data: response?.data,
-  }),
-  target: handleErrorFx,
-});
-
-sample({
-  clock: fetchCurrentOverdraftEstimateFx.failData,
-  fn: ({ response, status }) => ({
-    title: 'Не удалось рассчитать овердрафт скорости.',
     status,
     message: response?.data.message,
     data: response?.data,
