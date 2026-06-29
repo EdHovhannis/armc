@@ -1,6 +1,5 @@
 import { combine, createStore, sample } from 'effector';
 
-<<<<<<< HEAD
 import {
   changeInstanceOverdraftFx,
   changeInstancesOverdraftFx,
@@ -13,12 +12,8 @@ import {
   suspendInstancesFx,
 } from '@src/Entities/Instance/api';
 
-import { FetchArchivesParams, deleteArchiveFx, fetchArchiveOptionsFx, fetchArchivesCountFx, fetchArchivesFx } from './api';
-import { ArchiveConfigView, ArchiveConfiguration, ArchiveInstanceView } from './types';
-=======
 import { FetchArchivesParams, deleteArchiveFx, fetchArchiveOptionsFx, fetchArchivesCountFx, fetchArchivesFiltersFx, fetchArchivesFx } from './api';
 import { ArchiveConfigView, ArchiveConfiguration, ArchiveInstanceView, FilterItems } from './types';
->>>>>>> 39bcb05 (PVM-144362: добавил фильтры по url, связь между фильтрами, удаление/добовление фильтров)
 
 export const $archives = createStore<ArchiveConfiguration[]>([]);
 $archives

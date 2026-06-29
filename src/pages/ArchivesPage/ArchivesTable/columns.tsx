@@ -17,13 +17,9 @@ import { onApplyArchiveFilters } from '../FilterDrawer/model';
 
 import ColumnHeaderMultiSelectFilter from './ColumnHeaderMultiSelectFilter';
 import ConfigurationActionsCell from './ConfigurationActionsCell';
-<<<<<<< HEAD
 import InstanceActionsCell from './InstanceActionsCell';
 import InstanceStatusCell from './InstanceStatusCell';
-=======
 import LabelsCell from './LabelsCell';
-import StatusBadge from './StatusBadge';
->>>>>>> 39bcb05 (PVM-144362: добавил фильтры по url, связь между фильтрами, удаление/добовление фильтров)
 import * as styles from './styles.module.css';
 
 const createColumnHeaderFilter = (title: string, field: string, options?: typeof STATUS_OPTIONS) =>
