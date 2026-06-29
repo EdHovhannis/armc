@@ -44,7 +44,7 @@ const LimitsProjectInfo: FC = () => {
             Текущая скорость всех архивов проекта
           </Text>
           <Text as="td" kind="textSn" className={styles.archiveLimitsTableInfoText}>
-            <Skeleton isLoading={loadingLimits}>
+            <Skeleton isLoading={loadingEstimate}>
               <span className={styles.archiveLimitsTableInfoSpan}>{currentProjectLimits.currentDataRateBytesPerSec}</span>
             </Skeleton>
           </Text>
@@ -54,7 +54,7 @@ const LimitsProjectInfo: FC = () => {
             Максимальная допустимая скорость всех архивов
           </Text>
           <Text as="td" kind="textSn" className={styles.archiveLimitsTableInfoText}>
-            <Skeleton isLoading={loadingLimits}>
+            <Skeleton isLoading={loadingEstimate}>
               <span className={styles.archiveLimitsTableInfoSpan}>{currentProjectLimits.maxDataRateBytesPerSec}</span>
             </Skeleton>
           </Text>

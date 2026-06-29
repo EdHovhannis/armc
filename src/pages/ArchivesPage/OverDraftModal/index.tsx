@@ -1,84 +1,133 @@
-import { Button, Modal, ModalBody, ModalFooter, ModalHeader, Text, TextField } from '@sds-eng/base';
+import { Button, Modal, ModalBody, ModalFooter, ModalHeader, Text } from '@sds-eng/base';
 import { useUnit } from 'effector-react';
-import { FC, useEffect } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { FC, useEffect, useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+
+import ConfirmModal from '@src/Shared/ui/ConfirmModal';
 
 import { ArchiveInstanceView } from '@src/Entities/Archives/types';
+import { changeInstancesOverdraftFx, resetInstancesOverdraftFx } from '@src/Entities/Instance/api';
+import { $overdraftConfig } from '@src/Entities/Overdraft/model';
+
+import ControllerInputNumber from '@src/Features/Controllers/ControllerInputNumber';
 
 import { $overDraftModalRows, onCloseOverDraftModal } from './model';
 import * as styles from './styles.module.css';
 
 type OverDraftFormValues = {
-  overdraftPercent: string;
+  overdraftPercent: number;
 };
 
-const getInitialOverdraftPercent = (rows: ArchiveInstanceView[]) => {
+type ConfirmAction = 'change' | 'reset' | null;
+
+const getInitialOverdraftPercent = (rows: ArchiveInstanceView[]): number => {
   const [firstRow] = rows;
-  if (!firstRow) return '';
+  if (!firstRow) return 0;
 
   const isSameOverdraftPercent = rows.every((row) => row.overdraftPercent === firstRow.overdraftPercent);
-  return isSameOverdraftPercent ? String(firstRow.overdraftPercent) : '';
+  return isSameOverdraftPercent ? firstRow.overdraftPercent : 0;
 };
 
 const OverDraftModal: FC = () => {
-  const [rows, onClose] = useUnit([$overDraftModalRows, onCloseOverDraftModal]);
+  const [rows, overdraftConfig, onClose, changing, resetting] = useUnit([
+    $overDraftModalRows,
+    $overdraftConfig,
+    onCloseOverDraftModal,
+    changeInstancesOverdraftFx.pending,
+    resetInstancesOverdraftFx.pending,
+  ]);
 
-  const { control, handleSubmit, reset } = useForm<OverDraftFormValues>({
-    defaultValues: { overdraftPercent: '' },
-  });
+  const [confirm, setConfirm] = useState<ConfirmAction>(null);
+
+  const methods = useForm<OverDraftFormValues>({ defaultValues: { overdraftPercent: 0 } });
 
   useEffect(() => {
     if (rows) {
-      reset({ overdraftPercent: getInitialOverdraftPercent(rows) });
+      methods.reset({ overdraftPercent: getInitialOverdraftPercent(rows) });
     }
-  }, [reset, rows]);
+  }, [rows, methods]);
 
   const selectedRows = rows ?? [];
-  const maxAvailableOverdraft = selectedRows.length ? Math.min(...selectedRows.map((row) => row.metadata.maxAvailableOverdraft)) : null;
+  const maxAvailable = selectedRows.length ? Math.min(...selectedRows.map((row) => row.metadata.maxAvailableOverdraft)) : 0;
+  const maxOverdraft = overdraftConfig ? Math.min(overdraftConfig.maxOverdraftPercent, maxAvailable) : maxAvailable;
 
-  const handleSave = handleSubmit(() => {
-    onClose();
-  });
+  const instances = selectedRows.map((row) => ({ project: row.projectName, taskName: row.configName, zoneId: row.zoneId, instanceId: row.id }));
+
+  const handleSave = methods.handleSubmit(() => setConfirm('change'));
+
+  const handleConfirm = () => {
+    if (confirm === 'change') {
+      changeInstancesOverdraftFx({ instances, overdraftPercent: methods.getValues().overdraftPercent });
+    } else if (confirm === 'reset') {
+      resetInstancesOverdraftFx(instances);
+    }
+    setConfirm(null);
+  };
 
   return (
-    <Modal open={!!rows} onClose={onClose} width={520}>
-      <ModalHeader showCloseButton closeButtonProps={{ onClick: onClose }}>
-        <Text kind="h4b">Сбросить овердрафт скорости</Text>
-        <Text kind="h6n">Овердрафт скорости будет сброшен до значений по умолчанию для всех эеземпляров выбранной зоны</Text>
-      </ModalHeader>
-      <ModalBody>
-        <div className={styles.overDraftModalBody}>
-          <Controller
-            name="overdraftPercent"
-            control={control}
-            render={({ field }) => <TextField {...field} label="Овердрафт, %" placeholder="Введите значение" size="md" />}
-          />
-          {maxAvailableOverdraft !== null && (
-            <Text kind="bodyXS" className={styles.overDraftModalHint}>
-              Максимально доступный овердрафт для выбранных экземпляров: {maxAvailableOverdraft}%
-            </Text>
-          )}
-          <div className={styles.overDraftModalInstances}>
-            <Text kind="bodyS">Выбрано экземпляров: {selectedRows.length}</Text>
-            <div className={styles.overDraftModalInstancesList}>
-              {selectedRows.map(({ projectName, configName, zoneId }) => (
-                <Text key={`${projectName}-${configName}-${zoneId}`} kind="bodyS" className={styles.overDraftModalInstance}>
-                  {projectName}/{configName}/{zoneId}
+    <>
+      <Modal open={!!rows} onClose={onClose} width={520}>
+        <ModalHeader showCloseButton closeButtonProps={{ onClick: onClose }}>
+          <Text kind="h4b">Изменение скорости обработки экземпляров</Text>
+          <Text kind="h6n">Новое значение овердрафта применится ко всем выбранным экземплярам</Text>
+        </ModalHeader>
+        <ModalBody>
+          <FormProvider {...methods}>
+            <div className={styles.overDraftModalBody}>
+              <div className={styles.overDraftModalField}>
+                <Text kind="textSn" className={styles.overDraftModalLabel}>
+                  Процент увеличения скорости обработки
                 </Text>
-              ))}
+                <ControllerInputNumber
+                  name="overdraftPercent"
+                  placeholder="Введите значение"
+                  precision={0}
+                  rules={{ required: true, validate: (value) => Number.isInteger(value) && (value ?? 0) >= 0 && (value ?? 0) <= maxOverdraft }}
+                />
+                <Text kind="bodyXS" className={styles.overDraftModalHint}>
+                  Максимальный процент увеличения скорости: {maxOverdraft}%
+                </Text>
+              </div>
+              <div className={styles.overDraftModalInstances}>
+                <Text kind="bodyS">Выбрано экземпляров: {selectedRows.length}</Text>
+                <div className={styles.overDraftModalInstancesList}>
+                  {selectedRows.map(({ projectName, configName, zoneId }) => (
+                    <Text key={`${projectName}-${configName}-${zoneId}`} kind="bodyS" className={styles.overDraftModalInstance}>
+                      {projectName}/{configName}/{zoneId}
+                    </Text>
+                  ))}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      </ModalBody>
-      <ModalFooter className={styles.overDraftModalFooter}>
-        <Button view="secondary" kind="ghost" onClick={onClose}>
-          Отменить
-        </Button>
-        <Button view="primary" onClick={handleSave}>
-          Сохранить
-        </Button>
-      </ModalFooter>
-    </Modal>
+          </FormProvider>
+        </ModalBody>
+        <ModalFooter className={styles.overDraftModalFooter}>
+          <Button view="secondary" kind="ghost" onClick={onClose}>
+            Отменить
+          </Button>
+          <Button view="secondary" onClick={() => setConfirm('reset')}>
+            Сбросить
+          </Button>
+          <Button view="primary" onClick={handleSave}>
+            Сохранить
+          </Button>
+        </ModalFooter>
+      </Modal>
+
+      <ConfirmModal
+        open={confirm !== null}
+        title={confirm === 'reset' ? 'Сбросить овердрафт?' : 'Изменение скорости обработки'}
+        description={
+          confirm === 'reset'
+            ? `Вы уверены, что хотите сбросить скорость обработки выбранных экземпляров (${selectedRows.length}) до значения по умолчанию?`
+            : `Вы уверены, что хотите изменить скорость обработки выбранных экземпляров (${selectedRows.length})?`
+        }
+        onClose={() => setConfirm(null)}
+        onConfirm={handleConfirm}
+        loading={changing || resetting}
+        cancelLabel="Отмена"
+      />
+    </>
   );
 };
 

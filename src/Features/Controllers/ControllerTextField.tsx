@@ -3,7 +3,6 @@ import { FC } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 
 type ControllerTextFieldProps = Pick<TextFieldProps, 'size' | 'placeholder'> & {
-  // путь до поля формы со строковым значением
   name: string;
 };
 

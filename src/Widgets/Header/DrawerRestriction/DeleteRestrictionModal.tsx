@@ -1,6 +1,7 @@
-import { Button, Modal, ModalBody, ModalFooter, ModalHeader, Text } from '@sds-eng/base';
 import { useUnit } from 'effector-react';
 import { FC } from 'react';
+
+import ConfirmDeleteModal from '@src/Shared/ui/ConfirmDeleteModal';
 
 import { $restrictionDeleteRow, onCloseRestrictionDelete } from './model';
 
@@ -19,22 +20,13 @@ const DeleteRestrictionModal: FC<Props> = ({ onConfirm }) => {
   };
 
   return (
-    <Modal open={!!deleteRow} onClose={onClose} width={480}>
-      <ModalHeader showCloseButton closeButtonProps={{ onClick: onClose }}>
-        Удаление ограничения
-      </ModalHeader>
-      <ModalBody>
-        <Text kind="bodyM">Удалить ограничение{deleteRow?.label ? ` для «${deleteRow.label}»` : ''}?</Text>
-      </ModalBody>
-      <ModalFooter>
-        <Button view="secondary" kind="ghost" onClick={onClose}>
-          Отмена
-        </Button>
-        <Button view="negative" onClick={handleConfirm}>
-          Удалить
-        </Button>
-      </ModalFooter>
-    </Modal>
+    <ConfirmDeleteModal
+      open={!!deleteRow}
+      title="Удаление ограничения"
+      description={`Удалить ограничение${deleteRow?.label ? ` для «${deleteRow.label}»` : ''}?`}
+      onClose={onClose}
+      onConfirm={handleConfirm}
+    />
   );
 };
 

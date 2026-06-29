@@ -9,10 +9,8 @@ type ControllerSelectMultipleProps = Pick<
   SelectNextProps<OptionItemType>,
   'size' | 'placeholder' | 'isSearchable' | 'disableCloseOnSelect' | 'formatOptionLabel'
 > & {
-  // путь до поля формы, в форме лежит массив строк-значений опций
   name: string;
   options: OptionItemType[];
-  // виртуализация выпадашки
   virtualized?: boolean;
 };
 

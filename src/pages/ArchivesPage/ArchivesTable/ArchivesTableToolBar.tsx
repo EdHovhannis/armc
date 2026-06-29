@@ -1,11 +1,12 @@
-import { Button, Icon } from '@sds-eng/base';
+import { Button, Icon, Tooltip } from '@sds-eng/base';
 import { DataGridRowData, DataGridTableInstance, ShowHideColumnsMenu } from '@sds-eng/data-grid';
 import { useUnit } from 'effector-react';
 import { useState } from 'react';
 
 import { SpeedIconRemoved } from '@src/Shared/assets/icons/SpeedIconRemoved';
 
-import { onChangeFilterDrawerOpen, onResetArchiveFilters } from '../FilterDrawer/model';
+import { onChangeFilterDrawerOpen } from '../FilterDrawer/model';
+import { onOpenResetZoneOverdraftModal } from '../ResetZoneOverdraftModal/model';
 
 import ArchivesFilterChips from './ArchivesFilterChips';
 import { ArchivesSearchInput } from './ArchivesSearchInput';
@@ -29,12 +30,7 @@ export const ArchivesTableToolBar = <TRow extends DataGridRowData>({
   table,
 }: ArchivesTableToolBarProps<TRow>) => {
   const [columnMenuAnchor, setColumnMenuAnchor] = useState<HTMLElement | null>(null);
-  const [onChangeFilterDrawerOpenFn, resetFilters] = useUnit([onChangeFilterDrawerOpen, onResetArchiveFilters]);
-
-  const handleClearFilters = () => {
-    resetFilters();
-    onSearchChange('');
-  };
+  const [onChangeFilterDrawerOpenFn, openResetZoneOverdraft] = useUnit([onChangeFilterDrawerOpen, onOpenResetZoneOverdraftModal]);
 
   return (
     <div className={styles.tableToolbarWrapper}>
@@ -50,7 +46,14 @@ export const ArchivesTableToolBar = <TRow extends DataGridRowData>({
           <Button.Icon className={styles.filterIcons} icon={<Icon.Filter />} aria-label="Фильтры" onClick={() => onChangeFilterDrawerOpenFn(true)} />
         </div>
 
-        <Button.Icon className={styles.filterIcons} icon={<SpeedIconRemoved />} aria-label="Сбросить фильтры" onClick={handleClearFilters} />
+        <Tooltip title="Сбросить овердрафт по зоне">
+          <Button.Icon
+            className={styles.filterIcons}
+            icon={<SpeedIconRemoved />}
+            aria-label="Сбросить овердрафт по зоне"
+            onClick={() => openResetZoneOverdraft()}
+          />
+        </Tooltip>
         <Button.Icon className={styles.filterIcons} icon={<Icon.Refresh />} aria-label="Обновить" onClick={() => {}} />
       </div>
       {columnMenuAnchor && <ShowHideColumnsMenu anchorEl={columnMenuAnchor} setAnchorEl={setColumnMenuAnchor} id={showHideMenuId} table={table} />}

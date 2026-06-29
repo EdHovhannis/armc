@@ -17,8 +17,13 @@ import { onApplyArchiveFilters } from '../FilterDrawer/model';
 
 import ColumnHeaderMultiSelectFilter from './ColumnHeaderMultiSelectFilter';
 import ConfigurationActionsCell from './ConfigurationActionsCell';
+<<<<<<< HEAD
+import InstanceActionsCell from './InstanceActionsCell';
+import InstanceStatusCell from './InstanceStatusCell';
+=======
 import LabelsCell from './LabelsCell';
 import StatusBadge from './StatusBadge';
+>>>>>>> 39bcb05 (PVM-144362: добавил фильтры по url, связь между фильтрами, удаление/добовление фильтров)
 import * as styles from './styles.module.css';
 
 const createColumnHeaderFilter = (title: string, field: string, options?: typeof STATUS_OPTIONS) =>
@@ -57,7 +62,7 @@ export const archiveIndexColumns: DataGridColumnDef<ArchiveInstanceView>[] = [
     tableHeadCellProps: filterColumnHeadCellProps,
     size: 140,
     minSize: 130,
-    Cell: ({ cell }) => <StatusBadge status={cell.getValue<ArchiveInstanceView['instanceStatus']>()} />,
+    Cell: ({ row }) => <InstanceStatusCell row={row.original} />,
     tableBodyCellProps: {
       style: { textOverflow: 'unset' },
     },
@@ -122,7 +127,7 @@ export const archiveIndexColumns: DataGridColumnDef<ArchiveInstanceView>[] = [
               <Button.Icon size="sm" view="secondary" icon={<Icon.WarningFill />} aria-label="Несовпадение версий" />
             </Tooltip>
           )}
-          <Button.Icon size="sm" view="secondary" icon={<Icon.MenuKebab />} aria-label="Действия" />
+          <InstanceActionsCell row={row.original} />
         </div>
       );
     },
@@ -145,6 +150,9 @@ const InstancesCountLink = ({ cell }: { cell: DataGridCell<ArchiveConfigView, un
   const [onChangeTableViewFn, applyFilters] = useUnit([onChangeTableView, onApplyArchiveFilters]);
   const instancesCount = cell.getValue<number>();
 
+  // клик по числу экземпляров - дрилл-даун на вкладку Экземпляры. Применяем фильтр по имени конфигурации
+  // через общий стор: URL обновится сам (ссылку можно расшарить), а серверная фильтрация конфигов
+  // оставит в выдаче только инстансы этой конфигурации
   const handleClick = (event: MouseEvent) => {
     event.preventDefault();
     applyFilters([{ field: 'name', op: 'eq', values: [cell.row.original.configuration] }]);

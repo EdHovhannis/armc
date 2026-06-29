@@ -46,7 +46,7 @@ const FilterDrawer: FC = () => {
   });
 
   return (
-    <Drawer open={open} onClose={handleClose} width={520}>
+    <Drawer open={open} onClose={handleClose} width={'80%'}>
       <DrawerHeader onClose={handleClose}>Фильтр</DrawerHeader>
       <DrawerBody>
         <FormProvider {...form}>

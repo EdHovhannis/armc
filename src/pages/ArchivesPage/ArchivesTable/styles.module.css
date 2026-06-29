@@ -9,6 +9,20 @@
   white-space: nowrap;
 }
 
+.statusBadgeClickable {
+  cursor: pointer;
+  transition: filter 0.1s ease-in-out;
+}
+
+.statusBadgeClickable:hover {
+  filter: brightness(0.95);
+}
+
+.statusBadgeClickable:focus-visible {
+  outline: 2px solid var(--sds-eng-palette-arctic-arctic400);
+  outline-offset: 1px;
+}
+
 .status_RUNNING {
   color: var(--sds-eng-palette-arctic-arctic600);
   background-color: var(--sds-eng-palette-arctic-arctic100);
@@ -54,9 +68,9 @@
 }
 
 .labelTag {
-  color: var(--sds-eng-Foreground-foreSecondary);
-  background-color: var(--sds-eng-Background-surfaceSecondary);
-  border: 1px solid var(--sds-eng-Border-borderBase);
+  color: var(--sds-eng-Foreground-foreSecondary, #060a0ca8);
+  background-color: var(--sds-eng-Background-surfaceSecondary, #060a0c0a);
+  border: 1px solid var(--sds-eng-Border-borderBase, #060a0c1a);
   border-radius: 4px;
   white-space: nowrap;
 }
@@ -121,7 +135,7 @@
 }
 
 .tableContainer {
-  overflow-x: hidden !important;
+  overflow-x: auto !important;
 }
 
 .table {
@@ -220,18 +234,14 @@
   white-space: nowrap;
 }
 
-.columnHeaderFilterButton {
-  position: relative;
+.columnHeaderFilterButton,
+.columnHeaderFilterActive {
+  flex-shrink: 0;
 }
 
 .columnHeaderFilterActive {
-  background: var(--sds-eng-palette-red-red700);
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  z-index: 3;
-  position: absolute;
-  right: 0px;
+  color: var(--sds-eng-Foreground-foreAccent) !important;
+  background: var(--sds-eng-palette-arctic-arctic100, #e8f0fe) !important;
 }
 
 .columnHeaderFilterPopover {
@@ -267,7 +277,8 @@
 
 .labelTagClickable:hover {
   color: var(--sds-eng-Foreground-foreAccent);
-  background-color: var(--sds-eng-palette-arctic-arctic100);
+  background-color: var(--sds-eng-palette-arctic-arctic100, #e8f0fe);
+  border-color: var(--sds-eng-palette-arctic-arctic200, #c5d9fc);
 }
 
 .filterChipsReset {
@@ -337,4 +348,10 @@
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.actionsToolBarToggle:disabled {
+  background-color: var(--sds-eng-palette-cool-cool700) !important;
+  color: var(--sds-eng-palette-cool-cool400) !important;
+  opacity: 1 !important;
 }

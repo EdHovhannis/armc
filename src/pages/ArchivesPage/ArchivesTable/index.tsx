@@ -1,7 +1,7 @@
 import { useUnit } from 'effector-react';
 import { FC, useState, useEffect, useMemo, useCallback } from 'react';
 
-import { type ArchiveFilter, fetchArchivesCountFx, fetchArchivesFx } from '@src/Entities/Archives/api';
+import { type ArchiveFilter, fetchArchiveOptionsFx, fetchArchivesCountFx, fetchArchivesFx } from '@src/Entities/Archives/api';
 import { $archiveConfigs, $archiveInstances, $archivesTotalCount } from '@src/Entities/Archives/model';
 
 import { SEGMENT_CONFIGURATIONS, SEGMENT_INSTANCES } from '@src/Features/TableView/constants';
@@ -23,10 +23,11 @@ const ArchivesTable: FC = () => {
     resetPaginationPage,
     $appliedArchiveFilters,
   ]);
-  const [isArchivesLoading, fetchArchives, fetchArchivesCount, archiveInstanceData, archiveConfigsData, totalCount] = useUnit([
+  const [isArchivesLoading, fetchArchives, fetchArchivesCount, fetchArchiveOptions, archiveInstanceData, archiveConfigsData, totalCount] = useUnit([
     fetchArchivesFx.pending,
     fetchArchivesFx,
     fetchArchivesCountFx,
+    fetchArchiveOptionsFx,
     $archiveInstances,
     $archiveConfigs,
     $archivesTotalCount,
@@ -71,6 +72,10 @@ const ArchivesTable: FC = () => {
   );
 
   useEffect(() => {
+    fetchArchiveOptions();
+  }, [fetchArchiveOptions]);
+
+  useEffect(() => {
     fetchArchivesCount({ filters });
   }, [fetchArchivesCount, filters]);
 
@@ -88,9 +93,8 @@ const ArchivesTable: FC = () => {
     case SEGMENT_CONFIGURATIONS:
       return (
         <ArchivesDataTable
-          // перемонтаж при смене вкладки: у вкладок разный набор колонок, а грид иначе тащит
-          // внутреннее (неконтролируемое) состояние порядка колонок от предыдущего набора
-          key={SEGMENT_CONFIGURATIONS}
+          // key завязан на вкладку: разный набор колонок, без перемонтажа грид тащит старое состояние колонок
+          key={tableView}
           isLoading={isArchivesLoading}
           data={archiveConfigTableData}
           columns={archiveConfigurationColumns}
@@ -107,7 +111,7 @@ const ArchivesTable: FC = () => {
     case SEGMENT_INSTANCES:
       return (
         <ArchivesDataTable
-          key={SEGMENT_INSTANCES}
+          key={tableView}
           isLoading={isArchivesLoading}
           data={archiveInstanceTableData}
           columns={archiveIndexColumns}

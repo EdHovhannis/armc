@@ -1,0 +1,25 @@
+.instanceOverdraftModalBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.instanceOverdraftModalField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.instanceOverdraftModalLabel {
+  color: var(--sds-eng-Foreground-foreSecondary, #060a0ca8);
+}
+
+.instanceOverdraftModalHint {
+  color: var(--sds-eng-Foreground-foreSecondary, #060a0ca8);
+}
+
+.instanceOverdraftModalFooter {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}

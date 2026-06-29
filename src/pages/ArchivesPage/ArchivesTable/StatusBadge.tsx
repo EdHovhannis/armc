@@ -1,5 +1,5 @@
 import { Icon, Text, clsx } from '@sds-eng/base';
-import { FC, ReactNode } from 'react';
+import { ComponentPropsWithoutRef, ReactNode, forwardRef } from 'react';
 
 import { ArchiveIndexStatus } from '../types';
 
@@ -21,17 +21,24 @@ const STATUS_ICONS: Record<ArchiveIndexStatus, ReactNode> = {
   WITHOUT_RESPONSE: <Icon.Info size={12} />,
 };
 
-interface StatusBadgeProps {
+interface StatusBadgeProps extends Omit<ComponentPropsWithoutRef<'span'>, 'onCopy'> {
   status: ArchiveIndexStatus;
+  clickable?: boolean;
 }
 
-const StatusBadge: FC<StatusBadgeProps> = ({ status }) => {
-  return (
-    <Text as="span" kind="textSn" className={clsx(styles.statusBadge, styles[`status_${status}`])}>
-      {STATUS_ICONS[status]}
-      {STATUS_LABELS[status]}
-    </Text>
-  );
-};
+const StatusBadge = forwardRef<HTMLElement, StatusBadgeProps>(({ status, clickable, className, ...rest }, ref) => (
+  <Text
+    as="span"
+    ref={ref}
+    kind="textSn"
+    className={clsx(styles.statusBadge, styles[`status_${status}`], clickable && styles.statusBadgeClickable, className)}
+    {...rest}
+  >
+    {STATUS_ICONS[status]}
+    {STATUS_LABELS[status]}
+  </Text>
+));
+
+StatusBadge.displayName = 'StatusBadge';
 
 export default StatusBadge;

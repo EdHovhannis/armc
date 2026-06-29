@@ -77,8 +77,18 @@ const RestrictionGrid: FC<Props> = ({ name, objectType, entityHeader, entityPlac
   const loadedIds = useMemo(() => new Set(loaded.map((item) => item.objectId)), [loaded]);
 
   const columns = useMemo(
-    () => buildRestrictionColumns({ name, entityHeader, entityPlaceholder, options, loadingOptions, loadedIds, onDelete: handleRemove }),
-    [name, entityHeader, entityPlaceholder, options, loadingOptions, loadedIds, handleRemove],
+    () =>
+      buildRestrictionColumns({
+        name,
+        entityHeader,
+        entityPlaceholder,
+        options,
+        loadingOptions,
+        loadedIds,
+        preselectIndexId,
+        onDelete: handleRemove,
+      }),
+    [name, entityHeader, entityPlaceholder, options, loadingOptions, loadedIds, preselectIndexId, handleRemove],
   );
 
   return (

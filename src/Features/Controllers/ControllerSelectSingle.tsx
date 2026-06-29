@@ -5,7 +5,6 @@ import { Controller, useFormContext } from 'react-hook-form';
 import { OptionItemType } from '@src/Shared/types/filter';
 
 type ControllerSelectSingleProps = Pick<SelectNextProps<OptionItemType>, 'size' | 'placeholder' | 'canClear' | 'formatOptionLabel'> & {
-  // путь до поля формы, в форме лежит строка-значение опции
   name: string;
   options: OptionItemType[];
 };

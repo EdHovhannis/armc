@@ -1,22 +1,18 @@
 import { notification } from '@sds-eng/base';
 import { createEffect, createEvent, createStore, sample } from 'effector';
 
-import { labelsModalClosed, labelsModalOpened } from '@src/Entities/Archives/model';
 import { ArchiveConfigView } from '@src/Entities/Archives/types';
-import { addLabelFx } from '@src/Entities/Label/api';
+import { saveLabelsFx } from '@src/Entities/Label/api';
 
 export const $labelsModalRow = createStore<ArchiveConfigView | null>(null);
 
 export const onOpenLabelsModal = createEvent<ArchiveConfigView>();
 export const onCloseLabelsModal = createEvent();
 
-$labelsModalRow.on(onOpenLabelsModal, (_, row) => row).reset(onCloseLabelsModal, addLabelFx.done);
+$labelsModalRow.on(onOpenLabelsModal, (_, row) => row).reset(onCloseLabelsModal, saveLabelsFx.done);
 
-sample({ clock: onOpenLabelsModal, target: labelsModalOpened });
-sample({ clock: onCloseLabelsModal, target: labelsModalClosed });
-
-const showLabelAddedFx = createEffect(() => {
-  notification({ title: 'Метка добавлена', status: 'success' });
+const showLabelsSavedFx = createEffect(() => {
+  notification({ title: 'Метки сохранены', status: 'success' });
 });
 
-sample({ clock: addLabelFx.done, target: showLabelAddedFx });
+sample({ clock: saveLabelsFx.done, target: showLabelsSavedFx });

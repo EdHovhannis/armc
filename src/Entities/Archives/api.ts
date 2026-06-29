@@ -30,7 +30,6 @@ export interface ExportArchiveConfigParams {
 }
 
 // тело конфигурации для экспорта. форму не типизируем - скачиваем ответ как есть в json-файл
-
 export const exportArchiveConfigFx = createEffect<ExportArchiveConfigParams, AxiosResponse<unknown>, AxiosError<AxiosResponseError>>(
   async ({ project, taskName }) =>
     axios.get(`/v1/internal/index/archive/task/project/${encodeURIComponent(project)}/name/${encodeURIComponent(taskName)}/config`),
@@ -43,8 +42,8 @@ const deleteByUrl = (url: string) => axios.delete<unknown>(url);
 
 const deleteByUrls = (urls: string[]) => Promise.all(urls.map(deleteByUrl));
 
-export const deleteArchiveFx = createEffect<DeleteArchiveParams, DeleteArchiveParams>(async (params) => {
-  await deleteByUrl(getArchiveConfigUrl(params)).catch(() => undefined);
+export const deleteArchiveFx = createEffect<DeleteArchiveParams, DeleteArchiveParams, AxiosError<AxiosResponseError>>(async (params) => {
+  await deleteByUrl(getArchiveConfigUrl(params));
   return params;
 });
 
@@ -56,6 +55,14 @@ const getArchiveListParams = ({ pageNumber, pageSize, filters }: FetchArchivesPa
 
 export const fetchArchivesFx = createEffect<FetchArchivesParams, AxiosResponse<ArchiveConfiguration[]>, AxiosError<AxiosResponseError>>(
   async (params) => axios.get('/v1/internal/index/archive/list/paginated', { params: getArchiveListParams(params) }),
+);
+
+// отдельного справочника имён/меток бэк не даёт, поэтому тянем весь список разом большим pageSize.
+// TODO(archives-filter-api): заменить на справочник имён/меток, когда бэк его предоставит
+const ARCHIVE_OPTIONS_PAGE_SIZE = 10000;
+
+export const fetchArchiveOptionsFx = createEffect<void, AxiosResponse<ArchiveConfiguration[]>, AxiosError<AxiosResponseError>>(async () =>
+  axios.get('/v1/internal/index/archive/list/paginated', { params: { pageSize: ARCHIVE_OPTIONS_PAGE_SIZE, pageNumber: 1 } }),
 );
 
 export const fetchArchivesCountFx = createEffect<Pick<FetchArchivesParams, 'filters'> | void, AxiosResponse<number>, AxiosError<AxiosResponseError>>(
@@ -95,5 +102,22 @@ sample({
 sample({
   clock: exportArchiveConfigFx.failData,
   fn: ({ response, status }) => ({ title: 'Не удалось выгрузить конфигурацию.', status, message: response?.data.message, data: response?.data }),
+  target: handleErrorFx,
+});
+
+sample({
+  clock: fetchArchiveOptionsFx.failData,
+  fn: ({ response, status }) => ({
+    title: 'Не удалось загрузить список значений для фильтра.',
+    status,
+    message: response?.data.message,
+    data: response?.data,
+  }),
+  target: handleErrorFx,
+});
+
+sample({
+  clock: deleteArchiveFx.failData,
+  fn: ({ response, status }) => ({ title: 'Не удалось удалить архив.', status, message: response?.data.message, data: response?.data }),
   target: handleErrorFx,
 });

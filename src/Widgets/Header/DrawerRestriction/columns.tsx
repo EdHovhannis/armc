@@ -1,7 +1,9 @@
 import { DataGridColumnDef } from '@sds-eng/data-grid';
 import { FieldArrayWithId } from 'react-hook-form';
 
-import { DeleteRestrictionCell, EntitySelectCell, IntervalCell } from './RestrictionCells';
+import DeleteRestrictionCell from './DeleteRestrictionCell';
+import EntitySelectCell from './EntitySelectCell';
+import IntervalCell from './IntervalCell';
 import * as styles from './styles.module.css';
 import { RestrictionListName, RestrictionsFormValues } from './types';
 
@@ -16,6 +18,7 @@ type BuildColumnsParams = {
   options: Option[];
   loadingOptions: boolean;
   loadedIds: Set<string>;
+  preselectIndexId: string | null;
   onDelete: (index: number) => void;
 };
 
@@ -26,6 +29,7 @@ export const buildRestrictionColumns = ({
   options,
   loadingOptions,
   loadedIds,
+  preselectIndexId,
   onDelete,
 }: BuildColumnsParams): DataGridColumnDef<RestrictionGridRow>[] => [
   {
@@ -42,6 +46,7 @@ export const buildRestrictionColumns = ({
         options={options}
         loading={loadingOptions}
         loadedIds={loadedIds}
+        preselectIndexId={preselectIndexId}
       />
     ),
   },
@@ -63,6 +68,14 @@ export const buildRestrictionColumns = ({
     size: 56,
     minSize: 56,
     enableResizing: false,
-    Cell: ({ row }) => <DeleteRestrictionCell name={name} index={row.index} loadedIds={loadedIds} onDelete={onDelete} />,
+    Cell: ({ row, table }) => (
+      <DeleteRestrictionCell
+        row={row.original}
+        rowsCount={table.getRowModel().rows.length}
+        index={row.index}
+        loadedIds={loadedIds}
+        onDelete={onDelete}
+      />
+    ),
   },
 ];

@@ -1,0 +1,11 @@
+.resetZoneOverdraftModalBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.resetZoneOverdraftModalFooter {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-start;
+}

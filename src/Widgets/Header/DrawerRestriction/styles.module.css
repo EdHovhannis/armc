@@ -37,6 +37,13 @@
   border-bottom-right-radius: 10px;
 }
 
+/* дефолтный disabled-цвет слишком блёклый для данной цели, лучше покрасим */
+.drawerRestrictionLockedSelect,
+.drawerRestrictionLockedSelect * {
+  color: var(--sds-eng-Foreground-forePrimary, #060a0c) !important;
+  -webkit-text-fill-color: var(--sds-eng-Foreground-forePrimary, #060a0c) !important;
+}
+
 .drawerRestrictionIntervalCell {
   display: flex;
   gap: 8px;

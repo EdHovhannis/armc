@@ -4,7 +4,6 @@ import { createEffect, createEvent, createStore, sample } from 'effector';
 import { ArchiveConfigView } from '@src/Entities/Archives/types';
 import { addInstanceFx } from '@src/Entities/Instance/api';
 
-// строка-конфигурация, для которой открыта модалка добавления экземпляра (null - закрыта)
 export const $addInstanceModalRow = createStore<ArchiveConfigView | null>(null);
 
 export const onOpenAddInstanceModal = createEvent<ArchiveConfigView>();

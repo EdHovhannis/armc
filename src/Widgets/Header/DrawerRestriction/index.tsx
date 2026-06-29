@@ -9,7 +9,7 @@ import DrawerRestrictionBody from './DrawerRestrictionBody';
 const DrawerRestriction: FC = () => {
   const [open, onChangeHeaderOpenRestrictionDrawerFn] = useUnit([$headerOpenRestrictionDrawer, onChangeHeaderOpenRestrictionDrawer]);
   return (
-    <Drawer open={open} onClose={() => onChangeHeaderOpenRestrictionDrawerFn(false)} width={1000}>
+    <Drawer open={open} onClose={() => onChangeHeaderOpenRestrictionDrawerFn(false)} width={'80%'}>
       <DrawerHeader onClose={() => onChangeHeaderOpenRestrictionDrawerFn(false)}>Ограничения</DrawerHeader>
       <DrawerRestrictionBody />
     </Drawer>

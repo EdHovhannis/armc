@@ -25,9 +25,15 @@ export const useArchiveFiltersSync = () => {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+<<<<<<< HEAD
+    const restored = parseFilters(params.get(FILTERS_PARAM));
+    if (restored?.length) {
+      applyFilters(restored);
+=======
     const filters = parseFilters(params.get(FILTERS_PARAM));
     if (filters?.length) {
       applyFilters(filters);
+>>>>>>> 39bcb05 (PVM-144362: добавил фильтры по url, связь между фильтрами, удаление/добовление фильтров)
     }
   }, [applyFilters]);
 

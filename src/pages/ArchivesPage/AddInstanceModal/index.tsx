@@ -25,7 +25,6 @@ const AddInstanceModal: FC = () => {
     defaultValues: { zone: DEFAULT_ZONE },
   });
 
-  // при каждом открытии сбрасываем зону на дефолт
   useEffect(() => {
     if (row) {
       methods.reset({ zone: DEFAULT_ZONE });

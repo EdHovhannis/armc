@@ -1,33 +1,15 @@
-import { BackLink, Step, Stepper } from '@sds-eng/base';
+import { Step, Stepper } from '@sds-eng/base';
 import { useUnit } from 'effector-react';
-import { FC, useCallback } from 'react';
-import { useNavigate } from 'react-router';
-
-import { canNavigateToStep, useArchiveEditFormValidation } from './useArchiveEditFormValidation';
+import { FC } from 'react';
 
 import { $stepperIndex, onChangeStepperIndex } from './model';
 import * as styles from './styles.module.css';
 
 const ArchivesEditStepper: FC = () => {
-  const navigate = useNavigate();
   const [stepperIndex, onChangeStepperIndexFn] = useUnit([$stepperIndex, onChangeStepperIndex]);
-  const validation = useArchiveEditFormValidation();
-
-  const handleStepChange = useCallback(
-    (nextIndex: number) => {
-      if (canNavigateToStep(stepperIndex, nextIndex, validation)) {
-        onChangeStepperIndexFn(nextIndex);
-      }
-    },
-    [stepperIndex, validation, onChangeStepperIndexFn],
-  );
-
   return (
     <div className={styles.archiveEditStepperWrapper}>
-      <BackLink className={styles.archiveEditStepperBackLink} as="button" onClick={() => navigate('/archives')}>
-        Архивы
-      </BackLink>
-      <Stepper activeStep={stepperIndex} clickable onChange={handleStepChange}>
+      <Stepper activeStep={stepperIndex} clickable onChange={onChangeStepperIndexFn}>
         <Step index={0}>Название индекса</Step>
         <Step index={1}>Входные данные</Step>
         <Step index={2}>Квота</Step>

@@ -6,7 +6,6 @@ export const $restrictionTab = createStore<RestrictionTab>('byIndex');
 export const onChangeRestrictionTab = createEvent<RestrictionTab>();
 $restrictionTab.on(onChangeRestrictionTab, (_, payload) => payload);
 
-// строка, ожидающая подтверждения удаления (null - модалка закрыта)
 export const $restrictionDeleteRow = createStore<{ index: number; label: string } | null>(null);
 export const onOpenRestrictionDelete = createEvent<{ index: number; label: string }>();
 export const onCloseRestrictionDelete = createEvent();

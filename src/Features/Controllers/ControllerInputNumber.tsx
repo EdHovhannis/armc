@@ -3,7 +3,6 @@ import { FC } from 'react';
 import { Controller, RegisterOptions, useFormContext } from 'react-hook-form';
 
 type ControllerInputNumberProps = Pick<InputNumberProps, 'size' | 'placeholder' | 'precision'> & {
-  // путь до числового поля формы
   name: string;
   rules?: RegisterOptions;
 };

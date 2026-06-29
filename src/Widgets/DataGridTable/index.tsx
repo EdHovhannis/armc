@@ -83,7 +83,6 @@ const DataGridTable = <T extends DataGridRowData>(props: DataGridTableProps<T>):
     const ro = new ResizeObserver(() => {
       let currentHeight = wrapper.offsetHeight;
       if (typeof additionalHeight === 'number') {
-        // Если есть доп высота, отнимаем ее
         currentHeight = currentHeight - additionalHeight;
       }
       setHeight(currentHeight);

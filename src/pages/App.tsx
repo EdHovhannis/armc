@@ -14,6 +14,8 @@ import {
   FEATURE_SETTINGS_LIMITS_VALIDATION_STRICT_FEATURE,
   FEATURE_SETTINGS_LIMITS_VALIDATION_STRICT_SETTING,
 } from '@src/Entities/FeatureFlags/constants';
+import { fetchProjectsFx } from '@src/Entities/Project/api';
+import { fetchTopicsFx } from '@src/Entities/Topic/api';
 
 import { createRouters } from './createRouters';
 
@@ -22,16 +24,23 @@ const darkTheme = createTheme(dark);
 
 const RoutesApp: FC<PVMMindProps> = ({ basename, theme, availableRoutes }) => {
   const router = createRouters({ basename, availableRoutes });
-  const [onUpdateUrlProxyFn, fetchFeatureFlag] = useUnit([onUpdateUrlProxy, fetchFeatureFlagFx]);
+  const [onUpdateUrlProxyFn, fetchProjects, fetchTopics, fetchFeatureFlag] = useUnit([
+    onUpdateUrlProxy,
+    fetchProjectsFx,
+    fetchTopicsFx,
+    fetchFeatureFlagFx,
+  ]);
 
   useLayoutEffect(() => {
     onUpdateUrlProxyFn(basename);
   }, [basename, onUpdateUrlProxyFn]);
 
   useEffect(() => {
+    fetchProjects();
+    fetchTopics();
     fetchFeatureFlag({ setting: FEATURE_SETTINGS_LIMITS_SETTING, feature: FEATURE_SETTINGS_LIMITS_FEATURE });
     fetchFeatureFlag({ setting: FEATURE_SETTINGS_LIMITS_VALIDATION_STRICT_SETTING, feature: FEATURE_SETTINGS_LIMITS_VALIDATION_STRICT_FEATURE });
-  }, [fetchFeatureFlag]);
+  }, [fetchProjects, fetchTopics, fetchFeatureFlag]);
 
   return (
     <DateLibAdapterProvider dateAdapter={DateFnsAdapter} options={{ locale: russianLocale }}>
