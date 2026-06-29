@@ -6,12 +6,52 @@ import { ArchiveEditFormValues } from '../types';
 
 const isFilledKafkaSource = (source: { project: string | null; name: string | null }) => Boolean(source.project?.trim() && source.name?.trim());
 
-export const buildCreateArchivePayload = (values: ArchiveEditFormValues): CreateArchiveConfigPayload => {
-  const processing: Record<string, unknown> = { ...values.processing };
+type ProcessingFormValue = ArchiveEditFormValues['processing'] & {
+  messageFilter?: {
+    condition?: {
+      type?: string;
+      conditions?: Array<{ type: string; field: string; value: string; inverted: boolean }>;
+    };
+    dlqField?: boolean;
+  };
+  copyAuditParams?: {
+    copyAuditParamsSpecs?: unknown[];
+  };
+};
+
+const buildProcessingPayload = (values: ArchiveEditFormValues): Record<string, unknown> => {
+  const processing: Record<string, unknown> = {
+    copyField: values.processing.copyField ?? [],
+  };
 
   if (values.flatten) {
     processing.flatten = { exclude: values.exclude };
   }
+
+  const extra = values.processing as ProcessingFormValue;
+  const messageFilterConditions = extra.messageFilter?.condition?.conditions ?? [];
+  const messageFilterType = extra.messageFilter?.condition?.type;
+
+  if (messageFilterType && messageFilterConditions.length > 0) {
+    processing.messageFilter = {
+      condition: {
+        type: messageFilterType,
+        conditions: messageFilterConditions,
+      },
+      dlqField: extra.messageFilter?.dlqField ?? false,
+    };
+  }
+
+  const auditSpecs = extra.copyAuditParams?.copyAuditParamsSpecs ?? [];
+  if (auditSpecs.length > 0) {
+    processing.copyAuditParams = { copyAuditParamsSpecs: auditSpecs };
+  }
+
+  return processing;
+};
+
+export const buildCreateArchivePayload = (values: ArchiveEditFormValues): CreateArchiveConfigPayload => {
+  const processing = buildProcessingPayload(values);
 
   const labels = values.labelsText
     .split(',')
