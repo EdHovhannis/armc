@@ -96,3 +96,9 @@ sample({
   fn: ({ response, status }) => ({ title: 'Не удалось выгрузить конфигурацию.', status, message: response?.data.message, data: response?.data }),
   target: handleErrorFx,
 });
+
+sample({
+  clock: deleteArchiveFx.failData,
+  fn: ({ response, status }) => ({ title: 'Не удалось удалить архив.', status, message: response?.data.message, data: response?.data }),
+  target: handleErrorFx,
+});
