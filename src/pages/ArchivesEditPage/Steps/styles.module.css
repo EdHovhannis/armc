@@ -138,3 +138,22 @@ div.archiveStepLimitsStatusCard {
   border: 1px solid var(--sds-eng-Border-borderIntence, #060a0c1f);
   border-radius: 4px;
 }
+
+.archiveIndexInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 0;
+}
+.archiveIndexTimeInfo {
+  display: flex;
+  align-items: flex-start;
+  padding-bottom: 24px;
+  justify-content: space-between;
+}
+.archiveIndexDataInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+}
