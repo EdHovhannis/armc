@@ -36,3 +36,23 @@ export type ProjectEstimate = {
 export type EstimateOverdraftItem = {
   maxAvailableOverdraft: number;
 };
+
+export type QuotaEstimateSource = {
+  project: string;
+  name: string;
+};
+
+export type QuotaEstimateRequestParams = {
+  project: string;
+  name: string | null;
+  maxDataRateBytesPerSec: number;
+  maxStoreDurationSec: number | null;
+  maxSizeBytes: number | null;
+  sources: QuotaEstimateSource[];
+};
+
+export type OverdraftEstimateRequestParams = {
+  maxDataRateBytesPerSec: number;
+  maxSizeBytes: number | null;
+  maxStorageTimeSec: number | null;
+};

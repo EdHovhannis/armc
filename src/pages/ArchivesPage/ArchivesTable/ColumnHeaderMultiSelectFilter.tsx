@@ -114,13 +114,10 @@ const ColumnHeaderMultiSelectFilter: FC<ColumnHeaderMultiSelectFilterProps> = ({
         primaryButtonProps={{ text: 'Применить', onClick: handleApply, size: 'sm' }}
         secondaryButtonProps={{ text: 'Сбросить', onClick: handleReset, size: 'sm' }}
       >
-        <Button.Icon
-          size="xs"
-          view="secondary"
-          icon={<Icon.Filter />}
-          aria-label={`Фильтр: ${title}`}
-          className={isActive ? styles.columnHeaderFilterActive : styles.columnHeaderFilterButton}
-        />
+        <div className={styles.columnHeaderFilterButton}>
+          {isActive && <div className={isActive ? styles.columnHeaderFilterActive : styles.columnHeaderFilterButton}> </div>}
+          <Button.Icon size="xs" view="secondary" icon={<Icon.Filter />} aria-label={`Фильтр: ${title}`} />
+        </div>
       </Popover>
     </div>
   );
