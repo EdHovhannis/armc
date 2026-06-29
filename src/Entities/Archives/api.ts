@@ -57,14 +57,6 @@ export const fetchArchivesFx = createEffect<FetchArchivesParams, AxiosResponse<A
   async (params) => axios.get('/v1/internal/index/archive/list/paginated', { params: getArchiveListParams(params) }),
 );
 
-// отдельного справочника имён/меток бэк не даёт, поэтому тянем весь список разом большим pageSize.
-// TODO(archives-filter-api): заменить на справочник имён/меток, когда бэк его предоставит
-const ARCHIVE_OPTIONS_PAGE_SIZE = 10000;
-
-export const fetchArchiveOptionsFx = createEffect<void, AxiosResponse<ArchiveConfiguration[]>, AxiosError<AxiosResponseError>>(async () =>
-  axios.get('/v1/internal/index/archive/list/paginated', { params: { pageSize: ARCHIVE_OPTIONS_PAGE_SIZE, pageNumber: 1 } }),
-);
-
 export const fetchArchivesCountFx = createEffect<Pick<FetchArchivesParams, 'filters'> | void, AxiosResponse<number>, AxiosError<AxiosResponseError>>(
   async (params) =>
     axios.get('/v1/internal/index/archive/list/page-count', {
@@ -102,22 +94,5 @@ sample({
 sample({
   clock: exportArchiveConfigFx.failData,
   fn: ({ response, status }) => ({ title: 'Не удалось выгрузить конфигурацию.', status, message: response?.data.message, data: response?.data }),
-  target: handleErrorFx,
-});
-
-sample({
-  clock: fetchArchiveOptionsFx.failData,
-  fn: ({ response, status }) => ({
-    title: 'Не удалось загрузить список значений для фильтра.',
-    status,
-    message: response?.data.message,
-    data: response?.data,
-  }),
-  target: handleErrorFx,
-});
-
-sample({
-  clock: deleteArchiveFx.failData,
-  fn: ({ response, status }) => ({ title: 'Не удалось удалить архив.', status, message: response?.data.message, data: response?.data }),
   target: handleErrorFx,
 });

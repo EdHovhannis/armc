@@ -25,7 +25,7 @@ export const useArchiveFiltersSync = () => {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const restored = parseFilters(params.get(FILTERS_PARAM));
+    const restored = parseFilters(params.get(FILTERS_PARAM)) ?? parseFilters(localStorage.getItem(STORAGE_KEY));
     if (restored?.length) {
       applyFilters(restored);
     }
