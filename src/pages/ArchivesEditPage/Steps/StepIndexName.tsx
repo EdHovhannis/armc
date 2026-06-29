@@ -24,7 +24,7 @@ const StepIndexName: FC = () => {
   ]);
 
   const name = useWatch({ control, name: 'name', defaultValue: '' }) as string;
-  const project = useWatch({ control, name: 'project', defaultValue: '' }) as string;
+  const projectShortName = useWatch({ control, name: 'projectShortName', defaultValue: '' }) as string;
 
   useEffect(() => {
     fetchProjectsFx();
@@ -35,22 +35,21 @@ const StepIndexName: FC = () => {
   }, [name]);
 
   useEffect(() => {
-    onChangeArchiveEditProjectShortName(project ?? '');
-  }, [project]);
+    onChangeArchiveEditProjectShortName(projectShortName ?? '');
+  }, [projectShortName]);
 
   useEffect(() => {
-    const projectValue = project?.trim() ?? '';
-    setValue('projectShortName', projectValue);
+    const projectValue = projectShortName?.trim() ?? '';
     const selectedProject = optionsProject.find((item) => item.value === projectValue);
     setValue('projectName', selectedProject?.name ?? projectValue);
-  }, [project, optionsProject, setValue]);
+  }, [projectShortName, optionsProject, setValue]);
 
   useEffect(() => {
     setValue('availableQuota', currentProjectLimits);
   }, [currentProjectLimits, setValue]);
 
   useEffect(() => {
-    const projectValue = project?.trim();
+    const projectValue = projectShortName?.trim();
     const nameValue = name?.trim();
     if (!projectValue) return;
 
@@ -59,7 +58,7 @@ const StepIndexName: FC = () => {
     if (nameValue) {
       fetchArchiveId({ project: projectValue, name: nameValue });
     }
-  }, [project, name, fetchProjectLimits, fetchArchiveId]);
+  }, [projectShortName, name, fetchProjectLimits, fetchArchiveId]);
 
   return (
     <div className={styles.archiveStepWrapper}>
@@ -79,7 +78,7 @@ const StepIndexName: FC = () => {
           Проект
         </Text>
         <Controller
-          name="project"
+          name="projectShortName"
           control={control}
           rules={{}}
           render={({ field }) => {

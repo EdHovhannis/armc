@@ -1,11 +1,9 @@
 import { INIT_PROJECT_LIMITS } from '@src/Entities/Limits/constants';
-import { SCHEMA_CONDITION_FIELDS, SCHEMA_DLQ_FIELDS } from '@src/Shared/constants/options';
 
 import { ArchiveEditFormValues } from './types';
 
 export const ARCHIVE_EDIT_DEFAULT_VALUES: ArchiveEditFormValues = {
   name: '',
-  project: '',
   projectName: '',
   projectShortName: '',
   source: {
@@ -14,13 +12,6 @@ export const ARCHIVE_EDIT_DEFAULT_VALUES: ArchiveEditFormValues = {
   },
   processing: {
     copyField: [],
-    messageFilter: {
-      condition: { type: SCHEMA_CONDITION_FIELDS[0].value, conditions: [] },
-      dlqField: SCHEMA_DLQ_FIELDS[0].value,
-    },
-    copyAuditParams: {
-      copyAuditParamsSpecs: [],
-    },
   },
   schema: { fields: [] },
   quota: {

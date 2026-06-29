@@ -7,7 +7,6 @@ export type ArchiveEditKafkaSource = {
 
 export type ArchiveEditFormValues = {
   name: string;
-  project: string;
   projectName: string;
   projectShortName: string;
   source: {
@@ -19,23 +18,6 @@ export type ArchiveEditFormValues = {
   };
   processing: {
     copyField: Array<{ from: string; to: string[] }>;
-    messageFilter: {
-      condition: {
-        type: string;
-        conditions: Array<{ type: string; field: string; value: string; inverted: boolean }>;
-      };
-      dlqField: boolean;
-    };
-    copyAuditParams: {
-      copyAuditParamsSpecs: Array<{
-        auditParamsArrayFieldName: string;
-        auditParamName: string;
-        fieldWithAuditParamName: string;
-        fieldWithAuditParamValue: string;
-        resultFieldName: string;
-        resultFieldType: string;
-      }>;
-    };
   };
   schema: {
     fields: Array<{ name: string; type: string; subType?: string; format?: string }>;

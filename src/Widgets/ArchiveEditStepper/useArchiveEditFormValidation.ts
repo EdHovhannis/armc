@@ -40,7 +40,7 @@ export const canNavigateToStep = (fromStep: number, toStep: number, validation: 
 
 export const useArchiveEditFormValidation = (): ArchiveEditFormValidation => {
   const { control } = useFormContext();
-  const [name, project] = useWatch({ control, name: ['name', 'project'] });
+  const [name, projectShortName] = useWatch({ control, name: ['name', 'projectShortName'] });
   const kafkaSources = useWatch({ control, name: 'source.kafka', defaultValue: [] }) as Array<{ project: string | null; name: string | null }>;
   const quota = useWatch({ control, name: 'quota', defaultValue: {} }) as {
     maxDataRateBytesPerSec?: number;
@@ -50,10 +50,10 @@ export const useArchiveEditFormValidation = (): ArchiveEditFormValidation => {
 
   return useMemo(
     () => ({
-      isIndexNameStepValid: Boolean(String(name ?? '').trim()) && Boolean(project),
+      isIndexNameStepValid: Boolean(String(name ?? '').trim()) && Boolean(projectShortName),
       isInputDataStepValid: isKafkaSourcesFilled(kafkaSources ?? []),
       isLimitsStepValid: isQuotaFilled(quota ?? {}),
     }),
-    [name, project, kafkaSources, quota],
+    [name, projectShortName, kafkaSources, quota],
   );
 };
