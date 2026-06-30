@@ -1,7 +1,6 @@
 import { createBridgeComponent } from '@module-federation/bridge-react/v18';
 import { createRoot } from 'react-dom/client';
 
-import HeaderWidget from './Widgets/Header';
 import App from './pages/App';
 
 export default createBridgeComponent({
@@ -17,8 +16,4 @@ export default createBridgeComponent({
       console.error('Remote armc app error:', error);
     },
   },
-});
-
-export const header = createBridgeComponent({
-  rootComponent: HeaderWidget,
 });

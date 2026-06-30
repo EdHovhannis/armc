@@ -57,19 +57,14 @@ const StepResult: FC = () => {
 
   const dateTableData = useMemo<DateTableRow[]>(
     () =>
-      (schemaFields ?? [])
-        .filter(isDateField)
-        .map((field) => ({
-          dateField: field.name,
-          sourceFormat: field.format ?? '',
-        })),
+      (schemaFields ?? []).filter(isDateField).map((field) => ({
+        dateField: field.name,
+        sourceFormat: field.format ?? '',
+      })),
     [schemaFields],
   );
 
-  const dateFieldOptions = useMemo(
-    () => dateTableData.map((item) => ({ label: item.dateField, value: item.dateField })),
-    [dateTableData],
-  );
+  const dateFieldOptions = useMemo(() => dateTableData.map((item) => ({ label: item.dateField, value: item.dateField })), [dateTableData]);
 
   const archiveSizeLabel = formatBytes(sizeUnitToBytes(quota?.maxSizeBytes ?? 0, quotaUnits?.size ?? 'MB'));
   const archiveSpeedLabel = formatSpeed(speedUnitToBytesPerSec(quota?.maxDataRateBytesPerSec ?? 0, quotaUnits?.speed ?? 'B/s'));
@@ -89,7 +84,12 @@ const StepResult: FC = () => {
             name="primaryTimeField.type"
             control={control}
             render={({ field }) => (
-              <RadioGroup value={field.value} direction="vertical" name="primaryTimeFieldType" onChange={(value) => field.onChange(value as PrimaryTimeFieldType)}>
+              <RadioGroup
+                value={field.value}
+                direction="vertical"
+                name="primaryTimeFieldType"
+                onChange={(value) => field.onChange(value as PrimaryTimeFieldType)}
+              >
                 <LabelControl value="CUSTOM" control={<Radio />} label="использовать поле из схемы" />
                 <LabelControl value="AUTOGENERATE" control={<Radio />} label="использовать время записи в хранилище" />
               </RadioGroup>
@@ -142,7 +142,7 @@ const StepResult: FC = () => {
           control={control}
           render={({ field }) => {
             const dlqOptions = schemaTableData.map((item) => ({ label: item.name, value: item.name }));
-            const currentValue = field.value ? dlqOptions.find((item) => item.value === field.value) ?? null : null;
+            const currentValue = field.value ? (dlqOptions.find((item) => item.value === field.value) ?? null) : null;
             return (
               <Select
                 placeholder="Выберите значение"

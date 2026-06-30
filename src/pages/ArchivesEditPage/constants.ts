@@ -1,5 +1,6 @@
-import { INIT_PROJECT_LIMITS } from '@src/Entities/Limits/constants';
 import { DATE_LIMITS_UNIT_OPTIONS, SIZE_LIMITS_UNIT_OPTIONS, SPEED_LIMITS_UNIT_OPTIONS } from '@src/Shared/constants/options';
+
+import { INIT_PROJECT_LIMITS } from '@src/Entities/Limits/constants';
 
 import { ArchiveEditFormValues } from './types';
 

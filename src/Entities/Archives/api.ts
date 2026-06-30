@@ -47,8 +47,8 @@ export const deleteArchiveFx = createEffect<DeleteArchiveParams, DeleteArchivePa
   return params;
 });
 
-export const createArchiveFx = createEffect<CreateArchiveParams, AxiosResponse<unknown>, AxiosError<AxiosResponseError>>(
-  async ({ project, body }) => axios.post(`/v1/internal/index/archive/task/project/${encodeURIComponent(project)}/config`, body),
+export const createArchiveFx = createEffect<CreateArchiveParams, AxiosResponse<unknown>, AxiosError<AxiosResponseError>>(async ({ project, body }) =>
+  axios.post(`/v1/internal/index/archive/task/project/${encodeURIComponent(project)}/config`, body),
 );
 
 const getArchiveListParams = ({ pageNumber, pageSize, filters }: FetchArchivesParams) => ({
