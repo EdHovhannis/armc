@@ -5,7 +5,7 @@ import { axios } from '@src/Shared/api/axios';
 import { handleErrorFx } from '@src/Shared/api/model';
 import { AxiosResponseError } from '@src/Shared/api/types';
 
-import { ArchiveConfiguration, CreateArchiveParams, FilterItems } from './types';
+import { ArchiveConfigParams, ArchiveConfigPayload, ArchiveConfiguration, CreateArchiveParams, FilterItems, UpdateArchiveParams } from './types';
 
 export interface FetchArchivesParams {
   pageNumber: number;
@@ -19,18 +19,17 @@ export interface ArchiveFilter {
   values: string[];
 }
 
-export interface DeleteArchiveParams {
-  project: string;
-  taskName: string;
-}
+export type DeleteArchiveParams = ArchiveConfigParams;
 
-export interface ExportArchiveConfigParams {
-  project: string;
-  taskName: string;
-}
+export type ExportArchiveConfigParams = ArchiveConfigParams;
 
 // тело конфигурации для экспорта. форму не типизируем - скачиваем ответ как есть в json-файл
 export const exportArchiveConfigFx = createEffect<ExportArchiveConfigParams, AxiosResponse<unknown>, AxiosError<AxiosResponseError>>(
+  async ({ project, taskName }) =>
+    axios.get(`/v1/internal/index/archive/task/project/${encodeURIComponent(project)}/name/${encodeURIComponent(taskName)}/config`),
+);
+
+export const fetchArchiveConfigFx = createEffect<ArchiveConfigParams, AxiosResponse<ArchiveConfigPayload>, AxiosError<AxiosResponseError>>(
   async ({ project, taskName }) =>
     axios.get(`/v1/internal/index/archive/task/project/${encodeURIComponent(project)}/name/${encodeURIComponent(taskName)}/config`),
 );
@@ -49,6 +48,11 @@ export const deleteArchiveFx = createEffect<DeleteArchiveParams, DeleteArchivePa
 
 export const createArchiveFx = createEffect<CreateArchiveParams, AxiosResponse<unknown>, AxiosError<AxiosResponseError>>(async ({ project, body }) =>
   axios.post(`/v1/internal/index/archive/task/project/${encodeURIComponent(project)}/config`, body),
+);
+
+export const updateArchiveFx = createEffect<UpdateArchiveParams, AxiosResponse<unknown>, AxiosError<AxiosResponseError>>(
+  async ({ project, taskName, body }) =>
+    axios.put(`/v1/internal/index/archive/task/project/${encodeURIComponent(project)}/name/${encodeURIComponent(taskName)}/config`, body),
 );
 
 const getArchiveListParams = ({ pageNumber, pageSize, filters }: FetchArchivesParams) => ({
@@ -102,6 +106,12 @@ sample({
 });
 
 sample({
+  clock: fetchArchiveConfigFx.failData,
+  fn: ({ response, status }) => ({ title: 'Не удалось загрузить конфигурацию.', status, message: response?.data.message, data: response?.data }),
+  target: handleErrorFx,
+});
+
+sample({
   clock: deleteArchiveFx.failData,
   fn: ({ response, status }) => ({ title: 'Не удалось удалить архив.', status, message: response?.data.message, data: response?.data }),
   target: handleErrorFx,
@@ -110,5 +120,11 @@ sample({
 sample({
   clock: createArchiveFx.failData,
   fn: ({ response, status }) => ({ title: 'Не удалось создать конфигурацию.', status, message: response?.data.message, data: response?.data }),
+  target: handleErrorFx,
+});
+
+sample({
+  clock: updateArchiveFx.failData,
+  fn: ({ response, status }) => ({ title: 'Не удалось сохранить конфигурацию.', status, message: response?.data.message, data: response?.data }),
   target: handleErrorFx,
 });

@@ -86,7 +86,7 @@ export interface FilterItems {
 
 export type PrimaryTimeFieldType = 'CUSTOM' | 'AUTOGENERATE';
 
-export type CreateArchiveConfigPayload = {
+export type ArchiveConfigPayload = {
   name: string;
   processing: Record<string, unknown>;
   schema: {
@@ -96,6 +96,7 @@ export type CreateArchiveConfigPayload = {
       subType: string | null;
       format?: string;
     }>;
+    dynamicFields?: unknown[] | null;
   };
   source: {
     kafka: Array<{ project: string; name: string }>;
@@ -108,15 +109,25 @@ export type CreateArchiveConfigPayload = {
   };
   primaryTimeField: {
     type: PrimaryTimeFieldType;
-    field: string;
+    field?: string;
     lateMessageRejectionPeriod?: string;
     earlyMessageRejectionPeriod?: string;
   };
-  deadLetterQueue?: string | null;
-  labels?: string[];
+  deadLetterQueue?: unknown | null;
+  labels?: string[] | null;
+  metadata?: unknown;
 };
 
 export interface CreateArchiveParams {
   project: string;
-  body: CreateArchiveConfigPayload;
+  body: ArchiveConfigPayload;
+}
+
+export interface ArchiveConfigParams {
+  project: string;
+  taskName: string;
+}
+
+export interface UpdateArchiveParams extends ArchiveConfigParams {
+  body: ArchiveConfigPayload;
 }

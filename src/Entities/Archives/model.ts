@@ -13,7 +13,7 @@ import {
 } from '@src/Entities/Instance/api';
 import { addLabelFx, deleteLabelFx } from '@src/Entities/Label/api';
 
-import { FetchArchivesParams, deleteArchiveFx, fetchArchivesCountFx, fetchArchivesFiltersFx, fetchArchivesFx } from './api';
+import { FetchArchivesParams, createArchiveFx, deleteArchiveFx, fetchArchivesCountFx, fetchArchivesFiltersFx, fetchArchivesFx, updateArchiveFx } from './api';
 import { ArchiveConfigView, ArchiveConfiguration, ArchiveInstanceView, FilterItems } from './types';
 
 export const $archives = createStore<ArchiveConfiguration[]>([]);
@@ -48,7 +48,7 @@ const $labelsDirty = createStore(false)
   .on(deleteLabelFx.done, () => true)
   .reset(labelsModalOpened);
 
-sample({ clock: deleteArchiveFx.done, target: refetchLastArchives });
+sample({ clock: [createArchiveFx.done, updateArchiveFx.done, deleteArchiveFx.done], target: refetchLastArchives });
 sample({ clock: addLabelFx.done, target: refetchLastArchives });
 
 sample({
@@ -59,7 +59,7 @@ sample({
 });
 
 sample({
-  clock: deleteArchiveFx.done,
+  clock: [createArchiveFx.done, deleteArchiveFx.done],
   source: $lastFetchCountFilters,
   target: fetchArchivesCountFx,
 });

@@ -102,6 +102,14 @@ const routes: MockRoute[] = [
     },
   },
   {
+    method: 'put',
+    match: /\/archive\/task\/project\/[^/]+\/name\/[^/]+\/config$/,
+    resolve: (config) => {
+      const body = typeof config.data === 'string' ? JSON.parse(config.data) : config.data;
+      return { ...archiveConfigFixture, ...body };
+    },
+  },
+  {
     method: 'get',
     match: /\/archive\/restrictions\/overview/,
     resolve: () => restrictionsOverviewFixture,

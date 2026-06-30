@@ -55,6 +55,21 @@ const StepLimits: FC = () => {
     control,
     name: ['source.kafka', 'quota.maxDataRateBytesPerSec', 'quota.maxSizeBytes', 'quota.maxStorageTimeSec'],
   });
+  const quotaUnits = useWatch({ control, name: 'quotaUnits' }) as Partial<Record<keyof UnitState, string>> | undefined;
+
+  useEffect(() => {
+    const speedOption = SPEED_LIMITS_UNIT_OPTIONS.find((option) => option.value === quotaUnits?.speed);
+    const sizeOption = SIZE_LIMITS_UNIT_OPTIONS.find((option) => option.value === quotaUnits?.size);
+    const dateOption = DATE_LIMITS_UNIT_OPTIONS.find((option) => option.value === quotaUnits?.date);
+
+    if (speedOption || sizeOption || dateOption) {
+      setState((prev) => ({
+        speed: speedOption ?? prev.speed,
+        size: sizeOption ?? prev.size,
+        date: dateOption ?? prev.date,
+      }));
+    }
+  }, [quotaUnits?.date, quotaUnits?.size, quotaUnits?.speed]);
 
   useEffect(() => {
     setValue('quotaUnits.speed', state.speed.value);

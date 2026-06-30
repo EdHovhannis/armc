@@ -1,6 +1,6 @@
 import { dateUnitToSeconds, sizeUnitToBytes, speedUnitToBytesPerSec } from '@src/Shared/lib/format/quotaUnits';
 
-import { CreateArchiveConfigPayload } from '@src/Entities/Archives/types';
+import { ArchiveConfigPayload } from '@src/Entities/Archives/types';
 
 import { ArchiveEditFormValues } from '../types';
 
@@ -50,7 +50,7 @@ const buildProcessingPayload = (values: ArchiveEditFormValues): Record<string, u
   return processing;
 };
 
-export const buildCreateArchivePayload = (values: ArchiveEditFormValues): CreateArchiveConfigPayload => {
+export const buildCreateArchivePayload = (values: ArchiveEditFormValues): ArchiveConfigPayload => {
   const processing = buildProcessingPayload(values);
 
   const labels = values.labelsText
@@ -68,6 +68,7 @@ export const buildCreateArchivePayload = (values: ArchiveEditFormValues): Create
         subType: field.subType ?? null,
         ...(field.format ? { format: field.format } : {}),
       })),
+      dynamicFields: null,
     },
     source: {
       kafka: values.source.kafka.filter(isFilledKafkaSource).map((source) => ({
@@ -91,6 +92,6 @@ export const buildCreateArchivePayload = (values: ArchiveEditFormValues): Create
       earlyMessageRejectionPeriod: values.primaryTimeField.earlyMessageRejectionPeriod,
     },
     deadLetterQueue: values.deadLetterQueue,
-    ...(labels.length > 0 ? { labels } : {}),
+    labels: labels.length > 0 ? labels : null,
   };
 };
