@@ -1,33 +1,29 @@
 import { clsx, Select, Text, InputNumber, StatusCard } from '@sds-eng/base';
 import { useUnit } from 'effector-react';
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect, useMemo, useRef } from 'react';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 import { useSearchParams } from 'react-router';
 
 import { DATE_LIMITS_UNIT_OPTIONS, SIZE_LIMITS_UNIT_OPTIONS, SPEED_LIMITS_UNIT_OPTIONS } from '@src/Shared/constants/options';
 import { bytesToSizeUnit, dateUnitToSeconds, secondsToDateUnit, sizeUnitToBytes, speedUnitToBytesPerSec } from '@src/Shared/lib/format/quotaUnits';
-import { DateUnitOption, SizeUnitOption, SpeedUnitOption } from '@src/Shared/types/filter';
 
 import { $isLimitFeatureSettingEnabled } from '@src/Entities/FeatureFlags/model';
 import { fetchCurrentEstimateFx } from '@src/Entities/Limits/api';
 import { $currentEstimateBlockers, $currentEstimateWarnings } from '@src/Entities/Limits/model';
+import { fetchTopicsFx } from '@src/Entities/Topic/api';
+import { $topics } from '@src/Entities/Topic/model';
 
 import LimitsInfo from '@src/Features/Limits/ui/LimitsInfo';
 import LimitsProjectInfo from '@src/Features/Limits/ui/LimitsProjectInfo';
 
-import { isFilledNumber, isKafkaSourcesFilled, isQuotaEstimateReady } from '@src/Widgets/ArchiveEditStepper/formValidation';
+import { isFilledNumber, isKafkaSourcesFilled, isPositiveNumber, isQuotaEstimateReady } from '@src/Widgets/ArchiveEditStepper/formValidation';
 
 import { $archiveEditName, $archiveEditProjectShortName } from '../model';
+import { ArchiveEditFormValues } from '../types';
 
 import * as styles from './styles.module.css';
 
 const ESTIMATE_DEBOUNCE_MS = 500;
-
-type UnitState = {
-  speed: SpeedUnitOption;
-  size: SizeUnitOption;
-  date: DateUnitOption;
-};
 
 type QuotaFormValues = {
   maxDataRateBytesPerSec?: number;
@@ -35,41 +31,104 @@ type QuotaFormValues = {
   maxStorageTimeSec?: number;
 };
 
+type LastEditedQuotaField = 'size' | 'time' | null;
+
+const getSpeedUnit = (value?: string) => SPEED_LIMITS_UNIT_OPTIONS.find((option) => option.value === value) ?? SPEED_LIMITS_UNIT_OPTIONS[0];
+const getSizeUnit = (value?: string) => SIZE_LIMITS_UNIT_OPTIONS.find((option) => option.value === value) ?? SIZE_LIMITS_UNIT_OPTIONS[0];
+const getDateUnit = (value?: string) => DATE_LIMITS_UNIT_OPTIONS.find((option) => option.value === value) ?? DATE_LIMITS_UNIT_OPTIONS[5];
+
+const buildEstimateQuotaParams = (
+  quotaValues: QuotaFormValues,
+  units: ArchiveEditFormValues['quotaUnits'],
+  lastEdited: LastEditedQuotaField,
+) => {
+  const hasSize = isPositiveNumber(quotaValues.maxSizeBytes);
+  const hasTime = isPositiveNumber(quotaValues.maxStorageTimeSec);
+
+  if (lastEdited === 'size' && hasSize) {
+    return {
+      maxSizeBytes: sizeUnitToBytes(quotaValues.maxSizeBytes!, units.size),
+      maxStoreDurationSec: null,
+    };
+  }
+
+  if (lastEdited === 'time' && hasTime) {
+    return {
+      maxSizeBytes: null,
+      maxStoreDurationSec: dateUnitToSeconds(quotaValues.maxStorageTimeSec!, units.date),
+    };
+  }
+
+  if (hasSize && !hasTime) {
+    return {
+      maxSizeBytes: sizeUnitToBytes(quotaValues.maxSizeBytes!, units.size),
+      maxStoreDurationSec: null,
+    };
+  }
+
+  if (hasTime && !hasSize) {
+    return {
+      maxSizeBytes: null,
+      maxStoreDurationSec: dateUnitToSeconds(quotaValues.maxStorageTimeSec!, units.date),
+    };
+  }
+
+  if (hasSize && hasTime) {
+    return {
+      maxSizeBytes: sizeUnitToBytes(quotaValues.maxSizeBytes!, units.size),
+      maxStoreDurationSec: dateUnitToSeconds(quotaValues.maxStorageTimeSec!, units.date),
+    };
+  }
+
+  return { maxSizeBytes: null, maxStoreDurationSec: null };
+};
+
 const StepLimits: FC = () => {
-  const { control, setValue } = useFormContext();
+  const { control, setValue } = useFormContext<ArchiveEditFormValues>();
   const [searchParams] = useSearchParams();
   const isEditMode = Boolean(searchParams.get('name')?.trim());
-  const [state, setState] = useState<UnitState>({
-    speed: SPEED_LIMITS_UNIT_OPTIONS[0],
-    size: SIZE_LIMITS_UNIT_OPTIONS[0],
-    date: DATE_LIMITS_UNIT_OPTIONS[5],
-  });
-  const [archiveName, projectShortName, warnings, blockers, isLimitFeatureSettingEnabled] = useUnit([
+  const lastEditedQuotaFieldRef = useRef<LastEditedQuotaField>(null);
+  const [archiveName, projectShortName, warnings, blockers, isLimitFeatureSettingEnabled, topics] = useUnit([
     $archiveEditName,
     $archiveEditProjectShortName,
     $currentEstimateWarnings,
     $currentEstimateBlockers,
     $isLimitFeatureSettingEnabled,
+    $topics,
   ]);
-  const [kafkaSources, maxDataRateBytesPerSec, maxSizeBytes, maxStorageTimeSec] = useWatch({
+  const [kafkaSources, maxDataRateBytesPerSec, maxSizeBytes, maxStorageTimeSec, quotaUnits] = useWatch({
     control,
-    name: ['source.kafka', 'quota.maxDataRateBytesPerSec', 'quota.maxSizeBytes', 'quota.maxStorageTimeSec'],
+    name: ['source.kafka', 'quota.maxDataRateBytesPerSec', 'quota.maxSizeBytes', 'quota.maxStorageTimeSec', 'quotaUnits'],
   });
-  const quotaUnits = useWatch({ control, name: 'quotaUnits' }) as Partial<Record<keyof UnitState, string>> | undefined;
+
+  const speedUnit = getSpeedUnit(quotaUnits?.speed);
+  const sizeUnit = getSizeUnit(quotaUnits?.size);
+  const dateUnit = getDateUnit(quotaUnits?.date);
+
+  const limitsInfo = useMemo(() => {
+    const sources = (kafkaSources ?? []) as Array<{ project: string | null; name: string | null }>;
+    const filledSources = sources.filter((source) => source.project && source.name);
+    const topicNames = filledSources.map((source) => `${source.project}/${source.name}`);
+
+    return filledSources.reduce(
+      (acc, source) => {
+        const topicKey = `${source.project}/${source.name}`;
+        const topic = topics.find((item) => item.topicFullName.replace('.', '/') === topicKey);
+
+        if (topic) {
+          acc.sumBytesPerSec += topic.plannedRate ?? 0;
+          acc.sumPartitions += topic.partitions ?? 0;
+        }
+
+        return acc;
+      },
+      { topicNames, sumBytesPerSec: 0, sumPartitions: 0 },
+    );
+  }, [kafkaSources, topics]);
 
   useEffect(() => {
-    const speedOption = SPEED_LIMITS_UNIT_OPTIONS.find((option) => option.value === quotaUnits?.speed);
-    const sizeOption = SIZE_LIMITS_UNIT_OPTIONS.find((option) => option.value === quotaUnits?.size);
-    const dateOption = DATE_LIMITS_UNIT_OPTIONS.find((option) => option.value === quotaUnits?.date);
-
-    if (speedOption || sizeOption || dateOption) {
-      setState((prev) => ({
-        speed: speedOption ?? prev.speed,
-        size: sizeOption ?? prev.size,
-        date: dateOption ?? prev.date,
-      }));
-    }
-  }, [quotaUnits?.date, quotaUnits?.size, quotaUnits?.speed]);
+    fetchTopicsFx();
+  }, []);
 
   useEffect(() => {
     const unsubscribe = fetchCurrentEstimateFx.done.watch(({ params, result }) => {
@@ -77,10 +136,9 @@ const StepLimits: FC = () => {
         const seconds = result.data.maxStoreDurationSec;
         if (isFilledNumber(seconds) && seconds > 0) {
           const { value, unit } = secondsToDateUnit(seconds);
-          const dateOption = DATE_LIMITS_UNIT_OPTIONS.find((option) => option.value === unit) ?? DATE_LIMITS_UNIT_OPTIONS[5];
+          const dateOption = getDateUnit(unit);
           setValue('quota.maxStorageTimeSec', value);
           setValue('quotaUnits.date', dateOption.value);
-          setState((prev) => ({ ...prev, date: dateOption }));
         }
       }
 
@@ -88,10 +146,9 @@ const StepLimits: FC = () => {
         const sizeBytes = result.data.maxSizeBytes;
         if (isFilledNumber(sizeBytes) && sizeBytes > 0) {
           const { value, unit } = bytesToSizeUnit(sizeBytes);
-          const sizeOption = SIZE_LIMITS_UNIT_OPTIONS.find((option) => option.value === unit) ?? SIZE_LIMITS_UNIT_OPTIONS[0];
+          const sizeOption = getSizeUnit(unit);
           setValue('quota.maxSizeBytes', value);
           setValue('quotaUnits.size', sizeOption.value);
-          setState((prev) => ({ ...prev, size: sizeOption }));
         }
       }
     });
@@ -102,20 +159,29 @@ const StepLimits: FC = () => {
   useEffect(() => {
     const sources = (kafkaSources ?? []) as Array<{ project: string | null; name: string | null }>;
     const quotaValues: QuotaFormValues = { maxDataRateBytesPerSec, maxSizeBytes, maxStorageTimeSec };
+    const units = {
+      speed: speedUnit.value,
+      size: sizeUnit.value,
+      date: dateUnit.value,
+    };
 
     if (!projectShortName || !isQuotaEstimateReady(quotaValues) || !isKafkaSourcesFilled(sources)) {
       return undefined;
     }
 
+    const { maxSizeBytes: estimateSizeBytes, maxStoreDurationSec } = buildEstimateQuotaParams(
+      quotaValues,
+      units,
+      lastEditedQuotaFieldRef.current,
+    );
+
     const timer = setTimeout(() => {
       fetchCurrentEstimateFx({
         project: projectShortName,
         name: isEditMode ? archiveName.trim() || null : null,
-        maxDataRateBytesPerSec: speedUnitToBytesPerSec(quotaValues.maxDataRateBytesPerSec!, state.speed.value),
-        maxStoreDurationSec: isFilledNumber(quotaValues.maxStorageTimeSec)
-          ? dateUnitToSeconds(quotaValues.maxStorageTimeSec, state.date.value)
-          : null,
-        maxSizeBytes: isFilledNumber(quotaValues.maxSizeBytes) ? sizeUnitToBytes(quotaValues.maxSizeBytes, state.size.value) : null,
+        maxDataRateBytesPerSec: speedUnitToBytesPerSec(quotaValues.maxDataRateBytesPerSec!, units.speed),
+        maxStoreDurationSec,
+        maxSizeBytes: estimateSizeBytes,
         sources: sources.map((source) => ({ project: source.project!, name: source.name! })),
       });
     }, ESTIMATE_DEBOUNCE_MS);
@@ -129,9 +195,9 @@ const StepLimits: FC = () => {
     maxSizeBytes,
     maxStorageTimeSec,
     projectShortName,
-    state.date.value,
-    state.size.value,
-    state.speed.value,
+    dateUnit.value,
+    sizeUnit.value,
+    speedUnit.value,
   ]);
 
   return (
@@ -158,12 +224,11 @@ const StepLimits: FC = () => {
                     classes={{ inputContainer: styles.archiveStepLimitsInputWrapper }}
                   />
                   <Select
-                    value={state.speed}
+                    value={speedUnit}
                     options={SPEED_LIMITS_UNIT_OPTIONS}
                     onChange={(v, e, fullValue) => {
                       if (fullValue) {
                         setValue('quotaUnits.speed', fullValue.value);
-                        setState((prev) => ({ ...prev, speed: fullValue }));
                       }
                     }}
                     classes={{ root: styles.archiveStepLimitsSelectWrapper }}
@@ -180,7 +245,7 @@ const StepLimits: FC = () => {
               name="quota.maxSizeBytes"
               control={control}
               rules={{}}
-              render={({ field }) => (
+              render={({ field: { onChange, ...field } }) => (
                 <div className={styles.archiveStepLimitsWrapper}>
                   <InputNumber
                     placeholder="Введите значение"
@@ -189,15 +254,19 @@ const StepLimits: FC = () => {
                     decimalSeparator="."
                     precision={3}
                     {...field}
+                    onChange={(value) => {
+                      lastEditedQuotaFieldRef.current = 'size';
+                      onChange(value);
+                    }}
                     classes={{ inputContainer: styles.archiveStepLimitsInputWrapper }}
                   />
                   <Select
-                    value={state.size}
+                    value={sizeUnit}
                     options={SIZE_LIMITS_UNIT_OPTIONS}
                     onChange={(v, e, fullValue) => {
                       if (fullValue) {
+                        lastEditedQuotaFieldRef.current = 'size';
                         setValue('quotaUnits.size', fullValue.value);
-                        setState((prev) => ({ ...prev, size: fullValue }));
                       }
                     }}
                     classes={{ root: styles.archiveStepLimitsSelectWrapper }}
@@ -214,7 +283,7 @@ const StepLimits: FC = () => {
               name="quota.maxStorageTimeSec"
               control={control}
               rules={{}}
-              render={({ field }) => (
+              render={({ field: { onChange, ...field } }) => (
                 <div className={styles.archiveStepLimitsWrapper}>
                   <InputNumber
                     placeholder="Введите значение"
@@ -223,15 +292,19 @@ const StepLimits: FC = () => {
                     decimalSeparator="."
                     precision={3}
                     {...field}
+                    onChange={(value) => {
+                      lastEditedQuotaFieldRef.current = 'time';
+                      onChange(value);
+                    }}
                     classes={{ inputContainer: styles.archiveStepLimitsInputWrapper }}
                   />
                   <Select
-                    value={state.date}
+                    value={dateUnit}
                     options={DATE_LIMITS_UNIT_OPTIONS}
                     onChange={(v, e, fullValue) => {
                       if (fullValue) {
+                        lastEditedQuotaFieldRef.current = 'time';
                         setValue('quotaUnits.date', fullValue.value);
-                        setState((prev) => ({ ...prev, date: fullValue }));
                       }
                     }}
                     classes={{ root: styles.archiveStepLimitsSelectWrapper }}
@@ -245,7 +318,7 @@ const StepLimits: FC = () => {
           <LimitsProjectInfo />
         </div>
       </div>
-      <LimitsInfo topicNames={[]} sumBytesPerSec={0} sumPartitions={0} />
+      <LimitsInfo topicNames={limitsInfo.topicNames} sumBytesPerSec={limitsInfo.sumBytesPerSec} sumPartitions={limitsInfo.sumPartitions} />
       {isLimitFeatureSettingEnabled && warnings.length > 0 && (
         <StatusCard status="warning" classes={{ body: styles.archiveStepLimitsStatusCard }}>
           {warnings.join('. ')}
