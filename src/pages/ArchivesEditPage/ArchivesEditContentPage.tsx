@@ -102,9 +102,13 @@ const ArchivesEditContentPage: FC = () => {
       const formValues = mapArchiveConfigToFormValues(importedConfig, projectShortName);
       reset(formValues);
       syncArchiveEditMeta(formValues);
-      resetImportedConfig();
       initializedKeyRef.current = configKey;
+      resetImportedConfig();
       setIsFormReady(true);
+      return;
+    }
+
+    if (initializedKeyRef.current?.startsWith('import:')) {
       return;
     }
 

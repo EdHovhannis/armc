@@ -23,6 +23,19 @@ const readFileText = (file: File): Promise<string> =>
     reader.readAsText(file);
   });
 
+const getUploadedFile = (files: unknown[], event?: ChangeEvent<HTMLInputElement>): File | undefined => {
+  const first = files[0];
+  if (first instanceof File) {
+    return first;
+  }
+
+  if (first && typeof first === 'object' && 'file' in first && first.file instanceof File) {
+    return first.file;
+  }
+
+  return event?.target.files?.[0];
+};
+
 const ArchivesHeader: FC = () => {
   const navigate = useNavigate();
   const [tableView, onChangeTableViewFn, setRowSelectionFn, importArchiveEditConfig] = useUnit([
@@ -55,8 +68,8 @@ const ArchivesHeader: FC = () => {
   );
 
   const handleUpload = useCallback(
-    (_files: unknown[], event: ChangeEvent<HTMLInputElement>) => {
-      void importArchiveConfig(event.target.files?.[0]);
+    (files: unknown[], event: ChangeEvent<HTMLInputElement>) => {
+      void importArchiveConfig(getUploadedFile(files, event));
     },
     [importArchiveConfig],
   );
