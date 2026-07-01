@@ -5,7 +5,7 @@ import { axios } from '@src/Shared/api/axios';
 import { handleErrorFx } from '@src/Shared/api/model';
 import { AxiosResponseError } from '@src/Shared/api/types';
 
-import { ArchiveConfigParams, ArchiveConfigPayload, ArchiveConfiguration, CreateArchiveParams, FilterItems, UpdateArchiveParams } from './types';
+import { ArchiveConfiguration, FilterItems } from './types';
 
 export interface FetchArchivesParams {
   pageNumber: number;
@@ -102,29 +102,5 @@ sample({
 sample({
   clock: exportArchiveConfigFx.failData,
   fn: ({ response, status }) => ({ title: 'Не удалось выгрузить конфигурацию.', status, message: response?.data.message, data: response?.data }),
-  target: handleErrorFx,
-});
-
-sample({
-  clock: fetchArchiveConfigFx.failData,
-  fn: ({ response, status }) => ({ title: 'Не удалось загрузить конфигурацию.', status, message: response?.data.message, data: response?.data }),
-  target: handleErrorFx,
-});
-
-sample({
-  clock: deleteArchiveFx.failData,
-  fn: ({ response, status }) => ({ title: 'Не удалось удалить архив.', status, message: response?.data.message, data: response?.data }),
-  target: handleErrorFx,
-});
-
-sample({
-  clock: createArchiveFx.failData,
-  fn: ({ response, status }) => ({ title: 'Не удалось создать конфигурацию.', status, message: response?.data.message, data: response?.data }),
-  target: handleErrorFx,
-});
-
-sample({
-  clock: updateArchiveFx.failData,
-  fn: ({ response, status }) => ({ title: 'Не удалось сохранить конфигурацию.', status, message: response?.data.message, data: response?.data }),
   target: handleErrorFx,
 });

@@ -1,9 +1,9 @@
-import { STATUS_OPTIONS } from '@src/Shared/constants/filters';
+import { STATUS_OPTIONS, ZONE_OPTIONS } from '@src/Shared/constants/filters';
 import { OptionItemType } from '@src/Shared/types/filter';
 
 import { ArchiveFilter } from '@src/Entities/Archives/api';
 
-export const MULTI_SELECT_FILTER_FIELDS = new Set(['name', 'project', 'status', 'label']);
+export const MULTI_SELECT_FILTER_FIELDS = new Set(['name', 'project', 'status', 'label', 'zone']);
 
 export const FIELD_LABELS: Record<string, string> = {
   name: 'Конфигурация',
@@ -29,7 +29,7 @@ export const getValueLabel = (field: string, value: string) => {
 
 export const getOptionsForField = (
   field: string,
-  archiveFilterValues: { names: string[]; projects: string[]; labels: string[] },
+  archiveFilterValues: { names: string[]; projects: string[]; labels: string[]; zones: string[] },
 ): OptionItemType[] => {
   const toOptions = (items: string[]) => items.map((item) => ({ value: item, label: item }));
 
@@ -42,6 +42,8 @@ export const getOptionsForField = (
       return STATUS_OPTIONS;
     case 'label':
       return toOptions(archiveFilterValues.labels);
+    case 'zone':
+      return archiveFilterValues.zones.length ? toOptions(archiveFilterValues.zones) : ZONE_OPTIONS;
     default:
       return [];
   }

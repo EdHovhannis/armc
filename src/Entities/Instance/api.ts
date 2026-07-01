@@ -1,4 +1,4 @@
-import { AxiosError } from 'axios';
+import { AxiosError, AxiosResponse } from 'axios';
 import { createEffect, sample } from 'effector';
 
 import { axios } from '@src/Shared/api/axios';
@@ -6,6 +6,7 @@ import { handleErrorFx } from '@src/Shared/api/model';
 import { AxiosResponseError } from '@src/Shared/api/types';
 
 import { IndexingStatus, InstanceStatus } from '@src/Entities/Archives/types';
+import { OffsetSetItem, OffsetTopicData } from '@src/Entities/Instance/types';
 
 type AxiosErr = AxiosError<AxiosResponseError>;
 
@@ -110,6 +111,54 @@ export const resetZoneOverdraftFx = createEffect<{ zoneId: string }, void, Axios
   await axios.post(`/v1/internal/index/archive/task/zone/${encodeURIComponent(zoneId)}/instance/overdraft/reset/all`);
 });
 
+type SaveQuotaParams = {
+  project: string;
+  taskName: string;
+  zoneId: string;
+  maxSizeBytes: number;
+  maxDataRateBytesPerSec: number;
+  maxStorageTimeSec: number;
+};
+
+export const saveInstanceQuotasFx = createEffect<SaveQuotaParams, SaveQuotaParams, AxiosErr>(async (params) => {
+  const { project, taskName, zoneId, maxSizeBytes, maxDataRateBytesPerSec, maxStorageTimeSec } = params;
+  await axios.put(
+    `/v1/internal/index/archive/task/project/${encodeURIComponent(project)}/name/${encodeURIComponent(taskName)}/zone/${encodeURIComponent(zoneId)}/instance/quotas`,
+    null,
+    { params: { maxSizeBytes, maxDataRateBytesPerSec, maxStorageTimeSec } },
+  );
+  return params;
+});
+
+type OffsetParams = {
+  project: string;
+  taskName: string;
+  zoneId: string;
+};
+
+export const fetchOffsetDataFx = createEffect<OffsetParams, AxiosResponse<OffsetTopicData[]>, AxiosErr>(({ project, taskName, zoneId }) =>
+  axios.get(`/v1/flow/offset/project/${encodeURIComponent(project)}/task/${encodeURIComponent(taskName)}/zone/${encodeURIComponent(zoneId)}`, {
+    params: { businessTask: 'ARCHIVING' },
+  }),
+);
+
+export const setOffsetsFx = createEffect<{ project: string; taskName: string; zoneId: string; items: OffsetSetItem[] }, void, AxiosErr>(
+  async ({ project, taskName, zoneId, items }) => {
+    await axios.post(
+      `/v1/internal/index/archive/task/project/${encodeURIComponent(project)}/name/${encodeURIComponent(taskName)}/zone/${encodeURIComponent(zoneId)}/instance/setOffsets`,
+      items,
+    );
+  },
+);
+
+export const resetOffsetFx = createEffect<OffsetParams, OffsetParams, AxiosErr>(async (params) => {
+  const { project, taskName, zoneId } = params;
+  await axios.post(
+    `/v1/internal/index/archive/task/project/${encodeURIComponent(project)}/name/${encodeURIComponent(taskName)}/zone/${encodeURIComponent(zoneId)}/instance/reset`,
+  );
+  return params;
+});
+
 sample({
   clock: [addInstanceFx.failData, deleteInstanceFx.failData, resumeInstanceFx.failData, suspendInstanceFx.failData],
   fn: ({ response, status }) => ({
@@ -118,6 +167,24 @@ sample({
     message: response?.data.message,
     data: response?.data,
   }),
+  target: handleErrorFx,
+});
+
+sample({
+  clock: saveInstanceQuotasFx.failData,
+  fn: ({ response, status }) => ({ title: 'Не удалось сохранить квоты.', status, message: response?.data.message, data: response?.data }),
+  target: handleErrorFx,
+});
+
+sample({
+  clock: fetchOffsetDataFx.failData,
+  fn: ({ response, status }) => ({ title: 'Не удалось загрузить данные offset', status, message: response?.data.message, data: response?.data }),
+  target: handleErrorFx,
+});
+
+sample({
+  clock: [setOffsetsFx.failData, resetOffsetFx.failData],
+  fn: ({ response, status }) => ({ title: 'Не удалось выполнить операцию с offset', status, message: response?.data.message, data: response?.data }),
   target: handleErrorFx,
 });
 

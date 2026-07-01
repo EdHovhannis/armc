@@ -37,11 +37,7 @@ const getSpeedUnit = (value?: string) => SPEED_LIMITS_UNIT_OPTIONS.find((option)
 const getSizeUnit = (value?: string) => SIZE_LIMITS_UNIT_OPTIONS.find((option) => option.value === value) ?? SIZE_LIMITS_UNIT_OPTIONS[0];
 const getDateUnit = (value?: string) => DATE_LIMITS_UNIT_OPTIONS.find((option) => option.value === value) ?? DATE_LIMITS_UNIT_OPTIONS[5];
 
-const buildEstimateQuotaParams = (
-  quotaValues: QuotaFormValues,
-  units: ArchiveEditFormValues['quotaUnits'],
-  lastEdited: LastEditedQuotaField,
-) => {
+const buildEstimateQuotaParams = (quotaValues: QuotaFormValues, units: ArchiveEditFormValues['quotaUnits'], lastEdited: LastEditedQuotaField) => {
   const hasSize = isPositiveNumber(quotaValues.maxSizeBytes);
   const hasTime = isPositiveNumber(quotaValues.maxStorageTimeSec);
 
@@ -191,11 +187,7 @@ const StepLimits: FC = () => {
       return undefined;
     }
 
-    const { maxSizeBytes: estimateSizeBytes, maxStoreDurationSec } = buildEstimateQuotaParams(
-      quotaValues,
-      units,
-      lastEditedQuotaFieldRef.current,
-    );
+    const { maxSizeBytes: estimateSizeBytes, maxStoreDurationSec } = buildEstimateQuotaParams(quotaValues, units, lastEditedQuotaFieldRef.current);
 
     const requestPayload = {
       project: projectShortName,

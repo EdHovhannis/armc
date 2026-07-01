@@ -63,6 +63,23 @@ export interface ArchiveConfigView {
   flowActions?: Action[];
 }
 
+export interface KafkaSource {
+  project: string;
+  name: string;
+}
+
+export interface ArchiveConfigResponse {
+  name: string;
+  source: {
+    kafka: KafkaSource[];
+  };
+  quota: {
+    maxDataRateBytesPerSec: number;
+    maxSizeBytes: number;
+    maxStorageTimeSec: number | null;
+  };
+}
+
 export interface ArchiveConfiguration {
   id: number | string;
   name: string;

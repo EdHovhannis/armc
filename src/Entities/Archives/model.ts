@@ -7,13 +7,23 @@ import {
   fetchInstanceStatusFx,
   resetInstanceOverdraftFx,
   resetInstancesOverdraftFx,
+  resetOffsetFx,
   resetZoneOverdraftFx,
   resumeInstancesFx,
+  setOffsetsFx,
   suspendInstancesFx,
 } from '@src/Entities/Instance/api';
 import { addLabelFx, deleteLabelFx } from '@src/Entities/Label/api';
 
-import { FetchArchivesParams, createArchiveFx, deleteArchiveFx, fetchArchivesCountFx, fetchArchivesFiltersFx, fetchArchivesFx, updateArchiveFx } from './api';
+import {
+  FetchArchivesParams,
+  createArchiveFx,
+  deleteArchiveFx,
+  fetchArchivesCountFx,
+  fetchArchivesFiltersFx,
+  fetchArchivesFx,
+  updateArchiveFx,
+} from './api';
 import { ArchiveConfigView, ArchiveConfiguration, ArchiveInstanceView, FilterItems } from './types';
 
 export const $archives = createStore<ArchiveConfiguration[]>([]);
@@ -65,7 +75,7 @@ sample({
 });
 
 sample({
-  clock: deleteInstanceFx.done,
+  clock: [deleteInstanceFx.done, resetOffsetFx.done, setOffsetsFx.done],
   source: $lastFetchArchivesParams,
   filter: (params): params is FetchArchivesParams => params !== null,
   target: fetchArchivesFx,

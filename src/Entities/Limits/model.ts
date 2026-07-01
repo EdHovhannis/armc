@@ -2,27 +2,37 @@ import { createStore } from 'effector';
 
 import { fetchCurrentProjectLimitsFx, fetchCurrentEstimateFx } from './api';
 import { INIT_PROJECT_ESTIMATE, INIT_PROJECT_LIMITS } from './constants';
-import { ProjectLimitItem, ProjectEstimate } from './types';
+import { ProjectLimitItem, ProjectEstimate, ProjectEstimateItem } from './types';
 
 export const $currentProjectLimits = createStore<ProjectLimitItem>(INIT_PROJECT_LIMITS);
 $currentProjectLimits.on(fetchCurrentProjectLimitsFx.doneData, (_, payload) => payload.data).reset([fetchCurrentProjectLimitsFx.failData]);
 
+const mapEstimateData = (data: ProjectEstimateItem): Omit<ProjectEstimate, 'estimateBySize'> => ({
+  maxStoreDurationSec: data.maxStoreDurationSec,
+  maxOverdraftPercent: data.flowEstimateConfig.maxOverdraftPercent,
+  maxDataRateBytesPerSec: data.maxDataRateBytesPerSec,
+  maxSizeBytes: data.maxSizeBytes,
+  slotsCount: data.slotsCount,
+  bytesPerSecOnSlot: data.bytesPerSecOnSlot,
+  correctPartitionsToSlotsRatio: data.correctPartitionsToSlotsRatio,
+});
+
 export const $currentProjectEstimate = createStore<ProjectEstimate>(INIT_PROJECT_ESTIMATE);
 $currentProjectEstimate
   .on(fetchCurrentEstimateFx.done, (_, { params, result }) => ({
-    maxStoreDurationSec: result.data.maxStoreDurationSec,
-    maxOverdraftPercent: result.data.flowEstimateConfig.maxOverdraftPercent,
-    maxDataRateBytesPerSec: result.data.maxDataRateBytesPerSec,
-    maxSizeBytes: result.data.maxSizeBytes,
-    slotsCount: result.data.slotsCount,
-    bytesPerSecOnSlot: result.data.bytesPerSecOnSlot,
-    correctPartitionsToSlotsRatio: result.data.correctPartitionsToSlotsRatio,
+    ...mapEstimateData(result.data),
     estimateBySize: params.maxStoreDurationSec === null,
   }))
-  .reset([fetchCurrentEstimateFx.failData]);
+  .on(fetchInstanceEstimateFx.done, (_, { result }) => ({
+    ...mapEstimateData(result.data),
+    estimateBySize: true,
+  }))
+  .reset([fetchCurrentEstimateFx.failData, fetchInstanceEstimateFx.failData]);
 
 export const $currentEstimateWarnings = createStore<string[]>([]);
-$currentEstimateWarnings.on(fetchCurrentEstimateFx.doneData, (_, payload) => payload.data.warnings).reset([fetchCurrentEstimateFx.failData]);
+$currentEstimateWarnings
+  .on([fetchCurrentEstimateFx.doneData, fetchInstanceEstimateFx.doneData], (_, payload) => payload.data.warnings)
+  .reset([fetchCurrentEstimateFx.failData, fetchInstanceEstimateFx.failData]);
 
 export const $currentEstimateBlockers = createStore<string[]>([]);
 $currentEstimateBlockers.on(fetchCurrentEstimateFx.doneData, (_, payload) => payload.data.blockers).reset([fetchCurrentEstimateFx.failData]);

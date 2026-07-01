@@ -1,0 +1,61 @@
+.instanceQuotasDrawerHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.instanceQuotasDrawerBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.instanceQuotasDrawerGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.instanceQuotasDrawerFields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.instanceQuotasDrawerField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.instanceQuotasDrawerInputRow {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+div.instanceQuotasDrawerInput {
+  flex: 1;
+  min-width: 0;
+}
+
+div.instanceQuotasDrawerInput * {
+  width: 100%;
+}
+
+div.instanceQuotasDrawerSelect {
+  width: 110px;
+  flex-shrink: 0;
+}
+
+.instanceQuotasDrawerStatusCard {
+  margin-top: 0;
+}
+
+.instanceQuotasDrawerFooter {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  width: 100%;
+}

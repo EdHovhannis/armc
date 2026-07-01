@@ -48,6 +48,8 @@ export const archiveIndexColumns: DataGridColumnDef<ArchiveInstanceView>[] = [
   {
     accessorKey: 'zoneId',
     header: 'Зона',
+    Header: createColumnHeaderFilter('Зона', 'zone'),
+    tableHeadCellProps: filterColumnHeadCellProps,
     size: 90,
     Cell: ({ cell }) => <Text kind="bodyS">{cell.getValue<string>()}</Text>,
   },

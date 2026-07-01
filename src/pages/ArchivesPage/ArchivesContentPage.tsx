@@ -10,9 +10,12 @@ import FilterDrawer from './FilterDrawer';
 import ArchivesHeader from './Header';
 import InstanceActionModal from './InstanceActionModal';
 import InstanceOverdraftModal from './InstanceOverdraftModal';
+import InstanceQuotasModal from './InstanceQuotasModal';
 import LabelsModal from './LabelsModal';
 import OverDraftModal from './OverDraftModal';
+import ResetOffsetModal from './ResetOffsetModal';
 import ResetZoneOverdraftModal from './ResetZoneOverdraftModal';
+import SetOffsetModal from './SetOffsetModal';
 import * as styles from './styles.module.css';
 
 const ArchivesContentPage: FC = () => {
@@ -31,7 +34,10 @@ const ArchivesContentPage: FC = () => {
       <DeleteInstanceModal />
       <InstanceActionModal />
       <InstanceOverdraftModal />
+      <InstanceQuotasModal />
       <ResetZoneOverdraftModal />
+      <ResetOffsetModal />
+      <SetOffsetModal />
     </div>
   );
 };

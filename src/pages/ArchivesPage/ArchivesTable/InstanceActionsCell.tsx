@@ -7,10 +7,12 @@ import { fetchInstanceStatusFx } from '@src/Entities/Instance/api';
 import { onOpenDeleteInstanceModal } from '../DeleteInstanceModal/model';
 import { onOpenInstanceActionModal } from '../InstanceActionModal/model';
 import { onOpenInstanceOverdraftModal } from '../InstanceOverdraftModal/model';
+import { onOpenInstanceQuotasModal } from '../InstanceQuotasModal/model';
+import { onOpenResetOffsetModal } from '../ResetOffsetModal/model';
+import { onOpenSetOffsetModal } from '../SetOffsetModal/model';
 
 import * as styles from './styles.module.css';
 
-// TODO(instance-actions): подключить остальные пункты (offset, квоты)
 const InstanceActionsCell: FC<{ row: ArchiveInstanceView }> = ({ row }) => {
   const isRunning = row.instanceStatus === 'RUNNING';
   const isStatusKnown = row.instanceStatus !== 'WITHOUT_RESPONSE';
@@ -48,8 +50,12 @@ const InstanceActionsCell: FC<{ row: ArchiveInstanceView }> = ({ row }) => {
             </>
           )}
 
-          <DropdownMenuItem closeMenuOnClick>Установить offset</DropdownMenuItem>
-          <DropdownMenuItem closeMenuOnClick>Сбросить offset</DropdownMenuItem>
+          <DropdownMenuItem closeMenuOnClick onClick={() => onOpenSetOffsetModal(row)}>
+            Установить offset
+          </DropdownMenuItem>
+          <DropdownMenuItem closeMenuOnClick onClick={() => onOpenResetOffsetModal(row)}>
+            Сбросить offset
+          </DropdownMenuItem>
 
           <Divider className={styles.configurationActionsDivider} />
 
@@ -59,7 +65,9 @@ const InstanceActionsCell: FC<{ row: ArchiveInstanceView }> = ({ row }) => {
 
           <Divider className={styles.configurationActionsDivider} />
 
-          <DropdownMenuItem closeMenuOnClick>Переопределить квоты</DropdownMenuItem>
+          <DropdownMenuItem closeMenuOnClick onClick={() => onOpenInstanceQuotasModal(row)}>
+            Переопределить квоты
+          </DropdownMenuItem>
 
           <Divider className={styles.configurationActionsDivider} />
 
