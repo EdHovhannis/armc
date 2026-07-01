@@ -84,10 +84,12 @@ const buildEstimateQuotaParams = (
 };
 
 const StepLimits: FC = () => {
-  const { control, setValue } = useFormContext<ArchiveEditFormValues>();
+  const { control, setValue, getValues } = useFormContext<ArchiveEditFormValues>();
   const [searchParams] = useSearchParams();
   const isEditMode = Boolean(searchParams.get('name')?.trim());
   const lastEditedQuotaFieldRef = useRef<LastEditedQuotaField>(null);
+  const isApplyingEstimateRef = useRef(false);
+  const lastEstimateRequestKeyRef = useRef<string | null>(null);
   const [archiveName, projectShortName, warnings, blockers, isLimitFeatureSettingEnabled, topics] = useUnit([
     $archiveEditName,
     $archiveEditProjectShortName,
@@ -132,13 +134,19 @@ const StepLimits: FC = () => {
 
   useEffect(() => {
     const unsubscribe = fetchCurrentEstimateFx.done.watch(({ params, result }) => {
+      const currentQuotaUnits = getValues('quotaUnits');
+      let didApplyEstimate = false;
+
       if (params.maxStoreDurationSec === null) {
         const seconds = result.data.maxStoreDurationSec;
         if (isFilledNumber(seconds) && seconds > 0) {
           const { value, unit } = secondsToDateUnit(seconds);
           const dateOption = getDateUnit(unit);
-          setValue('quota.maxStorageTimeSec', value);
-          setValue('quotaUnits.date', dateOption.value);
+          if (getValues('quota.maxStorageTimeSec') !== value || currentQuotaUnits.date !== dateOption.value) {
+            didApplyEstimate = true;
+            setValue('quota.maxStorageTimeSec', value);
+            setValue('quotaUnits.date', dateOption.value);
+          }
         }
       }
 
@@ -147,16 +155,29 @@ const StepLimits: FC = () => {
         if (isFilledNumber(sizeBytes) && sizeBytes > 0) {
           const { value, unit } = bytesToSizeUnit(sizeBytes);
           const sizeOption = getSizeUnit(unit);
-          setValue('quota.maxSizeBytes', value);
-          setValue('quotaUnits.size', sizeOption.value);
+          if (getValues('quota.maxSizeBytes') !== value || currentQuotaUnits.size !== sizeOption.value) {
+            didApplyEstimate = true;
+            setValue('quota.maxSizeBytes', value);
+            setValue('quotaUnits.size', sizeOption.value);
+          }
         }
+      }
+
+      if (didApplyEstimate) {
+        isApplyingEstimateRef.current = true;
+        lastEditedQuotaFieldRef.current = null;
       }
     });
 
     return unsubscribe;
-  }, [setValue]);
+  }, [getValues, setValue]);
 
   useEffect(() => {
+    if (isApplyingEstimateRef.current) {
+      isApplyingEstimateRef.current = false;
+      return undefined;
+    }
+
     const sources = (kafkaSources ?? []) as Array<{ project: string | null; name: string | null }>;
     const quotaValues: QuotaFormValues = { maxDataRateBytesPerSec, maxSizeBytes, maxStorageTimeSec };
     const units = {
@@ -166,6 +187,7 @@ const StepLimits: FC = () => {
     };
 
     if (!projectShortName || !isQuotaEstimateReady(quotaValues) || !isKafkaSourcesFilled(sources)) {
+      lastEstimateRequestKeyRef.current = null;
       return undefined;
     }
 
@@ -175,15 +197,23 @@ const StepLimits: FC = () => {
       lastEditedQuotaFieldRef.current,
     );
 
+    const requestPayload = {
+      project: projectShortName,
+      name: isEditMode ? archiveName.trim() || null : null,
+      maxDataRateBytesPerSec: speedUnitToBytesPerSec(quotaValues.maxDataRateBytesPerSec!, units.speed),
+      maxStoreDurationSec,
+      maxSizeBytes: estimateSizeBytes,
+      sources: sources.map((source) => ({ project: source.project!, name: source.name! })),
+    };
+    const requestKey = JSON.stringify(requestPayload);
+
+    if (requestKey === lastEstimateRequestKeyRef.current) {
+      return undefined;
+    }
+
     const timer = setTimeout(() => {
-      fetchCurrentEstimateFx({
-        project: projectShortName,
-        name: isEditMode ? archiveName.trim() || null : null,
-        maxDataRateBytesPerSec: speedUnitToBytesPerSec(quotaValues.maxDataRateBytesPerSec!, units.speed),
-        maxStoreDurationSec,
-        maxSizeBytes: estimateSizeBytes,
-        sources: sources.map((source) => ({ project: source.project!, name: source.name! })),
-      });
+      lastEstimateRequestKeyRef.current = requestKey;
+      fetchCurrentEstimateFx(requestPayload);
     }, ESTIMATE_DEBOUNCE_MS);
 
     return () => clearTimeout(timer);
