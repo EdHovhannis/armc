@@ -3,8 +3,6 @@ import { useUnit } from 'effector-react';
 import { FC, useEffect } from 'react';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 
-import { fetchCurrentProjectLimitsFx } from '@src/Entities/Limits/api';
-import { $currentProjectLimits } from '@src/Entities/Limits/model';
 import { fetchProjectsFx } from '@src/Entities/Project/api';
 import { $optionsProject } from '@src/Entities/Project/model';
 
@@ -15,12 +13,12 @@ import * as styles from './styles.module.css';
 
 const StepIndexName: FC = () => {
   const { control, setValue } = useFormContext();
-  const [optionsProject, loading, fetchProjectLimits, fetchArchiveId, currentProjectLimits] = useUnit([
+  const [optionsProject, loading, fetchArchiveId, setArchiveEditName, setArchiveEditProject] = useUnit([
     $optionsProject,
     fetchProjectsFx.pending,
-    fetchCurrentProjectLimitsFx,
     fetchArchiveIdFx,
-    $currentProjectLimits,
+    onChangeArchiveEditName,
+    onChangeArchiveEditProjectShortName,
   ]);
 
   const name = useWatch({ control, name: 'name', defaultValue: '' }) as string;
@@ -31,12 +29,12 @@ const StepIndexName: FC = () => {
   }, []);
 
   useEffect(() => {
-    onChangeArchiveEditName(name?.trim() ?? '');
-  }, [name]);
+    setArchiveEditName(name?.trim() ?? '');
+  }, [name, setArchiveEditName]);
 
   useEffect(() => {
-    onChangeArchiveEditProjectShortName(projectShortName ?? '');
-  }, [projectShortName]);
+    setArchiveEditProject(projectShortName ?? '');
+  }, [projectShortName, setArchiveEditProject]);
 
   useEffect(() => {
     const projectValue = projectShortName?.trim() ?? '';
@@ -45,20 +43,14 @@ const StepIndexName: FC = () => {
   }, [projectShortName, optionsProject, setValue]);
 
   useEffect(() => {
-    setValue('availableQuota', currentProjectLimits);
-  }, [currentProjectLimits, setValue]);
-
-  useEffect(() => {
     const projectValue = projectShortName?.trim();
     const nameValue = name?.trim();
     if (!projectValue) return;
 
-    fetchProjectLimits(projectValue);
-
     if (nameValue) {
       fetchArchiveId({ project: projectValue, name: nameValue });
     }
-  }, [projectShortName, name, fetchProjectLimits, fetchArchiveId]);
+  }, [projectShortName, name, fetchArchiveId]);
 
   return (
     <div className={styles.archiveStepWrapper}>

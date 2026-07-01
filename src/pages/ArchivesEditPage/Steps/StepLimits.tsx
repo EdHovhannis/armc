@@ -8,8 +8,8 @@ import { DATE_LIMITS_UNIT_OPTIONS, SIZE_LIMITS_UNIT_OPTIONS, SPEED_LIMITS_UNIT_O
 import { bytesToSizeUnit, dateUnitToSeconds, secondsToDateUnit, sizeUnitToBytes, speedUnitToBytesPerSec } from '@src/Shared/lib/format/quotaUnits';
 
 import { $isLimitFeatureSettingEnabled } from '@src/Entities/FeatureFlags/model';
-import { fetchCurrentEstimateFx } from '@src/Entities/Limits/api';
-import { $currentEstimateBlockers, $currentEstimateWarnings } from '@src/Entities/Limits/model';
+import { fetchCurrentEstimateFx, fetchCurrentProjectLimitsFx } from '@src/Entities/Limits/api';
+import { $currentEstimateBlockers, $currentEstimateWarnings, $currentProjectLimits } from '@src/Entities/Limits/model';
 import { fetchTopicsFx } from '@src/Entities/Topic/api';
 import { $topics } from '@src/Entities/Topic/model';
 
@@ -86,14 +86,17 @@ const StepLimits: FC = () => {
   const lastEditedQuotaFieldRef = useRef<LastEditedQuotaField>(null);
   const isApplyingEstimateRef = useRef(false);
   const lastEstimateRequestKeyRef = useRef<string | null>(null);
-  const [archiveName, projectShortName, warnings, blockers, isLimitFeatureSettingEnabled, topics] = useUnit([
-    $archiveEditName,
-    $archiveEditProjectShortName,
-    $currentEstimateWarnings,
-    $currentEstimateBlockers,
-    $isLimitFeatureSettingEnabled,
-    $topics,
-  ]);
+  const [archiveName, projectShortName, warnings, blockers, isLimitFeatureSettingEnabled, topics, currentProjectLimits, fetchProjectLimits] =
+    useUnit([
+      $archiveEditName,
+      $archiveEditProjectShortName,
+      $currentEstimateWarnings,
+      $currentEstimateBlockers,
+      $isLimitFeatureSettingEnabled,
+      $topics,
+      $currentProjectLimits,
+      fetchCurrentProjectLimitsFx,
+    ]);
   const [kafkaSources, maxDataRateBytesPerSec, maxSizeBytes, maxStorageTimeSec, quotaUnits] = useWatch({
     control,
     name: ['source.kafka', 'quota.maxDataRateBytesPerSec', 'quota.maxSizeBytes', 'quota.maxStorageTimeSec', 'quotaUnits'],
@@ -127,6 +130,17 @@ const StepLimits: FC = () => {
   useEffect(() => {
     fetchTopicsFx();
   }, []);
+
+  useEffect(() => {
+    const project = projectShortName?.trim();
+    if (!project) return;
+
+    fetchProjectLimits(project);
+  }, [projectShortName, fetchProjectLimits]);
+
+  useEffect(() => {
+    setValue('availableQuota', currentProjectLimits);
+  }, [currentProjectLimits, setValue]);
 
   useEffect(() => {
     const unsubscribe = fetchCurrentEstimateFx.done.watch(({ params, result }) => {

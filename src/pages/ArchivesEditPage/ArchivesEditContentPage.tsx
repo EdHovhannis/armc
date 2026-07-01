@@ -1,5 +1,6 @@
+import { GlobalSpinner } from '@pvm-ui/kit';
 import { useUnit } from 'effector-react';
-import { FC, useEffect } from 'react';
+import { FC, useEffect, useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useSearchParams } from 'react-router';
 
@@ -48,6 +49,8 @@ const ArchivesEditContentPage: FC = () => {
     defaultValues: ARCHIVE_EDIT_DEFAULT_VALUES,
   });
   const { reset } = methods;
+  const initializedKeyRef = useRef<string | null>(null);
+  const [isFormReady, setIsFormReady] = useState(!isEditMode);
 
   const syncArchiveEditMeta = (values: ArchiveEditFormValues) => {
     setArchiveEditName(values.name?.trim() ?? '');
@@ -60,18 +63,36 @@ const ArchivesEditContentPage: FC = () => {
     return () => {
       resetStepperIndex();
       resetImportedConfig();
+      initializedKeyRef.current = null;
     };
   }, [resetStepperIndex, resetImportedConfig]);
 
   useEffect(() => {
+    const configKey = isEditMode
+      ? `edit:${editProject}:${editName}`
+      : importedConfig
+        ? `import:${importedConfig.name}:${importedConfig.source.kafka[0]?.project ?? ''}`
+        : 'create';
+
+    if (initializedKeyRef.current === configKey) {
+      return;
+    }
+
     if (isEditMode) {
+      setIsFormReady(false);
+
       void fetchArchiveConfig({ project: editProject, taskName: editName })
         .then((response) => {
           const formValues = mapArchiveConfigToFormValues(response.data, editProject);
           reset(formValues);
           syncArchiveEditMeta(formValues);
+          initializedKeyRef.current = configKey;
+          setIsFormReady(true);
         })
-        .catch(() => undefined);
+        .catch(() => {
+          initializedKeyRef.current = configKey;
+          setIsFormReady(true);
+        });
 
       return;
     }
@@ -81,12 +102,21 @@ const ArchivesEditContentPage: FC = () => {
       const formValues = mapArchiveConfigToFormValues(importedConfig, projectShortName);
       reset(formValues);
       syncArchiveEditMeta(formValues);
+      resetImportedConfig();
+      initializedKeyRef.current = configKey;
+      setIsFormReady(true);
       return;
     }
 
     reset(ARCHIVE_EDIT_DEFAULT_VALUES);
     syncArchiveEditMeta(ARCHIVE_EDIT_DEFAULT_VALUES);
-  }, [editProject, editName, importedConfig, isEditMode, reset, fetchArchiveConfig, setArchiveEditName, setArchiveEditProject]);
+    initializedKeyRef.current = configKey;
+    setIsFormReady(true);
+  }, [editProject, editName, importedConfig, isEditMode, reset, fetchArchiveConfig, resetImportedConfig, setArchiveEditName, setArchiveEditProject]);
+
+  if (!isFormReady) {
+    return <GlobalSpinner />;
+  }
 
   return (
     <>
