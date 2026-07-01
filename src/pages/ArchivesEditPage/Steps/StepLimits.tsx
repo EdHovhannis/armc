@@ -72,12 +72,6 @@ const StepLimits: FC = () => {
   }, [quotaUnits?.date, quotaUnits?.size, quotaUnits?.speed]);
 
   useEffect(() => {
-    setValue('quotaUnits.speed', state.speed.value);
-    setValue('quotaUnits.size', state.size.value);
-    setValue('quotaUnits.date', state.date.value);
-  }, [setValue, state.date.value, state.size.value, state.speed.value]);
-
-  useEffect(() => {
     const unsubscribe = fetchCurrentEstimateFx.done.watch(({ params, result }) => {
       if (params.maxStoreDurationSec === null) {
         const seconds = result.data.maxStoreDurationSec;
@@ -85,6 +79,7 @@ const StepLimits: FC = () => {
           const { value, unit } = secondsToDateUnit(seconds);
           const dateOption = DATE_LIMITS_UNIT_OPTIONS.find((option) => option.value === unit) ?? DATE_LIMITS_UNIT_OPTIONS[5];
           setValue('quota.maxStorageTimeSec', value);
+          setValue('quotaUnits.date', dateOption.value);
           setState((prev) => ({ ...prev, date: dateOption }));
         }
       }
@@ -95,6 +90,7 @@ const StepLimits: FC = () => {
           const { value, unit } = bytesToSizeUnit(sizeBytes);
           const sizeOption = SIZE_LIMITS_UNIT_OPTIONS.find((option) => option.value === unit) ?? SIZE_LIMITS_UNIT_OPTIONS[0];
           setValue('quota.maxSizeBytes', value);
+          setValue('quotaUnits.size', sizeOption.value);
           setState((prev) => ({ ...prev, size: sizeOption }));
         }
       }
@@ -164,7 +160,12 @@ const StepLimits: FC = () => {
                   <Select
                     value={state.speed}
                     options={SPEED_LIMITS_UNIT_OPTIONS}
-                    onChange={(v, e, fullValue) => (fullValue ? setState((prev) => ({ ...prev, speed: fullValue })) : {})}
+                    onChange={(v, e, fullValue) => {
+                      if (fullValue) {
+                        setValue('quotaUnits.speed', fullValue.value);
+                        setState((prev) => ({ ...prev, speed: fullValue }));
+                      }
+                    }}
                     classes={{ root: styles.archiveStepLimitsSelectWrapper }}
                   />
                 </div>
@@ -193,7 +194,12 @@ const StepLimits: FC = () => {
                   <Select
                     value={state.size}
                     options={SIZE_LIMITS_UNIT_OPTIONS}
-                    onChange={(v, e, fullValue) => (fullValue ? setState((prev) => ({ ...prev, size: fullValue })) : {})}
+                    onChange={(v, e, fullValue) => {
+                      if (fullValue) {
+                        setValue('quotaUnits.size', fullValue.value);
+                        setState((prev) => ({ ...prev, size: fullValue }));
+                      }
+                    }}
                     classes={{ root: styles.archiveStepLimitsSelectWrapper }}
                   />
                 </div>
@@ -222,7 +228,12 @@ const StepLimits: FC = () => {
                   <Select
                     value={state.date}
                     options={DATE_LIMITS_UNIT_OPTIONS}
-                    onChange={(v, e, fullValue) => (fullValue ? setState((prev) => ({ ...prev, date: fullValue })) : {})}
+                    onChange={(v, e, fullValue) => {
+                      if (fullValue) {
+                        setValue('quotaUnits.date', fullValue.value);
+                        setState((prev) => ({ ...prev, date: fullValue }));
+                      }
+                    }}
                     classes={{ root: styles.archiveStepLimitsSelectWrapper }}
                   />
                 </div>
