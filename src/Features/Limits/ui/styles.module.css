@@ -30,11 +30,31 @@
   width: 100%;
 }
 
+.archiveLimitsTable th,
 .archiveLimitsTable td {
   border: 1px solid var(--sds-eng-Border-borderIntence, #060a0c1f);
   padding: 8px 12px;
   text-align: left;
   vertical-align: middle;
+}
+
+.archiveLimitsTable th {
+  text-align: center;
+  background-color: var(--sds-eng-Background-surfaceSecondary, #060a0c0f);
+}
+
+.archiveLimitsTableInfoText {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.archiveLimitsTableInfoSpan {
+  display: inline-block;
+  width: 100%;
+  text-align: right;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  word-break: break-all;
 }
 
 .archiveLimitsTableCell {
