@@ -1,9 +1,6 @@
 import { useUnit } from 'effector-react';
-import { FC, useEffect, useRef } from 'react';
+import { FC } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useSearchParams } from 'react-router';
-
-import { fetchArchiveConfigFx } from '@src/Entities/Archives/api';
 
 import ArchivesEditStepper from '@src/Widgets/ArchiveEditStepper';
 import { $stepperIndex } from '@src/Widgets/ArchiveEditStepper/model';
@@ -16,11 +13,7 @@ import StepLimits from './Steps/StepLimits';
 import StepPreprocessing from './Steps/StepPreprocessing';
 import StepResult from './Steps/StepResult';
 import StepSchema from './Steps/StepSchema';
-import { ARCHIVE_EDIT_DEFAULT_VALUES } from './constants';
-import { mapArchiveConfigToFormValues } from './lib/mapArchiveConfigToFormValues';
-import { $archiveEditImportedConfig, onResetArchiveEditImportedConfig } from './model';
 import * as styles from './styles.module.css';
-import { ArchiveEditFormValues } from './types';
 
 const ArchivesEditContentPage: FC = () => {
   const [stepperIndex] = useUnit([$stepperIndex]);
