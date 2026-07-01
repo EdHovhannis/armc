@@ -5,12 +5,13 @@ import { useNavigate } from 'react-router';
 
 import routes from '@src/Shared/constants/routes';
 
-import { createArchiveFx } from '@src/Entities/Archives/api';
 import { ArchiveConfigPayload } from '@src/Entities/Archives/types';
 
 import { SEGMENT_CONFIGURATIONS, SEGMENT_INSTANCES } from '@src/Features/TableView/constants';
 import { $tableView, onChangeTableView, setRowSelection } from '@src/Features/TableView/model';
 import { TableViewType } from '@src/Features/TableView/types';
+
+import { onImportArchiveEditConfig } from '@src/pages/ArchivesEditPage/model';
 
 import * as styles from './styles.module.css';
 
@@ -24,7 +25,12 @@ const readFileText = (file: File): Promise<string> =>
 
 const ArchivesHeader: FC = () => {
   const navigate = useNavigate();
-  const [tableView, onChangeTableViewFn, setRowSelectionFn, createArchive] = useUnit([$tableView, onChangeTableView, setRowSelection, createArchiveFx]);
+  const [tableView, onChangeTableViewFn, setRowSelectionFn, importArchiveEditConfig] = useUnit([
+    $tableView,
+    onChangeTableView,
+    setRowSelection,
+    onImportArchiveEditConfig,
+  ]);
 
   const importArchiveConfig = useCallback(
     async (file?: File) => {
@@ -39,13 +45,13 @@ const ArchivesHeader: FC = () => {
           return;
         }
 
-        await createArchive({ project, body: config });
-        notification({ title: 'Конфигурация импортирована', status: 'success' });
+        importArchiveEditConfig(config);
+        navigate(routes.ARCHIVES_EDIT);
       } catch {
         notification({ title: 'Не удалось импортировать конфигурацию', status: 'error' });
       }
     },
-    [createArchive],
+    [importArchiveEditConfig, navigate],
   );
 
   const handleUpload = useCallback(
