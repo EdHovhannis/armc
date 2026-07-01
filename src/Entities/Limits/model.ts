@@ -1,6 +1,6 @@
 import { createStore } from 'effector';
 
-import { fetchCurrentProjectLimitsFx, fetchCurrentEstimateFx } from './api';
+import { fetchCurrentEstimateFx, fetchCurrentOverdraftEstimateFx, fetchCurrentProjectLimitsFx, fetchInstanceEstimateFx } from './api';
 import { INIT_PROJECT_ESTIMATE, INIT_PROJECT_LIMITS } from './constants';
 import { ProjectLimitItem, ProjectEstimate, ProjectEstimateItem } from './types';
 
@@ -35,4 +35,11 @@ $currentEstimateWarnings
   .reset([fetchCurrentEstimateFx.failData, fetchInstanceEstimateFx.failData]);
 
 export const $currentEstimateBlockers = createStore<string[]>([]);
-$currentEstimateBlockers.on(fetchCurrentEstimateFx.doneData, (_, payload) => payload.data.blockers).reset([fetchCurrentEstimateFx.failData]);
+$currentEstimateBlockers
+  .on([fetchCurrentEstimateFx.doneData, fetchInstanceEstimateFx.doneData], (_, payload) => payload.data.blockers)
+  .reset([fetchCurrentEstimateFx.failData, fetchInstanceEstimateFx.failData]);
+
+$currentProjectEstimate.on(fetchCurrentOverdraftEstimateFx.doneData, (state, payload) => ({
+  ...state,
+  maxOverdraftPercent: payload.data.maxOverdraftPercent,
+}));

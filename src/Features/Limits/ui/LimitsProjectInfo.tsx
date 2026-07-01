@@ -3,23 +3,23 @@ import { useUnit } from 'effector-react';
 import { FC } from 'react';
 
 import { $isLimitFeatureSettingEnabled } from '@src/Entities/FeatureFlags/model';
-import { fetchCurrentEstimateFx, fetchCurrentProjectLimitsFx } from '@src/Entities/Limits/api';
+import { fetchCurrentEstimateFx, fetchCurrentProjectLimitsFx, fetchInstanceEstimateFx } from '@src/Entities/Limits/api';
 import { $currentProjectEstimate, $currentProjectLimits } from '@src/Entities/Limits/model';
 
 import * as styles from './styles.module.css';
 
 const LimitsProjectInfo: FC = () => {
-  const [currentProjectLimits, isLimitFeatureSettingEnabled, currentProjectEstimate, loadingEstimate, loadingLimits] = useUnit([
-    $currentProjectLimits,
-    $isLimitFeatureSettingEnabled,
-    $currentProjectEstimate,
-    fetchCurrentEstimateFx.pending,
-    fetchInstanceEstimateFx.pending,
-    fetchCurrentProjectLimitsFx.pending,
-  ]);
+  const [currentProjectLimits, isLimitFeatureSettingEnabled, currentProjectEstimate, loadingCurrentEstimate, loadingInstanceEstimate, loadingLimits] =
+    useUnit([
+      $currentProjectLimits,
+      $isLimitFeatureSettingEnabled,
+      $currentProjectEstimate,
+      fetchCurrentEstimateFx.pending,
+      fetchInstanceEstimateFx.pending,
+      fetchCurrentProjectLimitsFx.pending,
+    ]);
 
-  const loadingEstimate = loadingEstimate1 || loadingEstimate2;
-  const loadingOverdraft = loadingOverdraft1 || loadingOverdraft2;
+  const loadingEstimate = loadingCurrentEstimate || loadingInstanceEstimate;
   const maxOverdraftPercent = currentProjectEstimate.maxOverdraftPercent;
   const overdraftColor = maxOverdraftPercent === 0 ? '#FF0000' : '#4CAF50';
   return (

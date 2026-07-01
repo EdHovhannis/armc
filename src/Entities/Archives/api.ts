@@ -5,7 +5,14 @@ import { axios } from '@src/Shared/api/axios';
 import { handleErrorFx } from '@src/Shared/api/model';
 import { AxiosResponseError } from '@src/Shared/api/types';
 
-import { ArchiveConfiguration, FilterItems } from './types';
+import {
+  ArchiveConfigParams,
+  ArchiveConfigPayload,
+  ArchiveConfiguration,
+  CreateArchiveParams,
+  FilterItems,
+  UpdateArchiveParams,
+} from './types';
 
 export interface FetchArchivesParams {
   pageNumber: number;
