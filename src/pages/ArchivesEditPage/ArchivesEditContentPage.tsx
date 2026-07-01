@@ -18,9 +18,6 @@ import * as styles from './styles.module.css';
 const ArchivesEditContentPage: FC = () => {
   const [stepperIndex] = useUnit([$stepperIndex]);
   const methods = useForm({ mode: 'onBlur' });
-  // eslint-disable-next-line react-hooks/incompatible-library
-  const currentValue = methods.watch();
-  console.log(currentValue, 'currentValue');
   return (
     <>
       <FormProvider {...methods}>
