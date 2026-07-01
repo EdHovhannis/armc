@@ -7,8 +7,10 @@ import { DEFAULT_RESTRICTION_UNIT } from '@src/Shared/constants/restrictions';
 import { secondsToValueUnit } from '@src/Shared/lib/format/restrictionSeconds';
 
 import { $optionsArchiveConfig } from '@src/Entities/Archives/model';
-import { fetchProjectOptionsFx, fetchRestrictionAllFx, fetchRestrictionsTableFx } from '@src/Entities/Restriction/api';
-import { $optionsProject, $restrictionAll, $restrictionsByIndex, $restrictionsByProject } from '@src/Entities/Restriction/model';
+import { fetchProjectsFx } from '@src/Entities/Project/api';
+import { $optionsProject } from '@src/Entities/Project/model';
+import { fetchRestrictionAllFx, fetchRestrictionsTableFx } from '@src/Entities/Restriction/api';
+import { $restrictionAll, $restrictionsByIndex, $restrictionsByProject } from '@src/Entities/Restriction/model';
 import { RestrictionAllItem, RestrictionObjectItem } from '@src/Entities/Restriction/types';
 
 import { $restrictionPreselectIndexId } from '../model';
@@ -68,7 +70,7 @@ const DrawerRestrictionBody: FC = () => {
     storeAll,
     loadingProjectOptions,
     loadingTable,
-    fetchProjectOptions,
+    fetchProjects,
     fetchRestrictionsTable,
     fetchRestrictionAll,
   ] = useUnit([
@@ -77,9 +79,9 @@ const DrawerRestrictionBody: FC = () => {
     $restrictionsByIndex,
     $restrictionsByProject,
     $restrictionAll,
-    fetchProjectOptionsFx.pending,
+    fetchProjectsFx.pending,
     fetchRestrictionsTableFx.pending,
-    fetchProjectOptionsFx,
+    fetchProjectsFx,
     fetchRestrictionsTableFx,
     fetchRestrictionAllFx,
   ]);
@@ -91,10 +93,10 @@ const DrawerRestrictionBody: FC = () => {
   });
 
   useEffect(() => {
-    fetchProjectOptions();
+    fetchProjects();
     fetchRestrictionsTable();
     fetchRestrictionAll();
-  }, [fetchProjectOptions, fetchRestrictionsTable, fetchRestrictionAll]);
+  }, [fetchProjects, fetchRestrictionsTable, fetchRestrictionAll]);
 
   const { reset } = methods;
   useEffect(() => {

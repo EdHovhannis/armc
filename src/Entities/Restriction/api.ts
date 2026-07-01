@@ -51,11 +51,6 @@ export const deleteRestrictionFx = createEffect<{ type: RestrictionObjectType; i
   await axios.delete(objectUrl(type, id));
 });
 
-export const fetchProjectOptionsFx = createEffect<void, { name: string; shortName: string }[], AxiosErr>(async () => {
-  const { data } = await axios.get<{ name: string; shortName: string }[]>('/v1/internal/project/list');
-  return data.map(({ name, shortName }) => ({ name, shortName }));
-});
-
 export const fetchRestrictionAllFx = createEffect<void, RestrictionAllItem, AxiosErr>(async () => {
   const { data } = await axios.get<RestrictionAllItem>('/v1/internal/index/archive/restrictions');
   return data;
@@ -67,7 +62,7 @@ export const saveRestrictionAllFx = createEffect<RestrictionAllItem, Restriction
 });
 
 sample({
-  clock: [fetchRestrictionsTableFx.failData, fetchObjectRestrictionFx.failData, fetchProjectOptionsFx.failData, fetchRestrictionAllFx.failData],
+  clock: [fetchRestrictionsTableFx.failData, fetchObjectRestrictionFx.failData, fetchRestrictionAllFx.failData],
   fn: ({ response, status }) => ({ title: 'Не удалось загрузить ограничения', status, message: response?.data.message, data: response?.data }),
   target: handleErrorFx,
 });

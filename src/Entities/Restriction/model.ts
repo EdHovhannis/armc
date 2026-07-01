@@ -3,7 +3,6 @@ import { combine, createEffect, createStore, sample } from 'effector';
 
 import {
   deleteRestrictionFx,
-  fetchProjectOptionsFx,
   fetchRestrictionAllFx,
   fetchRestrictionsTableFx,
   saveRestrictionAllFx,
@@ -18,12 +17,6 @@ $restrictionsTable.on(fetchRestrictionsTableFx.doneData, (_, payload) => payload
 // раскладываем по вкладкам: INDEX -> "По индексу", PROJECT -> "По проекту"
 export const $restrictionsByIndex = combine($restrictionsTable, (items) => items.filter((item) => item.objectType === 'INDEX'));
 export const $restrictionsByProject = combine($restrictionsTable, (items) => items.filter((item) => item.objectType === 'PROJECT'));
-
-export const $projectOptions = createStore<{ name: string; shortName: string }[]>([]);
-$projectOptions.on(fetchProjectOptionsFx.doneData, (_, payload) => payload);
-
-// опции "По проекту": value = shortName (по нему идут эндпоинты), label = name
-export const $optionsProject = combine($projectOptions, (options) => options.map(({ name, shortName }) => ({ value: shortName, label: name })));
 
 export const $restrictionAll = createStore<RestrictionAllItem | null>(null);
 $restrictionAll.on([fetchRestrictionAllFx.doneData, saveRestrictionAllFx.doneData], (_, payload) => payload);
