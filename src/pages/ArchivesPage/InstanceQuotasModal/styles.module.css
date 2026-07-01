@@ -35,13 +35,9 @@
   align-items: flex-start;
 }
 
-div.instanceQuotasDrawerInput {
+.instanceQuotasDrawerInput {
   flex: 1;
   min-width: 0;
-}
-
-div.instanceQuotasDrawerInput * {
-  width: 100%;
 }
 
 div.instanceQuotasDrawerSelect {

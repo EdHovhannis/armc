@@ -8,7 +8,11 @@ import { $currentProjectEstimate, $currentProjectLimits } from '@src/Entities/Li
 
 import * as styles from './styles.module.css';
 
-const LimitsProjectInfo: FC = () => {
+interface LimitsProjectInfoProps {
+  overdraftValue?: number;
+}
+
+const LimitsProjectInfo: FC<LimitsProjectInfoProps> = ({ overdraftValue }) => {
   const [currentProjectLimits, isLimitFeatureSettingEnabled, currentProjectEstimate, loadingCurrentEstimate, loadingInstanceEstimate, loadingLimits] =
     useUnit([
       $currentProjectLimits,
@@ -21,7 +25,17 @@ const LimitsProjectInfo: FC = () => {
 
   const loadingEstimate = loadingCurrentEstimate || loadingInstanceEstimate;
   const maxOverdraftPercent = currentProjectEstimate.maxOverdraftPercent;
-  const overdraftColor = maxOverdraftPercent === 0 ? '#FF0000' : '#4CAF50';
+  const hasOverdraftValue = overdraftValue !== undefined;
+  const shownOverdraft = hasOverdraftValue ? Math.min(overdraftValue, maxOverdraftPercent) : maxOverdraftPercent;
+  const overdraftColor = hasOverdraftValue
+    ? overdraftValue === 0
+      ? '#FF0000'
+      : overdraftValue < maxOverdraftPercent
+        ? '#FFA500'
+        : '#4CAF50'
+    : maxOverdraftPercent === 0
+      ? '#FF0000'
+      : '#4CAF50';
   return (
     <table className={styles.archiveLimitsTable}>
       <thead>
@@ -61,7 +75,7 @@ const LimitsProjectInfo: FC = () => {
             </Text>
             <Text as="td" kind="textSn" className={styles.archiveLimitsTableInfoText}>
               <Skeleton isLoading={loadingEstimate}>
-                <span className={styles.archiveLimitsTableInfoSpan}>{maxOverdraftPercent}%</span>
+                <span className={styles.archiveLimitsTableInfoSpan}>{shownOverdraft}%</span>
               </Skeleton>
             </Text>
           </tr>

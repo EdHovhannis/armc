@@ -7,6 +7,7 @@ import { AxiosResponseError } from '@src/Shared/api/types';
 
 import {
   InstanceEstimateRequestParams,
+  InstanceOverdraftEstimateItem,
   OverdraftEstimateItem,
   OverdraftEstimateRequestParams,
   ProjectEstimateItem,
@@ -53,7 +54,12 @@ export const fetchCurrentOverdraftEstimateFx = createEffect<
   AxiosError<AxiosResponseError>
 >(async (body) => axios.post('/v1/internal/index/archive/task/overdraft/estimate', body));
 
-export const fetchInstanceOverdraftEstimateFx = fetchCurrentOverdraftEstimateFx;
+// для конфигов с maxStorageTimeSec=null бэк валидно отвечает 400 - тост handleErrorFx тут не нужен
+export const fetchInstanceOverdraftEstimateFx = createEffect<
+  OverdraftEstimateRequestParams,
+  AxiosResponse<InstanceOverdraftEstimateItem>,
+  AxiosError<AxiosResponseError>
+>(async (body) => axios.post('/v1/internal/index/archive/task/overdraft/estimate', body));
 
 sample({
   clock: fetchCurrentProjectLimitsFx.failData,

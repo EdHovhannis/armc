@@ -1,7 +1,7 @@
-import { Button, Drawer, DrawerBody, DrawerFooter, DrawerHeader, InputNumber, Select, StatusCard, Text } from '@sds-eng/base';
+import { Button, Drawer, DrawerBody, DrawerFooter, DrawerHeader, Select, StatusCard, Text, TextField } from '@sds-eng/base';
 import { useUnit } from 'effector-react';
-import { FC, useEffect, useState } from 'react';
-import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
+import { FC, useCallback, useEffect, useRef, useState } from 'react';
+import { Controller, FormProvider, useForm } from 'react-hook-form';
 
 import { DATE_LIMITS_UNIT_OPTIONS, SIZE_LIMITS_UNIT_OPTIONS, SPEED_LIMITS_UNIT_OPTIONS } from '@src/Shared/constants/options';
 import { DateUnitValue, SizeUnitValue, SpeedUnitValue } from '@src/Shared/types/filter';
@@ -9,8 +9,8 @@ import { DateUnitValue, SizeUnitValue, SpeedUnitValue } from '@src/Shared/types/
 import { ArchiveInstanceView } from '@src/Entities/Archives/types';
 import { $isLimitFeatureSettingEnabled } from '@src/Entities/FeatureFlags/model';
 import { saveInstanceQuotasFx } from '@src/Entities/Instance/api';
-import { fetchInstanceEstimateFx, fetchInstanceOverdraftEstimateFx } from '@src/Entities/Limits/api';
-import { $currentEstimateBlockers, $currentEstimateWarnings } from '@src/Entities/Limits/model';
+import { fetchInstanceEstimateFx } from '@src/Entities/Limits/api';
+import { $currentEstimateBlockers, $currentEstimateWarnings, $instanceOverdraftValue } from '@src/Entities/Limits/model';
 
 import LimitsInfo from '@src/Features/Limits/ui/LimitsInfo';
 import LimitsProjectInfo from '@src/Features/Limits/ui/LimitsProjectInfo';
@@ -26,15 +26,32 @@ const DEFAULT_SPEED: SpeedUnitValue = 'B/s';
 const DEFAULT_SIZE: SizeUnitValue = 'MB';
 const DEFAULT_DATE: DateUnitValue = 'SEC';
 
-const toDisplay = (raw: number | null, multiplier: number): number =>
-  raw !== null && raw !== undefined && multiplier > 1 ? Math.round((raw / multiplier) * 1000) / 1000 : (raw ?? 0);
+const ESTIMATE_DEBOUNCE_MS = 400;
+
+const toDisplay = (raw: number, multiplier: number): number => (multiplier > 1 ? Math.round((raw / multiplier) * 1000) / 1000 : raw);
 
 const toRaw = (display: number, multiplier: number): number => Math.round(display * multiplier);
 
+// строка для инпута: целые и дробные без хвостовых нулей (String(10)='10', String(0.001)='0.001'); 0 - пустое поле
+const displayStr = (raw: number, multiplier: number): string => (raw ? String(toDisplay(raw, multiplier)) : '');
+
+// оставляем только цифры и одну точку
+const sanitizeNumeric = (value: string): string => {
+  const cleaned = value.replace(/[^\d.]/g, '');
+  const firstDot = cleaned.indexOf('.');
+  if (firstDot === -1) return cleaned;
+  return cleaned.slice(0, firstDot + 1) + cleaned.slice(firstDot + 1).replace(/\./g, '');
+};
+
+const parseNumeric = (value: string): number => {
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
 type QuotaFormValues = {
-  maxDataRateBytesPerSec: number;
-  maxSizeBytes: number;
-  maxStorageTimeSec: number;
+  maxSpeed: string;
+  maxSize: string;
+  maxTime: string;
 };
 
 type UnitState = {
@@ -43,65 +60,149 @@ type UnitState = {
   date: DateUnitValue;
 };
 
+type RawQuota = {
+  speed: number;
+  size: number;
+  time: number;
+};
+
 interface DrawerContentProps {
   row: ArchiveInstanceView;
   onClose: () => void;
 }
 
-// отдельный компонент чтобы при смене row (key меняется) состояние units и формы сбрасывалось до дефолтов
 const DrawerInstanceQuotasContent: FC<DrawerContentProps> = ({ row, onClose }) => {
-  const [topics, saving, warnings, blockers, isLimitEnabled] = useUnit([
+  const [topics, saving, warnings, blockers, isLimitEnabled, overdraftValue] = useUnit([
     $instanceQuotasTopics,
     saveInstanceQuotasFx.pending,
     $currentEstimateWarnings,
     $currentEstimateBlockers,
     $isLimitFeatureSettingEnabled,
+    $instanceOverdraftValue,
   ]);
 
   const [units, setUnits] = useState<UnitState>({ speed: DEFAULT_SPEED, size: DEFAULT_SIZE, date: DEFAULT_DATE });
+  const unitsRef = useRef<UnitState>({ speed: DEFAULT_SPEED, size: DEFAULT_SIZE, date: DEFAULT_DATE });
+
+  const rawRef = useRef<RawQuota>({ speed: row.maxDataRateBytesPerSec || 0, size: row.maxSizeBytes || 0, time: row.maxStorageTimeSec ?? 0 });
 
   const methods = useForm<QuotaFormValues>({
     defaultValues: {
-      maxDataRateBytesPerSec: toDisplay(row.maxDataRateBytesPerSec, SPEED_MULTIPLIERS[DEFAULT_SPEED]),
-      maxSizeBytes: toDisplay(row.maxSizeBytes, SIZE_MULTIPLIERS[DEFAULT_SIZE]),
-      maxStorageTimeSec: toDisplay(row.maxStorageTimeSec, TIME_MULTIPLIERS[DEFAULT_DATE]),
+      maxSpeed: displayStr(row.maxDataRateBytesPerSec || 0, SPEED_MULTIPLIERS[DEFAULT_SPEED]),
+      maxSize: displayStr(row.maxSizeBytes || 0, SIZE_MULTIPLIERS[DEFAULT_SIZE]),
+      maxTime: displayStr(row.maxStorageTimeSec || 0, TIME_MULTIPLIERS[DEFAULT_DATE]),
     },
   });
 
-  const { control, handleSubmit } = methods;
-  const watchedValues = useWatch({ control });
+  const { control, handleSubmit, setValue } = methods;
+
+  const sizeTimer = useRef<ReturnType<typeof setTimeout>>();
+  const timeTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  useEffect(
+    () => () => {
+      if (sizeTimer.current) clearTimeout(sizeTimer.current);
+      if (timeTimer.current) clearTimeout(timeTimer.current);
+    },
+    [],
+  );
+
+  const runEstimate = useCallback(
+    (mode: 'size' | 'time') => {
+      const raw = rawRef.current;
+      if (!raw.speed) return;
+      if (mode === 'size' && !raw.size) return;
+      if (mode === 'time' && !raw.time) return;
+
+      fetchInstanceEstimateFx({
+        project: row.projectName,
+        taskName: row.configName,
+        maxDataRateBytesPerSec: raw.speed,
+        maxSizeBytes: mode === 'size' ? raw.size : null,
+        maxStoreDurationSec: mode === 'time' ? raw.time : null,
+        sources: topics,
+      })
+        .then((response) => {
+          if (mode === 'size') {
+            rawRef.current.time = response.data.maxStoreDurationSec;
+            setValue('maxTime', displayStr(response.data.maxStoreDurationSec, TIME_MULTIPLIERS[unitsRef.current.date]));
+          } else {
+            rawRef.current.size = response.data.maxSizeBytes;
+            setValue('maxSize', displayStr(response.data.maxSizeBytes, SIZE_MULTIPLIERS[unitsRef.current.size]));
+          }
+        })
+        .catch(() => undefined);
+    },
+    [row.projectName, row.configName, topics, setValue],
+  );
 
   useEffect(() => {
     if (topics.length === 0) return;
-    const { maxDataRateBytesPerSec, maxSizeBytes, maxStorageTimeSec } = watchedValues;
-    if (!maxDataRateBytesPerSec || !maxSizeBytes) return;
+    runEstimate('size');
+  }, [topics.length, runEstimate]);
 
-    const speedRaw = toRaw(maxDataRateBytesPerSec ?? 0, SPEED_MULTIPLIERS[units.speed]);
-    const sizeRaw = toRaw(maxSizeBytes ?? 0, SIZE_MULTIPLIERS[units.size]);
-    const timeRaw = toRaw(maxStorageTimeSec ?? 0, TIME_MULTIPLIERS[units.date]);
+  const onSpeedInput = (raw: string) => {
+    const value = sanitizeNumeric(raw);
+    setValue('maxSpeed', value);
+    const num = parseNumeric(value);
+    rawRef.current.speed = num ? toRaw(num, SPEED_MULTIPLIERS[unitsRef.current.speed]) : 0;
+    rawRef.current.size = 0;
+    rawRef.current.time = 0;
+    setValue('maxSize', '');
+    setValue('maxTime', '');
+  };
 
-    fetchInstanceEstimateFx({
-      project: row.projectName,
-      taskName: row.configName,
-      maxDataRateBytesPerSec: speedRaw,
-      maxSizeBytes: sizeRaw,
-      maxStoreDurationSec: timeRaw,
-      sources: topics,
-    });
+  const onSizeInput = (raw: string) => {
+    const value = sanitizeNumeric(raw);
+    setValue('maxSize', value);
+    const num = parseNumeric(value);
+    rawRef.current.size = num ? toRaw(num, SIZE_MULTIPLIERS[unitsRef.current.size]) : 0;
+    rawRef.current.time = 0;
+    setValue('maxTime', '');
+    if (sizeTimer.current) clearTimeout(sizeTimer.current);
+    if (num) sizeTimer.current = setTimeout(() => runEstimate('size'), ESTIMATE_DEBOUNCE_MS);
+  };
 
-    fetchInstanceOverdraftEstimateFx({ maxDataRateBytesPerSec: speedRaw, maxSizeBytes: sizeRaw, maxStorageTimeSec: timeRaw });
-  }, [watchedValues, topics, units, row.projectName, row.configName]);
+  const onTimeInput = (raw: string) => {
+    const value = sanitizeNumeric(raw);
+    setValue('maxTime', value);
+    const num = parseNumeric(value);
+    rawRef.current.time = num ? toRaw(num, TIME_MULTIPLIERS[unitsRef.current.date]) : 0;
+    rawRef.current.size = 0;
+    setValue('maxSize', '');
+    if (timeTimer.current) clearTimeout(timeTimer.current);
+    if (num) timeTimer.current = setTimeout(() => runEstimate('time'), ESTIMATE_DEBOUNCE_MS);
+  };
 
-  const onSubmit = handleSubmit((values) => {
-    saveInstanceQuotasFx({
-      project: row.projectName,
-      taskName: row.configName,
-      zoneId: row.zoneId,
-      maxDataRateBytesPerSec: toRaw(values.maxDataRateBytesPerSec, SPEED_MULTIPLIERS[units.speed]),
-      maxSizeBytes: toRaw(values.maxSizeBytes, SIZE_MULTIPLIERS[units.size]),
-      maxStorageTimeSec: toRaw(values.maxStorageTimeSec, TIME_MULTIPLIERS[units.date]),
-    });
-  });
+  const onSpeedUnitChange = (unit: SpeedUnitValue) => {
+    unitsRef.current = { ...unitsRef.current, speed: unit };
+    setUnits((prev) => ({ ...prev, speed: unit }));
+    setValue('maxSpeed', displayStr(rawRef.current.speed, SPEED_MULTIPLIERS[unit]));
+  };
+
+  const onSizeUnitChange = (unit: SizeUnitValue) => {
+    unitsRef.current = { ...unitsRef.current, size: unit };
+    setUnits((prev) => ({ ...prev, size: unit }));
+    setValue('maxSize', displayStr(rawRef.current.size, SIZE_MULTIPLIERS[unit]));
+  };
+
+  const onDateUnitChange = (unit: DateUnitValue) => {
+    unitsRef.current = { ...unitsRef.current, date: unit };
+    setUnits((prev) => ({ ...prev, date: unit }));
+    setValue('maxTime', displayStr(rawRef.current.time, TIME_MULTIPLIERS[unit]));
+  };
+
+  const onSubmit = () =>
+    handleSubmit(() => {
+      saveInstanceQuotasFx({
+        project: row.projectName,
+        taskName: row.configName,
+        zoneId: row.zoneId,
+        maxDataRateBytesPerSec: rawRef.current.speed,
+        maxSizeBytes: rawRef.current.size,
+        maxStorageTimeSec: rawRef.current.time,
+      });
+    })();
 
   const topicNames = topics.map((source) => source.name);
   const hasBlockers = isLimitEnabled && blockers.length > 0;
@@ -117,23 +218,25 @@ const DrawerInstanceQuotasContent: FC<DrawerContentProps> = ({ row, onClose }) =
                   <Text kind="textSb">Максимальная скорость записи</Text>
                   <div className={styles.instanceQuotasDrawerInputRow}>
                     <Controller
-                      name="maxDataRateBytesPerSec"
+                      name="maxSpeed"
                       control={control}
                       render={({ field }) => (
-                        <InputNumber
+                        <TextField
                           {...field}
+                          value={field.value}
+                          onChange={onSpeedInput}
+                          size="md"
+                          fullWidth
+                          inputMode="decimal"
                           placeholder="Введите значение"
-                          valueType="number"
-                          decimalSeparator="."
-                          precision={3}
-                          classes={{ inputContainer: styles.instanceQuotasDrawerInput }}
+                          className={styles.instanceQuotasDrawerInput}
                         />
                       )}
                     />
                     <Select
                       value={units.speed}
                       options={SPEED_LIMITS_UNIT_OPTIONS}
-                      onChange={(v) => v && setUnits((prev) => ({ ...prev, speed: v as SpeedUnitValue }))}
+                      onChange={(v) => v && onSpeedUnitChange(v as SpeedUnitValue)}
                       classes={{ root: styles.instanceQuotasDrawerSelect }}
                     />
                   </div>
@@ -143,23 +246,25 @@ const DrawerInstanceQuotasContent: FC<DrawerContentProps> = ({ row, onClose }) =
                   <Text kind="textSb">Максимальный размер архива</Text>
                   <div className={styles.instanceQuotasDrawerInputRow}>
                     <Controller
-                      name="maxSizeBytes"
+                      name="maxSize"
                       control={control}
                       render={({ field }) => (
-                        <InputNumber
+                        <TextField
                           {...field}
+                          value={field.value}
+                          onChange={onSizeInput}
+                          size="md"
+                          fullWidth
+                          inputMode="decimal"
                           placeholder="Введите значение"
-                          valueType="number"
-                          decimalSeparator="."
-                          precision={3}
-                          classes={{ inputContainer: styles.instanceQuotasDrawerInput }}
+                          className={styles.instanceQuotasDrawerInput}
                         />
                       )}
                     />
                     <Select
                       value={units.size}
                       options={SIZE_LIMITS_UNIT_OPTIONS}
-                      onChange={(v) => v && setUnits((prev) => ({ ...prev, size: v as SizeUnitValue }))}
+                      onChange={(v) => v && onSizeUnitChange(v as SizeUnitValue)}
                       classes={{ root: styles.instanceQuotasDrawerSelect }}
                     />
                   </div>
@@ -169,30 +274,32 @@ const DrawerInstanceQuotasContent: FC<DrawerContentProps> = ({ row, onClose }) =
                   <Text kind="textSb">Максимальное время хранения данных</Text>
                   <div className={styles.instanceQuotasDrawerInputRow}>
                     <Controller
-                      name="maxStorageTimeSec"
+                      name="maxTime"
                       control={control}
                       render={({ field }) => (
-                        <InputNumber
+                        <TextField
                           {...field}
+                          value={field.value}
+                          onChange={onTimeInput}
+                          size="md"
+                          fullWidth
+                          inputMode="decimal"
                           placeholder="Введите значение"
-                          valueType="number"
-                          decimalSeparator="."
-                          precision={3}
-                          classes={{ inputContainer: styles.instanceQuotasDrawerInput }}
+                          className={styles.instanceQuotasDrawerInput}
                         />
                       )}
                     />
                     <Select
                       value={units.date}
                       options={DATE_LIMITS_UNIT_OPTIONS}
-                      onChange={(v) => v && setUnits((prev) => ({ ...prev, date: v as DateUnitValue }))}
+                      onChange={(v) => v && onDateUnitChange(v as DateUnitValue)}
                       classes={{ root: styles.instanceQuotasDrawerSelect }}
                     />
                   </div>
                 </div>
               </div>
 
-              <LimitsProjectInfo />
+              <LimitsProjectInfo overdraftValue={overdraftValue} />
             </div>
 
             <LimitsInfo topicNames={topicNames} sumBytesPerSec={0} sumPartitions={0} />

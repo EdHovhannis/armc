@@ -1,5 +1,5 @@
 import { useUnit } from 'effector-react';
-import { FC } from 'react';
+import { FC, useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import ArchivesEditStepper from '@src/Widgets/ArchiveEditStepper';
@@ -13,11 +13,22 @@ import StepLimits from './Steps/StepLimits';
 import StepPreprocessing from './Steps/StepPreprocessing';
 import StepResult from './Steps/StepResult';
 import StepSchema from './Steps/StepSchema';
+import { ARCHIVE_EDIT_DEFAULT_VALUES } from './constants';
+import { mapArchiveConfigToFormValues } from './lib/mapArchiveConfigToFormValues';
+import { $archiveEditImportedConfig, onResetArchiveEditImportedConfig } from './model';
 import * as styles from './styles.module.css';
 
 const ArchivesEditContentPage: FC = () => {
-  const [stepperIndex] = useUnit([$stepperIndex]);
-  const methods = useForm({ mode: 'onBlur' });
+  const [stepperIndex, importedConfig] = useUnit([$stepperIndex, $archiveEditImportedConfig]);
+  const methods = useForm({
+    mode: 'onBlur',
+    defaultValues: importedConfig
+      ? mapArchiveConfigToFormValues(importedConfig, importedConfig.source.kafka[0]?.project ?? '')
+      : ARCHIVE_EDIT_DEFAULT_VALUES,
+  });
+
+  useEffect(() => () => onResetArchiveEditImportedConfig(), []);
+
   return (
     <>
       <FormProvider {...methods}>

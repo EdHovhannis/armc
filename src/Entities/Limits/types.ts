@@ -51,8 +51,8 @@ export type InstanceEstimateRequestParams = {
   project: string;
   taskName: string;
   maxDataRateBytesPerSec: number;
-  maxSizeBytes: number;
-  maxStoreDurationSec: number;
+  maxSizeBytes: number | null;
+  maxStoreDurationSec: number | null;
   sources: QuotaEstimateSource[];
 };
 
@@ -64,4 +64,8 @@ export type OverdraftEstimateRequestParams = {
 
 export type OverdraftEstimateItem = {
   maxOverdraftPercent: number;
+};
+
+export type InstanceOverdraftEstimateItem = {
+  maxAvailableOverdraft: number;
 };

@@ -1,6 +1,12 @@
 import { createStore } from 'effector';
 
-import { fetchCurrentEstimateFx, fetchCurrentOverdraftEstimateFx, fetchCurrentProjectLimitsFx, fetchInstanceEstimateFx } from './api';
+import {
+  fetchCurrentEstimateFx,
+  fetchCurrentOverdraftEstimateFx,
+  fetchCurrentProjectLimitsFx,
+  fetchInstanceEstimateFx,
+  fetchInstanceOverdraftEstimateFx,
+} from './api';
 import { INIT_PROJECT_ESTIMATE, INIT_PROJECT_LIMITS } from './constants';
 import { ProjectLimitItem, ProjectEstimate, ProjectEstimateItem } from './types';
 
@@ -23,9 +29,9 @@ $currentProjectEstimate
     ...mapEstimateData(result.data),
     estimateBySize: params.maxStoreDurationSec === null,
   }))
-  .on(fetchInstanceEstimateFx.done, (_, { result }) => ({
+  .on(fetchInstanceEstimateFx.done, (_, { params, result }) => ({
     ...mapEstimateData(result.data),
-    estimateBySize: true,
+    estimateBySize: params.maxStoreDurationSec === null,
   }))
   .reset([fetchCurrentEstimateFx.failData, fetchInstanceEstimateFx.failData]);
 
@@ -43,3 +49,9 @@ $currentProjectEstimate.on(fetchCurrentOverdraftEstimateFx.doneData, (state, pay
   ...state,
   maxOverdraftPercent: payload.data.maxOverdraftPercent,
 }));
+
+// доступный овердрафт экземпляра для дравера квот (abyss: maxAvailableOverdraft). При статусе ответа 400 остаётся 0 - в таблице 0% красным
+export const $instanceOverdraftValue = createStore<number>(0);
+$instanceOverdraftValue
+  .on(fetchInstanceOverdraftEstimateFx.doneData, (_, payload) => payload.data.maxAvailableOverdraft)
+  .reset(fetchInstanceOverdraftEstimateFx.failData);
