@@ -31,7 +31,8 @@ export const mapArchiveConfigToFormValues = (config: ArchiveConfigPayload, proje
   const processing = config.processing as ProcessingPayload;
   const speed = bytesToSpeedUnit(config.quota.maxDataRateBytesPerSec);
   const size = bytesToSizeUnit(config.quota.maxSizeBytes);
-  const date = secondsToDateUnit(config.quota.maxStorageTimeSec);
+  const hasStorageTime = config.quota.maxStorageTimeSec != null && config.quota.maxStorageTimeSec > 0;
+  const date = hasStorageTime ? secondsToDateUnit(config.quota.maxStorageTimeSec) : null;
 
   return {
     ...ARCHIVE_EDIT_DEFAULT_VALUES,
@@ -59,12 +60,12 @@ export const mapArchiveConfigToFormValues = (config: ArchiveConfigPayload, proje
     quota: {
       maxDataRateBytesPerSec: speed.value,
       maxSizeBytes: size.value,
-      maxStorageTimeSec: date.value,
+      ...(date ? { maxStorageTimeSec: date.value } : {}),
     },
     quotaUnits: {
       speed: speed.unit,
       size: size.unit,
-      date: date.unit,
+      date: date?.unit ?? ARCHIVE_EDIT_DEFAULT_VALUES.quotaUnits.date,
     },
     flatten: Boolean(processing.flatten),
     exclude: processing.flatten?.exclude ?? [],

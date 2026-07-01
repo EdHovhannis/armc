@@ -29,8 +29,6 @@ const ConfigurationActionsCell: FC<{ row: ArchiveConfigView }> = ({ row }) => {
   ]);
 
   const handleEdit = useCallback(() => {
-    // пробрасываем конфигурацию в query, чтобы edit-страница знала, что редактируем
-    // TODO(archives-edit): на /archives/edit читать project/name из search-параметров и грузить конфигурацию
     const search = `?${createSearchParams({ project: row.projectKey, name: row.configuration })}`;
     navigate({ pathname: routes.ARCHIVES_EDIT, search });
   }, [navigate, row.projectKey, row.configuration]);

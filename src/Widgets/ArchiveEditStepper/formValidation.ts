@@ -17,7 +17,8 @@ export const isKafkaSourcesFilled = (sources: KafkaSourceFormValue[]) =>
   sources.length > 0 && sources.every((source) => Boolean(source.project) && Boolean(source.name));
 
 export const isQuotaFilled = (quota: QuotaFormValue) =>
-  isPositiveNumber(quota.maxDataRateBytesPerSec) && isPositiveNumber(quota.maxSizeBytes) && isPositiveNumber(quota.maxStorageTimeSec);
+  isPositiveNumber(quota.maxDataRateBytesPerSec) &&
+  (isPositiveNumber(quota.maxSizeBytes) || isPositiveNumber(quota.maxStorageTimeSec));
 
 export const isQuotaEstimateReady = (quota: QuotaFormValue) =>
   isPositiveNumber(quota.maxDataRateBytesPerSec) && (isPositiveNumber(quota.maxSizeBytes) || isPositiveNumber(quota.maxStorageTimeSec));

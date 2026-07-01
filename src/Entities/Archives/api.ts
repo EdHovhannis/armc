@@ -127,3 +127,15 @@ sample({
   fn: ({ response, status }) => ({ title: 'Не удалось удалить архив.', status, message: response?.data.message, data: response?.data }),
   target: handleErrorFx,
 });
+
+sample({
+  clock: createArchiveFx.failData,
+  fn: ({ response, status }) => ({ title: 'Не удалось создать конфигурацию.', status, message: response?.data.message, data: response?.data }),
+  target: handleErrorFx,
+});
+
+sample({
+  clock: updateArchiveFx.failData,
+  fn: ({ response, status }) => ({ title: 'Не удалось сохранить конфигурацию.', status, message: response?.data.message, data: response?.data }),
+  target: handleErrorFx,
+});
